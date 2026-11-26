@@ -1,0 +1,615 @@
+<title>ろ過と「とける」のしくみ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Roboto+Mono:wght@500&display=swap">
+<style>
+  :root{
+    --ground:#FAF8F3; --ink:#1A2B4C; --blue:#2E6FB7; --card:#E6EEF7;
+    --orange:#FF9900; --burnt:#E55A00; --gray:#5A6577; --line:#CBD6E4;
+    --sugar:#C98A3C; --sugar-liq:#D9A85E; --starch:#E8DEC6; --starch-liq:#EFEAE0;
+    --water:#BFD7EC; --glass:#8FA6BC;
+    --f: "BIZ UDPGothic", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+    --mono:"Roboto Mono", ui-monospace, monospace;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:var(--f);margin:0;line-height:1.6}
+  .wrap{max-width:1040px;margin:0 auto;padding:20px 16px 56px}
+
+  header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;padding-bottom:14px;border-bottom:3px solid var(--blue)}
+  h1{font-size:clamp(22px,4.6vw,34px);margin:0;font-weight:700;color:var(--blue);text-wrap:balance}
+  .eyebrow{font-size:13px;letter-spacing:.14em;color:var(--gray)}
+
+  nav{display:flex;gap:8px;margin:18px 0 22px;flex-wrap:wrap}
+  .tab{font-family:var(--f);font-size:16px;font-weight:700;color:var(--blue);background:#fff;
+    border:2px solid var(--blue);border-radius:999px;padding:10px 18px;cursor:pointer;min-height:46px}
+  .tab[aria-selected="true"]{background:var(--blue);color:#fff}
+  .tab:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+
+  section[hidden]{display:none!important}
+  .lead{font-size:clamp(17px,2.4vw,20px);font-weight:700;margin:0 0 4px}
+  .sub{color:var(--gray);font-size:14px;margin:0 0 16px}
+
+  .stage{background:#fff;border:2px solid var(--line);border-radius:14px;overflow:hidden}
+  canvas{display:block;width:100%;height:auto}
+
+  .ctrl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
+  .btn{font-family:var(--f);font-size:16px;font-weight:700;border-radius:10px;padding:11px 16px;
+    cursor:pointer;min-height:46px;border:2px solid var(--blue);background:#fff;color:var(--blue)}
+  .btn.primary{background:var(--blue);color:#fff}
+  .btn.ghost{border-color:var(--line);color:var(--gray)}
+  .btn[aria-pressed="true"]{background:var(--blue);color:#fff}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+
+  .sizerow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+    background:var(--card);border-radius:12px;padding:12px 16px;margin:14px 0}
+  .sizerow label{font-weight:700;font-size:15px}
+  input[type=range]{flex:1;min-width:180px;accent-color:var(--blue);height:36px}
+  .val{font-family:var(--mono);font-size:18px;font-variant-numeric:tabular-nums;color:var(--burnt);font-weight:500}
+
+  .readout{border-left:6px solid var(--orange);background:#fff;border-radius:0 10px 10px 0;
+    padding:12px 16px;font-size:clamp(15px,2.2vw,18px);min-height:62px;display:flex;align-items:center}
+  .readout b{color:var(--burnt)}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:640px){.two{grid-template-columns:1fr}}
+  .col{background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px}
+  .col h3{margin:0 0 10px;font-size:17px;display:flex;align-items:center;gap:8px}
+  .swatch{width:16px;height:16px;border-radius:50%;border:1px solid var(--ink)}
+  .beaker{width:100%;height:auto;display:block}
+
+  .steps{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}
+  .step{font-size:14px;font-weight:700;border-radius:999px;padding:8px 14px;border:2px solid var(--line);
+    background:#fff;color:var(--gray);cursor:pointer;min-height:42px}
+  .step.done{border-color:var(--blue);color:var(--blue)}
+  .step[aria-current="true"]{border-color:var(--blue);color:#fff;background:var(--blue)}
+
+  .guess{background:var(--card);border-radius:12px;padding:14px 16px;margin:0 0 16px}
+  .guess p{margin:0 0 10px;font-weight:700}
+  .chips{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{font-family:var(--f);font-size:15px;font-weight:700;border-radius:999px;padding:10px 16px;
+    border:2px solid var(--blue);background:#fff;color:var(--blue);cursor:pointer;min-height:44px}
+  .chip[aria-pressed="true"]{background:var(--blue);color:#fff}
+  .mark{font-family:var(--mono);font-weight:500;margin-left:6px}
+  .ok{color:#1E7A46}.ng{color:var(--burnt)}
+
+  .note{font-size:14px;color:var(--gray);margin:6px 0 0}
+  .fact{margin:10px 0 0;font-size:15px}
+  .fact b{color:var(--burnt)}
+  .scale{font-family:var(--mono);font-size:20px;font-variant-numeric:tabular-nums;
+    background:#22303F;color:#9FE8A0;border-radius:6px;padding:4px 10px;display:inline-block;letter-spacing:.06em}
+
+  .point{background:#fff;border:2px solid var(--blue);border-radius:14px;padding:16px 18px;margin-top:20px}
+  .point h4{margin:0 0 8px;font-size:16px;color:var(--blue)}
+  .point ol{margin:0;padding-left:1.3em}
+  .point li{margin:4px 0}
+  .tag{display:inline-block;background:var(--orange);color:var(--ink);font-weight:700;font-size:13px;
+    border-radius:6px;padding:3px 10px;margin-bottom:8px}
+  footer{margin-top:28px;font-size:13px;color:var(--gray);border-top:1px solid var(--line);padding-top:12px}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>ろ過と「とける」のしくみ</h1>
+    <span class="eyebrow">１年　身のまわりの物質　／　水溶液</span>
+  </header>
+
+  <nav role="tablist" aria-label="セクション">
+    <button class="tab" id="t1" role="tab" aria-selected="true" aria-controls="s1">① ろ紙のしくみ</button>
+    <button class="tab" id="t2" role="tab" aria-selected="false" aria-controls="s2">② 2つの白い粉</button>
+    <button class="tab" id="t3" role="tab" aria-selected="false" aria-controls="s3">③ 粒子で見る</button>
+  </nav>
+
+  <!-- ========== ① ろ紙のしくみ ========== -->
+  <section id="s1" role="tabpanel" aria-labelledby="t1">
+    <p class="lead">ろ紙を切って、横から1000倍に拡大してみると？</p>
+    <p class="sub">ろ紙は繊維がかさなってできていて、断面で見ると小さなあながいくつも空いている。上の層ほどあなが大きく、下にいくほど小さい。</p>
+
+    <div class="stage"><canvas id="cv1" width="1000" height="620" aria-label="ろ紙の断面を粒子が落ちていくようす"></canvas></div>
+
+    <div class="sizerow">
+      <label for="psize">粒の大きさ</label>
+      <input type="range" id="psize" min="2" max="22" step="0.5" value="17">
+      <span class="val" id="psizeval">17</span>
+      <button class="btn primary" id="drop">粒を落とす</button>
+      <button class="btn ghost" id="reset1">リセット</button>
+    </div>
+
+    <div class="ctrl">
+      <button class="btn" id="pStarch" aria-pressed="true">デンプンの粒</button>
+      <button class="btn" id="pSugar" aria-pressed="false">砂糖の粒</button>
+      <button class="btn" id="pWater" aria-pressed="false">水の粒</button>
+      <span class="note">実物に近い大きさに切りかえます</span>
+    </div>
+
+    <div class="readout" id="out1">粒の大きさを決めて「粒を落とす」を押そう。</div>
+
+    <div class="point">
+      <span class="tag">ここがポイント</span>
+      <h4>ろ紙のあなより小さい物質だけが、ろ紙のあなを通りぬけることができる</h4>
+      <p class="fact">大きい粒は<b>上の層のあな</b>で引っかかる。小さい粒ほど<b>下の層のあな</b>まで通りぬけ、いちばん小さいあなより小さければろ液に出てくる。</p>
+    </div>
+  </section>
+
+  <!-- ========== ② 2つの白い粉 ========== -->
+  <section id="s2" role="tabpanel" aria-labelledby="t2" hidden>
+    <p class="lead">コーヒーシュガーとデンプン、水に入れるとどうなる？</p>
+    <p class="sub">まず予想してから、ボタンを押して確かめよう。</p>
+
+    <div class="steps" role="group" aria-label="実験の段階">
+      <button class="step" data-step="0" aria-current="true">1. 水に入れる</button>
+      <button class="step" data-step="1">2. 質量をはかる</button>
+      <button class="step" data-step="2">3. ろ過する</button>
+      <button class="step" data-step="3">4. 一晩置く</button>
+    </div>
+
+    <div class="guess" id="guessBox">
+      <p id="guessQ">コーヒーシュガーとデンプン、水に入れてかき混ぜるとどうなる？</p>
+      <div class="chips" id="guessChips"></div>
+    </div>
+
+    <div class="two">
+      <div class="col">
+        <h3><span class="swatch" style="background:var(--sugar)"></span>コーヒーシュガー（砂糖）</h3>
+        <svg class="beaker" viewBox="0 0 320 300" id="bkSugar" aria-label="コーヒーシュガーを入れたビーカー"></svg>
+        <p class="fact" id="txtSugar"></p>
+      </div>
+      <div class="col">
+        <h3><span class="swatch" style="background:var(--starch);"></span>デンプン</h3>
+        <svg class="beaker" viewBox="0 0 320 300" id="bkStarch" aria-label="デンプンを入れたビーカー"></svg>
+        <p class="fact" id="txtStarch"></p>
+      </div>
+    </div>
+
+    <div class="ctrl">
+      <button class="btn primary" id="runStep">やってみる</button>
+      <button class="btn ghost" id="reset2">最初から</button>
+    </div>
+
+    <div class="readout" id="out2">1 の予想を選んでから「やってみる」を押そう。</div>
+  </section>
+
+  <!-- ========== ③ 粒子で見る ========== -->
+  <section id="s3" role="tabpanel" aria-labelledby="t3" hidden>
+    <p class="lead">「とける」を粒子で見ると、どうなっている？</p>
+    <p class="sub">目に見えない小さな粒子のモデルで表すと、とけるようすがわかりやすくなる。</p>
+
+    <div class="ctrl">
+      <button class="btn" id="mSugar" aria-pressed="true">砂糖（とける）</button>
+      <button class="btn" id="mStarch" aria-pressed="false">デンプン（とけない）</button>
+    </div>
+
+    <div class="stage"><canvas id="cv3" width="1000" height="460" aria-label="粒子モデルのアニメーション"></canvas></div>
+
+    <div class="ctrl">
+      <button class="btn primary" id="next3">次へ</button>
+      <button class="btn ghost" id="reset3">最初から</button>
+    </div>
+
+    <div class="readout" id="out3">水の中に、砂糖のかたまりを入れた。</div>
+
+    <div class="point">
+      <span class="tag">ここがポイント</span>
+      <h4>物質が水にとけるということは、次の状態になることである</h4>
+      <ol>
+        <li>液が<b>透明</b>になる</li>
+        <li>液のこさは、<b>どの部分も同じ</b>になる</li>
+        <li>液のこさは、<b>時間がたっても変わらない</b></li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>柿木中学校　理科　１年　単元２「身のまわりの物質」／ 教科書 p.102〜105 に対応</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var C = {ground:"#FAF8F3", ink:"#1A2B4C", blue:"#2E6FB7", card:"#E6EEF7", orange:"#FF9900",
+           burnt:"#E55A00", gray:"#5A6577", line:"#CBD6E4", sugar:"#C98A3C", sugarLiq:"#D9A85E",
+           starch:"#E8DEC6", water:"#BFD7EC", glass:"#8FA6BC"};
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- タブ ---------- */
+  var tabs = [document.getElementById("t1"),document.getElementById("t2"),document.getElementById("t3")];
+  var panels = [document.getElementById("s1"),document.getElementById("s2"),document.getElementById("s3")];
+  tabs.forEach(function(t,i){
+    t.addEventListener("click", function(){
+      tabs.forEach(function(x,j){ x.setAttribute("aria-selected", j===i?"true":"false"); panels[j].hidden = j!==i; });
+      if(i===0) draw1(); if(i===2) draw3();
+    });
+  });
+
+  /* ================= ① ろ紙のしくみ ================= */
+  var cv1 = document.getElementById("cv1"), x1 = cv1.getContext("2d");
+  var W1 = 1000, H1 = 620;
+  cv1.width = W1; cv1.height = H1;
+  var PAPER_TOP = 150, PAPER_BOTTOM = 470, SLAB_L = 96, SLAB_R = 984;
+
+  // ろ紙の断面＝4枚の層。層ごとに「あな」の大きさがちがう（上ほど大きい）
+  var SLABS = [];
+  (function makeSlabs(){
+    var defs = [
+      {y:168, h:38, pore:15, gap:132, label:"1層目"},
+      {y:242, h:38, pore:11, gap:96,  label:"2層目"},
+      {y:316, h:38, pore:7.5, gap:70, label:"3層目"},
+      {y:390, h:38, pore:5,  gap:52,  label:"4層目"}
+    ];
+    var seed = 11;
+    function rnd(){ seed = (seed*1103515245 + 12345) % 2147483648; return seed/2147483648; }
+    defs.forEach(function(d){
+      var holes = [], x = 140 + rnd()*18;
+      while(x < 950){ holes.push(Math.round(x)); x += d.gap*(0.82 + rnd()*0.4); }
+      SLABS.push({y:d.y, h:d.h, pore:d.pore, label:d.label, holes:holes,
+                  flecks:(function(){ var f=[]; for(var i=0;i<70;i++) f.push([110+rnd()*850, d.y+4+rnd()*(d.h-8), 0.6+rnd()*1.4]); return f; })()});
+    });
+  })();
+
+  var particles = [], sizeNow = 17;
+  var PRESET = {
+    starch:{size:17, name:"デンプンの粒", note:"デンプンの粒はろ紙のあなよりずっと大きい"},
+    sugar:{size:4,  name:"砂糖の粒",     note:"砂糖は目に見えないほど小さい粒子"},
+    water:{size:2.5,name:"水の粒",       note:"水の粒子はさらに小さい"}
+  };
+
+  function nearestHole(slab, x){
+    var best = slab.holes[0], bd = Math.abs(best - x);
+    slab.holes.forEach(function(h){ var d = Math.abs(h - x); if(d < bd){ bd = d; best = h; } });
+    return best;
+  }
+
+  // 粒の道すじ。あなより大きければその層の上で止まる
+  function routeFor(x0, r){
+    var wp = [], x = x0, stopped = -1;
+    for(var i=0;i<SLABS.length;i++){
+      var S = SLABS[i];
+      if(r <= S.pore - 0.4){
+        var hx = nearestHole(S, x);
+        wp.push({x:hx, y:S.y - r - 3});            // あなの真上へ寄る
+        wp.push({x:hx, y:S.y + S.h + r + 3});      // あなを通りぬける
+        x = hx;
+      }else{
+        var hx2 = nearestHole(S, x);
+        var side = (x < hx2 ? -1 : 1);
+        wp.push({x: hx2 + side*(S.pore + r*0.9), y:S.y - r - 2});  // あなのふちに引っかかる
+        stopped = i; break;
+      }
+    }
+    if(stopped === -1) wp.push({x:x, y:H1 - 70});
+    return {wp:wp, stopped:stopped};
+  }
+
+  function drawBack(){
+    x1.fillStyle = "#fff"; x1.fillRect(0,0,W1,H1);
+    x1.fillStyle = "#EAF1F7"; x1.fillRect(0,0,W1,PAPER_TOP);
+    x1.fillStyle = "#EAF1F7"; x1.fillRect(0,PAPER_BOTTOM,W1,H1-PAPER_BOTTOM);
+    x1.fillStyle = "#E4EDF3"; x1.fillRect(0,PAPER_TOP,W1,PAPER_BOTTOM-PAPER_TOP);
+    x1.fillStyle = "#fff"; x1.fillRect(0,PAPER_TOP,SLAB_L-8,PAPER_BOTTOM-PAPER_TOP);
+    x1.fillStyle = C.gray; x1.font = "600 20px 'BIZ UDPGothic',sans-serif";
+    x1.fillText("ろ過する液（上から落ちてくる）", 24, 34);
+    x1.fillText("ろ液（ろ紙を通りぬけた液）", 24, H1-24);
+  }
+
+  function drawSlabs(){
+    SLABS.forEach(function(S){
+      // 層の板を描き、あなの部分をくりぬく（evenodd）
+      x1.beginPath();
+      x1.rect(SLAB_L, S.y, SLAB_R-SLAB_L, S.h);
+      S.holes.forEach(function(hx){
+        x1.moveTo(hx + S.pore, S.y + S.h/2);
+        x1.arc(hx, S.y + S.h/2, S.pore, 0, 6.2832);
+      });
+      x1.fillStyle = "#DCD6C4"; x1.fill("evenodd");
+      // 紙の質感
+      x1.save();
+      x1.beginPath(); x1.rect(SLAB_L,S.y,SLAB_R-SLAB_L,S.h);
+      S.holes.forEach(function(hx){ x1.moveTo(hx + S.pore, S.y + S.h/2); x1.arc(hx, S.y + S.h/2, S.pore, 0, 6.2832); });
+      x1.clip("evenodd");
+      x1.strokeStyle = "rgba(150,142,120,.5)"; x1.lineWidth = 1;
+      S.flecks.forEach(function(f){
+        x1.beginPath(); x1.moveTo(f[0], f[1]); x1.lineTo(f[0]+14, f[1]+f[2]); x1.stroke();
+      });
+      x1.restore();
+      // 板の上下の線と、あなのふち
+      x1.strokeStyle = "#A99E82"; x1.lineWidth = 2;
+      x1.beginPath(); x1.moveTo(SLAB_L,S.y); x1.lineTo(SLAB_R,S.y); x1.moveTo(SLAB_L,S.y+S.h); x1.lineTo(SLAB_R,S.y+S.h); x1.stroke();
+      x1.lineWidth = 2.4;
+      S.holes.forEach(function(hx){
+        x1.beginPath(); x1.arc(hx, S.y + S.h/2, S.pore, 0, 6.2832); x1.stroke();
+      });
+    });
+  }
+
+  function drawLabels(){
+    SLABS.forEach(function(S){
+      var y = S.y + S.h/2;
+      x1.fillStyle = C.ink; x1.font = "700 17px 'BIZ UDPGothic',sans-serif";
+      x1.fillText(S.label, 12, y - 2);
+      x1.fillStyle = C.burnt; x1.font = "700 16px 'BIZ UDPGothic',sans-serif";
+      x1.fillText("あな " + S.pore, 12, y + 18);
+    });
+  }
+
+  function drawParticles(){
+    particles.forEach(function(p){
+      x1.beginPath(); x1.arc(p.x, p.y, p.r, 0, 6.2832);
+      x1.fillStyle = p.color; x1.fill();
+      x1.lineWidth = 2; x1.strokeStyle = C.ink; x1.stroke();
+    });
+  }
+
+  // 粒 → 板 の順に描くと、あなを通っているときだけ穴から見える
+  function draw1(){ drawBack(); drawParticles(); drawSlabs(); drawLabels(); }
+
+  var anim1 = null;
+  function tick1(){
+    var moving = false;
+    particles.forEach(function(p){
+      if(p.wi >= p.wp.length) return;
+      var t = p.wp[p.wi];
+      var dy = t.y - p.y, dx = t.x - p.x;
+      if(Math.abs(dy) < 1.2 && Math.abs(dx) < 1.2){ p.wi++; moving = true; return; }
+      p.y += Math.max(-4, Math.min(4.2, dy*0.18));
+      p.x += Math.max(-5, Math.min(5, dx*0.16));
+      moving = true;
+    });
+    draw1();
+    anim1 = moving ? requestAnimationFrame(tick1) : null;
+  }
+
+  function dropParticles(){
+    if(anim1) cancelAnimationFrame(anim1);
+    var size = sizeNow;
+    var color = size > 12 ? C.starch : (size > 3.2 ? C.sugar : C.water);
+    particles = []; var n = 8, stoppedAt = -2;
+    for(var i=0;i<n;i++){
+      var gx = 160 + i*(700/(n-1));
+      var r = routeFor(gx, size);
+      stoppedAt = r.stopped;
+      particles.push({x:gx, y:20 + (i%3)*22, r:size, color:color, wp:r.wp, wi:0});
+    }
+    if(reduce){
+      particles.forEach(function(p){ var last = p.wp[p.wp.length-1]; p.x = last.x; p.y = last.y; p.wi = p.wp.length; });
+      draw1();
+    }else anim1 = requestAnimationFrame(tick1);
+
+    var out = document.getElementById("out1");
+    if(stoppedAt === -1){
+      out.innerHTML = "大きさ <b>" + size + "</b> の粒　→　どの層のあなよりも小さいので、<b>あなを通りぬけてろ液に出た</b>。";
+    }else{
+      var S = SLABS[stoppedAt];
+      out.innerHTML = "大きさ <b>" + size + "</b> の粒　→　" + S.label + "のあな（大きさ " + S.pore +
+        "）より大きいので、<b>あなを通れずに止まった</b>。";
+    }
+  }
+
+  var slider = document.getElementById("psize"), sval = document.getElementById("psizeval");
+  function setSize(v, fromPreset){
+    sizeNow = Number(v); slider.value = v; sval.textContent = v;
+    if(!fromPreset){
+      ["pStarch","pSugar","pWater"].forEach(function(id){ document.getElementById(id).setAttribute("aria-pressed","false"); });
+    }
+  }
+  slider.addEventListener("input", function(){ setSize(this.value, false); });
+  function preset(key, id){
+    document.getElementById(id).addEventListener("click", function(){
+      ["pStarch","pSugar","pWater"].forEach(function(x){ document.getElementById(x).setAttribute("aria-pressed","false"); });
+      this.setAttribute("aria-pressed","true");
+      setSize(PRESET[key].size, true); dropParticles();
+      document.getElementById("out1").innerHTML += "　（" + PRESET[key].note + "）";
+    });
+  }
+  preset("starch","pStarch"); preset("sugar","pSugar"); preset("water","pWater");
+  document.getElementById("drop").addEventListener("click", dropParticles);
+  document.getElementById("reset1").addEventListener("click", function(){
+    if(anim1) cancelAnimationFrame(anim1);
+    particles = []; draw1(); document.getElementById("out1").textContent = "粒の大きさを決めて「粒を落とす」を押そう。";
+  });
+  draw1();
+
+  /* ================= ② 2つの白い粉 ================= */
+  var STEP = 0, guessed = [null,null,null,null], revealed = [false,false,false,false];
+  var QUESTIONS = [
+    {q:"水に入れてかき混ぜると、液はどうなる？", a:["どちらも透明になる","一方はにごる","どちらもにごる"], correct:1},
+    {q:"水100gに粉5gを入れて混ぜると、全体の質量は？", a:["105gのまま変わらない","とけた分だけ軽くなる","重くなる"], correct:0},
+    {q:"ろ過すると、ろ紙には何が残る？", a:["どちらも残らない","デンプンだけ残る","どちらも残る"], correct:1},
+    {q:"一晩置くと、液はどうなる？", a:["どちらも変わらない","デンプンだけ底にしずむ","どちらもしずむ"], correct:1}
+  ];
+  var FACTS = [
+    {s:"液は茶色くなったが、<b>すき通っている（透明）</b>。", t:"液は<b>白くにごった</b>。すき通っていない。"},
+    {s:"入れる前 100g＋5g　→　混ぜた後も <b>105g</b>。", t:"入れる前 100g＋5g　→　混ぜた後も <b>105g</b>。"},
+    {s:"ろ紙には<b>何も残らない</b>。ろ液の水を蒸発させると<b>砂糖が残る</b>。", t:"ろ紙に<b>デンプンが残る</b>。ろ液の水を蒸発させても<b>何も残らない</b>。"},
+    {s:"どの部分も同じこさのまま。<b>変化なし</b>。", t:"白くにごった粉が<b>底にしずんだ</b>。"}
+  ];
+
+  function beaker(svg, opts){
+    var liq = opts.liquid, cloudy = opts.cloudy, settled = opts.settled, grains = opts.grains;
+    var funnel = opts.funnel, scale = opts.scale;
+    var s = '';
+    if(scale){
+      s += '<rect x="36" y="250" width="248" height="28" rx="6" fill="#DCE3EA" stroke="'+C.glass+'" stroke-width="2"/>';
+      s += '<rect x="178" y="257" width="98" height="16" rx="3" fill="#22303F"/>';
+      s += '<text x="227" y="270" font-family="Roboto Mono,monospace" font-size="13" fill="#9FE8A0" text-anchor="middle">'+opts.scaleText+'</text>';
+    }
+    var bx=88, by=52, bw=144, bh=186, byy = scale ? by-8 : by;
+    if(funnel){
+      s += '<path d="M90 24 L230 24 L168 112 L152 112 Z" fill="#fff" stroke="'+C.ink+'" stroke-width="3"/>';
+      s += '<path d="M104 32 L216 32 L160 106 Z" fill="#F4F1E9" stroke="'+C.ink+'" stroke-width="2"/>';
+      s += '<rect x="152" y="112" width="16" height="34" fill="#fff" stroke="'+C.ink+'" stroke-width="3"/>';
+      if(opts.residue) s += '<ellipse cx="160" cy="70" rx="34" ry="16" fill="'+C.starch+'" stroke="'+C.ink+'" stroke-width="2"/>';
+      byy = 132; bh = 122;
+    }
+    s += '<rect x="'+bx+'" y="'+byy+'" width="'+bw+'" height="'+bh+'" rx="6" fill="#fff" stroke="'+C.ink+'" stroke-width="3"/>';
+    var lh = bh*0.62, ly = byy+bh-lh;
+    if(liq){
+      s += '<rect x="'+(bx+3)+'" y="'+ly+'" width="'+(bw-6)+'" height="'+lh+'" fill="'+liq+'" opacity="'+(cloudy?0.95:0.75)+'"/>';
+      s += '<ellipse cx="'+(bx+bw/2)+'" cy="'+ly+'" rx="'+(bw/2-3)+'" ry="6" fill="'+liq+'" stroke="'+C.glass+'" stroke-width="1.5"/>';
+    }
+    if(settled) s += '<rect x="'+(bx+3)+'" y="'+(byy+bh-16)+'" width="'+(bw-6)+'" height="13" fill="'+C.starch+'" stroke="'+C.glass+'" stroke-width="1"/>';
+    if(grains){
+      for(var i=0;i<14;i++){
+        var gx2 = bx+14+((i*37)%(bw-28)), gy2 = ly+14+((i*53)%(lh-24));
+        s += '<circle cx="'+gx2+'" cy="'+gy2+'" r="'+(grains==="big"?4:2.2)+'" fill="'+(grains==="big"?C.starch:C.sugar)+'" stroke="'+C.ink+'" stroke-width="1"/>';
+      }
+    }
+    if(opts.caption) s += '<text x="160" y="'+(byy+bh+22)+'" font-family="BIZ UDPGothic,sans-serif" font-size="15" fill="'+C.gray+'" text-anchor="middle">'+opts.caption+'</text>';
+    svg.innerHTML = s;
+  }
+
+  function renderStep(){
+    var bs = document.getElementById("bkSugar"), bt = document.getElementById("bkStarch");
+    var show = revealed[STEP];
+    if(STEP===0){
+      beaker(bs,{liquid: show?C.sugarLiq:C.water, grains: show?null:"small", caption: show?"すき通っている":"かき混ぜる前"});
+      beaker(bt,{liquid: show?C.starch:C.water, cloudy:show, grains: show?null:"big", caption: show?"白くにごる":"かき混ぜる前"});
+    }else if(STEP===1){
+      beaker(bs,{liquid:C.sugarLiq, scale:true, scaleText: show?"105.00":"100.00", caption: show?"入れた後":"水だけ"});
+      beaker(bt,{liquid:C.starch, cloudy:true, scale:true, scaleText: show?"105.00":"100.00", caption: show?"入れた後":"水だけ"});
+    }else if(STEP===2){
+      beaker(bs,{funnel:true, liquid: show?C.sugarLiq:null, residue:false, caption: show?"ろ液は透明":"ろ過する"});
+      beaker(bt,{funnel:true, liquid: show?"#F3F6F8":null, residue:show, caption: show?"ろ紙にデンプンが残る":"ろ過する"});
+    }else{
+      beaker(bs,{liquid:C.sugarLiq, caption:"どの部分も同じこさ"});
+      beaker(bt,{liquid:"#F7F5F0", cloudy:true, settled:show, caption: show?"底にしずんだ":"混ぜた直後"});
+    }
+    document.getElementById("txtSugar").innerHTML = show ? FACTS[STEP].s : "";
+    document.getElementById("txtStarch").innerHTML = show ? FACTS[STEP].t : "";
+
+    var Q = QUESTIONS[STEP];
+    document.getElementById("guessQ").textContent = Q.q;
+    var box = document.getElementById("guessChips"); box.innerHTML = "";
+    Q.a.forEach(function(text,i){
+      var b = document.createElement("button");
+      b.className = "chip"; b.type = "button"; b.textContent = text;
+      b.setAttribute("aria-pressed", guessed[STEP]===i ? "true":"false");
+      if(show && i===Q.correct){ var m=document.createElement("span"); m.className="mark ok"; m.textContent="○"; b.appendChild(m); }
+      if(show && guessed[STEP]===i && i!==Q.correct){ var m2=document.createElement("span"); m2.className="mark ng"; m2.textContent="×"; b.appendChild(m2); }
+      b.addEventListener("click", function(){
+        if(revealed[STEP]) return;
+        guessed[STEP] = i; renderStep();
+      });
+      box.appendChild(b);
+    });
+    document.querySelectorAll(".step").forEach(function(el){
+      var n = Number(el.dataset.step);
+      el.setAttribute("aria-current", n===STEP ? "true":"false");
+      el.classList.toggle("done", revealed[n]);
+    });
+    var out = document.getElementById("out2");
+    if(!show){
+      out.textContent = guessed[STEP]===null ? "予想を選んでから「やってみる」を押そう。" : "予想を選んだ。「やってみる」で確かめよう。";
+      document.getElementById("runStep").textContent = "やってみる";
+    }else{
+      var right = guessed[STEP]===QUESTIONS[STEP].correct;
+      out.innerHTML = (guessed[STEP]===null ? "" : (right ? "<b>予想どおり。</b>　" : "<b>予想とちがった。</b>　")) +
+        ["コーヒーシュガーは透明になり、デンプンは白くにごる。","どちらも、混ぜる前と後で全体の質量は変わらない。",
+         "ろ紙のあなを通りぬけられるのは砂糖の粒子だけ。デンプンはろ紙に残る。",
+         "とけた砂糖はいつまでも均一。とけていないデンプンはしずむ。"][STEP];
+      document.getElementById("runStep").textContent = STEP<3 ? "次の段階へ" : "おわり";
+    }
+  }
+  document.getElementById("runStep").addEventListener("click", function(){
+    if(!revealed[STEP]){ revealed[STEP] = true; renderStep(); }
+    else if(STEP<3){ STEP++; renderStep(); }
+  });
+  document.querySelectorAll(".step").forEach(function(el){
+    el.addEventListener("click", function(){ STEP = Number(this.dataset.step); renderStep(); });
+  });
+  document.getElementById("reset2").addEventListener("click", function(){
+    STEP=0; guessed=[null,null,null,null]; revealed=[false,false,false,false]; renderStep();
+  });
+  renderStep();
+
+  /* ================= ③ 粒子で見る ================= */
+  var cv3 = document.getElementById("cv3"), x3 = cv3.getContext("2d");
+  var W3=1000, H3=460, phase=0, mode="sugar", grains3=[], waterDots=[], t3=0, anim3=null;
+  var PHASE_TEXT = {
+    sugar:["水の中に、砂糖のかたまりを入れた。",
+           "① 水が、砂糖の粒子と粒子の間に入りこむ。",
+           "② 水の中の砂糖はくずれて、細かくなる。",
+           "③ 顕微鏡でも見えない小さな粒子にばらばらになり、やがて全体に均一になる。"],
+    starch:["水の中に、デンプンのかたまりを入れた。",
+            "① 水は入りこむが、デンプンの粒はくずれない。",
+            "② 粒は大きいまま、水の中をただよう。",
+            "③ ばらばらにならないので、時間がたつと底にしずむ。"]
+  };
+
+  function initGrains(){
+    grains3 = []; waterDots = [];
+    var cx = 300, cy = 250, cols = 6, rows = 5, R = mode==="sugar" ? 13 : 17;
+    for(var r=0;r<rows;r++) for(var c=0;c<cols;c++){
+      grains3.push({hx:cx+c*R*2.05, hy:cy+r*R*2.05, x:cx+c*R*2.05, y:cy+r*R*2.05,
+        tx:0, ty:0, r:R, vr:R, phase:0});
+    }
+    for(var i=0;i<150;i++){
+      waterDots.push({x:60+Math.random()*880, y:120+Math.random()*300, s:Math.random()*6.28});
+    }
+  }
+  function targetsFor(ph){
+    grains3.forEach(function(g,i){
+      if(ph===0){ g.tx=g.hx; g.ty=g.hy; g.vr=g.r; }
+      else if(ph===1){ g.tx=g.hx+(i%2?7:-7); g.ty=g.hy+(i%3-1)*6; g.vr=g.r; }
+      else if(ph===2){
+        g.tx = 200 + ((i*137)%600); g.ty = 170 + ((i*83)%220); g.vr = mode==="sugar" ? g.r*0.45 : g.r;
+      } else {
+        if(mode==="sugar"){ g.tx = 90 + ((i*197)%820); g.ty = 140 + ((i*151)%270); g.vr = g.r*0.22; }
+        else { g.tx = 180 + ((i*173)%640); g.ty = 372 - (i%3)*13; g.vr = g.r; }
+      }
+    });
+  }
+  function draw3(){
+    x3.fillStyle = "#fff"; x3.fillRect(0,0,W3,H3);
+    // ビーカー
+    x3.fillStyle = "#EDF4FA"; x3.fillRect(60,110,880,300);
+    x3.strokeStyle = C.ink; x3.lineWidth = 4;
+    x3.beginPath(); x3.moveTo(60,60); x3.lineTo(60,410); x3.lineTo(940,410); x3.lineTo(940,60); x3.stroke();
+    x3.strokeStyle = C.glass; x3.lineWidth = 2;
+    x3.beginPath(); x3.moveTo(62,110); x3.lineTo(938,110); x3.stroke();
+    // 水の粒子
+    x3.fillStyle = "rgba(120,170,210,.42)";
+    waterDots.forEach(function(w){
+      var dx = Math.sin(t3*0.03 + w.s)*3;
+      x3.beginPath(); x3.arc(w.x+dx, w.y+Math.cos(t3*0.025+w.s)*2, 3.4, 0, 6.2832); x3.fill();
+    });
+    // 物質の粒子
+    grains3.forEach(function(g){
+      x3.beginPath(); x3.arc(g.x, g.y, g.vr, 0, 6.2832);
+      x3.fillStyle = mode==="sugar" ? C.sugar : C.starch;
+      x3.fill(); x3.lineWidth = 2; x3.strokeStyle = C.ink; x3.stroke();
+    });
+    x3.fillStyle = C.gray; x3.font = "600 19px 'BIZ UDPGothic',sans-serif";
+    x3.fillText("水の粒子（うすい青）　／　" + (mode==="sugar"?"砂糖":"デンプン") + "の粒子", 72, 92);
+  }
+  function tick3(){
+    if(document.getElementById("s3").hidden){ anim3=null; return; }
+    t3++; var moving=false;
+    grains3.forEach(function(g){
+      g.x += (g.tx-g.x)*0.08; g.y += (g.ty-g.y)*0.08; g.r += 0;
+      var dv = (g.vr - g.rNow||0);
+      if(Math.abs(g.tx-g.x)>0.6 || Math.abs(g.ty-g.y)>0.6) moving=true;
+    });
+    draw3();
+    anim3 = requestAnimationFrame(tick3);
+    if(!moving && t3>420){ cancelAnimationFrame(anim3); anim3=null; }
+  }
+  function setPhase(p){
+    phase = p; targetsFor(p);
+    document.getElementById("out3").textContent = PHASE_TEXT[mode][p];
+    document.getElementById("next3").textContent = p>=3 ? "最初から" : "次へ";
+    if(reduce){ grains3.forEach(function(g){ g.x=g.tx; g.y=g.ty; }); draw3(); }
+    else if(!anim3){ t3=0; anim3 = requestAnimationFrame(tick3); }
+  }
+  document.getElementById("next3").addEventListener("click", function(){ setPhase(phase>=3 ? 0 : phase+1); });
+  document.getElementById("reset3").addEventListener("click", function(){ initGrains(); setPhase(0); });
+  function mode3(key,id){
+    document.getElementById(id).addEventListener("click", function(){
+      mode = key;
+      document.getElementById("mSugar").setAttribute("aria-pressed", key==="sugar"?"true":"false");
+      document.getElementById("mStarch").setAttribute("aria-pressed", key==="starch"?"true":"false");
+      initGrains(); setPhase(0);
+    });
+  }
+  mode3("sugar","mSugar"); mode3("starch","mStarch");
+  initGrains(); targetsFor(0); draw3();
+})();
+</script>

@@ -1,0 +1,243 @@
+<title>排出のしくみシミュレーター</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+/* レイアウト: 左に体の図（SVG）、右にステップ説明。狭い画面では縦に積む */
+:root{--bg:#FAF8F3;--panel:#FFFFFF;--ink:#1A2B4C;--sub:#5A6680;--line:#C9CDD6;--blue:#2E6FB7;--orange:#E55A00;
+--organ:#D9D3C7;--liver:#B9876B;--vein:#7FA7D9;--art:#D46A6A;--nh3:#8E44AD;--o2:#E05050;--food:#3E9B4F;--co2:#7A7F8A;--en:#F2A900;--urea:#E0A800;--water:#4DA3E0;
+--f:"BIZ UDPGothic","Hiragino Sans","Meiryo",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121A26;--panel:#1B2535;--ink:#EDEDED;--sub:#A9B3C4;--line:#3A4558;--blue:#6FA8E8;--orange:#FF8A3D;--organ:#4A4E57;--liver:#8B5E48;--vein:#4F7BB3;--art:#B04E4E;--nh3:#C58BE0;--o2:#FF7A7A;--food:#6CC77C;--co2:#A8AEB9;--en:#FFC940;--urea:#F2C230;--water:#6CB8F0;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121A26;--panel:#1B2535;--ink:#EDEDED;--sub:#A9B3C4;--line:#3A4558;--blue:#6FA8E8;--orange:#FF8A3D;--organ:#4A4E57;--liver:#8B5E48;--vein:#4F7BB3;--art:#B04E4E;--nh3:#C58BE0;--o2:#FF7A7A;--food:#6CC77C;--co2:#A8AEB9;--en:#FFC940;--urea:#F2C230;--water:#6CB8F0;color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--f);font-size:18px;line-height:1.7}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:20px 32px}
+h1{font-size:1.7rem;margin:0 0 4px;text-wrap:balance}
+.lead{color:var(--sub);margin:0 0 16px}
+.main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:820px){.main{grid-template-columns:1fr}}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px}
+svg{display:block;width:100%;height:auto}
+.lbl{font-family:var(--f);font-size:17px;font-weight:700;fill:var(--ink)}
+.small{font-size:14px;font-weight:400;fill:var(--sub)}
+.steps{display:flex;flex-direction:column;gap:12px;min-width:0}
+ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+ol button{width:100%;text-align:left;font:inherit;font-size:1rem;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;gap:10px;align-items:baseline}
+ol button .n{font-weight:700;color:var(--blue);min-width:1.4em}
+ol button[aria-current="step"]{border-color:var(--blue);background:color-mix(in srgb,var(--blue) 12%,transparent);font-weight:700}
+ol button:focus-visible,.ctrl button:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.card h2{margin:0 0 6px;font-size:1.3rem;color:var(--blue)}
+.card p{margin:0}
+.card b{color:var(--orange)}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap}
+.ctrl button{font:inherit;font-weight:700;padding:10px 18px;border-radius:8px;border:2px solid var(--blue);cursor:pointer;background:var(--blue);color:var(--panel)}
+.ctrl button.ghost{background:transparent;color:var(--blue)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.95rem;color:var(--sub)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:14px;height:14px;border-radius:50%;display:inline-block}
+.meter{display:grid;gap:6px;font-size:.95rem}
+.bar{height:22px;border-radius:4px;background:var(--water);position:relative}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--urea);border-radius:4px}
+.zt{margin:10px 6px 0;font-weight:700;color:var(--orange)}
+.zc{margin:4px 8px 6px;font-size:.95rem}
+@keyframes drip{from{stroke-dashoffset:40}to{stroke-dashoffset:0}}
+@keyframes flowA{from{stroke-dashoffset:60}to{stroke-dashoffset:0}}
+.flow{stroke-dasharray:18 12;animation:flowA .8s linear infinite}
+#zdrip line{stroke-dasharray:10 30;animation:drip .6s linear infinite}
+@media (prefers-reduced-motion:reduce){.flow,#zdrip line{animation:none}}
+.sw{width:22px;height:12px;border-radius:3px;display:inline-block;opacity:.7}
+.tab{font-variant-numeric:tabular-nums}
+</style>
+
+<div class="wrap">
+  <h1>排出のしくみシミュレーター</h1>
+  <p class="lead">２年　生物のからだのつくりとはたらき　｜　有害なアンモニアは、どのようにからだの外へ出されるのだろう？</p>
+  <div class="main">
+    <div class="stage">
+      <svg id="svg" viewBox="0 0 640 700" role="img" aria-label="肝臓・じん臓・輸尿管・ぼうこうと血管の図">
+        <!-- 全身の細胞 -->
+        <g id="cells">
+          <rect x="470" y="60" width="150" height="110" rx="14" fill="var(--organ)" stroke="var(--ink)" stroke-width="2"/>
+          <circle cx="510" cy="100" r="16" fill="var(--panel)" stroke="var(--ink)"/><circle cx="550" cy="125" r="16" fill="var(--panel)" stroke="var(--ink)"/><circle cx="585" cy="95" r="16" fill="var(--panel)" stroke="var(--ink)"/>
+          <text class="lbl" x="545" y="195" text-anchor="middle">全身の細胞</text>
+        </g>
+        <!-- 細胞と血管をつなぐ毛細血管 -->
+        <path d="M470 115 H352" stroke="var(--vein)" stroke-width="10" fill="none"/>
+        <path d="M470 140 H352" stroke="var(--art)" stroke-width="10" fill="none"/>
+        <!-- 肝臓 -->
+        <path d="M40 120 C40 70 120 50 220 52 C300 54 330 70 320 95 C300 140 230 175 140 185 C80 190 40 165 40 120 Z" fill="var(--liver)" stroke="var(--ink)" stroke-width="2.5"/>
+        <text class="lbl" x="150" y="125" text-anchor="middle" fill="#fff" style="fill:#fff">肝臓</text>
+        <!-- 大静脈・大動脈 -->
+        <path d="M310 40 V520 Q310 560 270 610" stroke="var(--vein)" stroke-width="22" fill="none" stroke-linecap="round"/>
+        <path d="M342 40 V520 Q342 560 382 610" stroke="var(--art)" stroke-width="20" fill="none" stroke-linecap="round"/>
+        <text class="lbl small" x="300" y="30" text-anchor="end">静脈</text>
+        <text class="lbl small" x="352" y="30">動脈</text>
+        <!-- じん臓 -->
+        <path d="M160 300 h150" stroke="var(--vein)" stroke-width="9"/>
+        <path d="M160 322 h182" stroke="var(--art)" stroke-width="8"/>
+        <path d="M342 290 h140" stroke="var(--art)" stroke-width="8"/>
+        <path d="M310 312 h172" stroke="var(--vein)" stroke-width="9"/>
+        <path id="kL" d="M130 240 C70 240 60 380 130 385 C175 388 180 345 168 330 C158 318 158 300 168 288 C180 272 175 240 130 240Z" fill="var(--organ)" stroke="var(--ink)" stroke-width="2.5"/>
+        <path id="kR" d="M520 230 C580 230 590 370 520 375 C475 378 470 335 482 320 C492 308 492 290 482 278 C470 262 475 230 520 230Z" fill="var(--organ)" stroke="var(--ink)" stroke-width="2.5"/>
+        <text class="lbl" x="118" y="420" text-anchor="middle">じん臓</text>
+        <text class="lbl" x="530" y="410" text-anchor="middle">じん臓</text>
+        <!-- 輸尿管 -->
+        <path d="M150 370 C160 450 230 540 300 600" stroke="var(--ink)" stroke-width="9" fill="none"/>
+        <path d="M150 370 C160 450 230 540 300 600" stroke="var(--panel)" stroke-width="5" fill="none"/>
+        <path d="M500 362 C490 450 420 540 352 600" stroke="var(--ink)" stroke-width="9" fill="none"/>
+        <path d="M500 362 C490 450 420 540 352 600" stroke="var(--panel)" stroke-width="5" fill="none"/>
+        <text class="lbl" x="470" y="500">輸尿管</text>
+        <!-- ぼうこう -->
+        <path d="M326 585 C380 585 400 615 392 640 C385 662 360 672 326 672 C292 672 267 662 260 640 C252 615 272 585 326 585Z" fill="var(--organ)" stroke="var(--ink)" stroke-width="2.5"/>
+        <rect x="318" y="670" width="16" height="24" fill="var(--organ)" stroke="var(--ink)" stroke-width="2"/>
+        <text class="lbl" x="410" y="650">ぼうこう</text>
+        <g id="dots"></g>
+        <g id="flash"></g>
+        <circle id="zoomMark" cx="515" cy="300" r="34" fill="none" stroke="var(--orange)" stroke-width="3" stroke-dasharray="6 5" hidden/>
+      </svg>
+      <div id="zoom" hidden>
+        <p class="zt">🔍 じん臓の中を拡大（この小さなしくみが、じん臓1つに約100万個ある）</p>
+        <svg id="zsvg" viewBox="0 0 640 380" role="img" aria-label="じん臓の中の小さなしくみ：血液がこされ、管を通るあいだに必要なものが血液へもどる">
+          <defs><marker id="ar" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--blue)"/></marker></defs>
+          <!-- 管（こし出された液の通り道） -->
+          <path id="tubeOut" d="M150 140 V175 Q150 178 160 178 H250 Q280 180 280 205 V320 Q280 334 300 334 H342 Q362 334 362 315 V200 Q362 174 390 172 H515 Q540 172 540 197 V372" fill="none" stroke="var(--ink)" stroke-width="22" stroke-linejoin="round"/>
+          <path d="M150 140 V175 Q150 178 160 178 H250 Q280 180 280 205 V320 Q280 334 300 334 H342 Q362 334 362 315 V200 Q362 174 390 172 H515 Q540 172 540 197 V372" fill="none" stroke="var(--panel)" stroke-width="17" stroke-linejoin="round"/>
+          <g id="zliqG" stroke="var(--water)" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".75">
+            <path id="lq1" d="M150 145 V175 Q150 178 160 178 H250 Q280 180 280 205 V320"/>
+            <path id="lq2" d="M280 320 Q280 334 300 334 H342 Q362 334 362 315 V200 Q362 174 390 172 H450"/>
+            <path id="lq3" d="M450 172 H515 Q540 172 540 197 V372"/>
+          </g>
+          <!-- 血管 -->
+          <path d="M0 70 H105 Q125 70 130 92" fill="none" stroke="var(--art)" stroke-width="12"/>
+          <path id="capP" d="M172 98 Q200 120 205 150 H258 Q300 152 302 190 V305 Q302 312 312 312 H330 Q340 312 340 302 V196 Q340 150 390 150 H600 Q630 150 640 130" fill="none" stroke="var(--art)" stroke-width="7"/>
+          <path d="M340 196 Q340 150 390 150 H600 Q630 150 640 130" fill="none" stroke="var(--vein)" stroke-width="7"/>
+          <!-- こすところ（毛細血管の玉＋包むカップ） -->
+          <path d="M118 70 A52 52 0 1 1 118 152" fill="color-mix(in srgb,var(--water) 18%,transparent)" stroke="var(--ink)" stroke-width="5"/>
+          <g fill="none" stroke="var(--art)" stroke-width="6"><circle cx="150" cy="111" r="22"/><circle cx="142" cy="104" r="11"/><circle cx="160" cy="118" r="11"/></g>
+          <text class="lbl small" x="4" y="58">血液が入る</text>
+          <text class="lbl small" x="636" y="118" text-anchor="end">血液が出る</text>
+          <text class="lbl" x="205" y="60" style="fill:var(--orange)">①こし出す</text>
+          <text class="lbl" x="400" y="265" style="fill:var(--blue)" id="zlab2">②もどす</text>
+          <text class="lbl" x="556" y="365">尿 → 輸尿管へ</text>
+          <g id="zret" hidden stroke="var(--blue)" stroke-width="3" fill="none" marker-end="url(#ar)">
+            <path d="M270 250 H298"/><path d="M270 285 H298"/><path d="M372 250 H344"/><path d="M372 215 H344"/><path d="M430 162 V154"/><path d="M490 162 V154"/>
+          </g>
+          <g id="zdots"></g>
+        </svg>
+        <p class="zc" id="zcap"></p>
+      </div>
+    </div>
+    <div class="steps">
+      <ol id="list"></ol>
+      <div class="card" aria-live="polite"><h2 id="t"></h2><p id="d"></p><div id="extra"></div></div>
+      <div class="ctrl"><button id="prev" class="ghost" type="button">◀ もどる</button><button id="play" type="button">▶ 動かす</button><button id="next" class="ghost" type="button">つぎへ ▶</button></div>
+      <div class="legend"><span><i class="dot" style="background:var(--food)"></i>養分</span><span><i class="dot" style="background:var(--o2)"></i>酸素</span><span><i class="dot" style="background:var(--co2)"></i>二酸化炭素</span><span><i class="dot" style="background:var(--en)"></i>エネルギー</span><span><i class="dot" style="background:var(--nh3)"></i>アンモニア（有害）</span><span><i class="dot" style="background:var(--urea)"></i>尿素</span><span><i class="sw" style="background:var(--water)"></i>水（液体）</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const S=[
+ {t:"細胞の呼吸",d:"血液が細胞に<b>養分</b>と<b>酸素</b>をとどける。細胞はそれを使って<b>エネルギー</b>をとり出し、<b>二酸化炭素</b>と<b>水</b>ができる。二酸化炭素は血液で肺へ運ばれ、息として出される。",run:"resp"},
+ {t:"細胞でアンモニアができる",d:"養分のうち<b>タンパク質</b>が使われると、二酸化炭素や水のほかに<b>アンモニア</b>ができる。アンモニアはからだにとって<b>有害</b>。",run:"make"},
+ {t:"血液で肝臓へ運ぶ",d:"アンモニアは細胞から血液中に出され、静脈を通って<b>肝臓</b>へ運ばれる。",run:"toLiver"},
+ {t:"肝臓で尿素に変える",d:"肝臓で、アンモニアは害の少ない<b>尿素</b>に変えられる。むらさき → きいろ に変わるところを見よう。",run:"convert"},
+ {t:"じん臓へ運ぶ",d:"尿素をふくむ血液は心臓を通って全身をめぐり、その一部が動脈から<b>じん臓</b>へ運ばれる。",run:"toKidney"},
+ {t:"じん臓でこし出す",d:"じん臓の中には、毛細血管の玉をカップが包んだ小さなしくみがたくさんある。血液が玉で押されると、<b>水</b>が尿素や養分をとかしたまま<b>しみ出す</b>（こし出す）。<b>赤血球</b>などの大きいものは血液に残る。",run:"filter"},
+ {t:"輸尿管 → ぼうこう → 体外",d:"尿は<b>輸尿管</b>を通って<b>ぼうこう</b>に一時ためられてから、体外へ出される。",run:"out"},
+ {t:"150L こして、1.5L だけ出す",d:"じん臓は1日に約150Lの液をこし出すが、尿として出るのは約1.5L。こし出された液は、細い管を通るあいだに、必要な<b>養分</b>と<b>ほとんどの水</b>を、となりの血管へ<b>もどす</b>。尿素などの不要物は残って<b>尿</b>になる。",run:"reabsorb"}
+];
+const P={
+ make:[[545,115],[545,115]],
+ toLiver:[[540,115],[470,115],[352,115],[310,115],[310,95],[230,110],[160,120]],
+ toKidney:[[160,120],[300,100],[342,70],[342,290],[482,290],[515,300]],
+ filter:[[515,300],[505,340],[500,362]],
+ out:[[500,362],[490,450],[420,540],[352,600],[326,630],[326,694]],
+ back:[[505,312],[482,312],[310,312],[310,200]]
+};
+const svg=document.getElementById('svg'),G=document.getElementById('dots'),F=document.getElementById('flash');
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+let cur=0,raf=0,dots=[];
+const list=document.getElementById('list');
+S.forEach((s,i)=>{const li=document.createElement('li');const b=document.createElement('button');b.type='button';b.id='step'+i;b.innerHTML='<span class="n">'+(i+1)+'</span><span>'+s.t+'</span>';b.onclick=()=>go(i,true);li.appendChild(b);list.appendChild(li)});
+function len(p){let L=0;for(let i=1;i<p.length;i++)L+=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);return L}
+function at(p,t){let L=len(p)*t;for(let i=1;i<p.length;i++){const s=Math.hypot(p[i][0]-p[i-1][0],p[i][1]-p[i-1][1]);if(L<=s||i==p.length-1){const k=s?Math.min(1,L/s):0;return[p[i-1][0]+(p[i][0]-p[i-1][0])*k,p[i-1][1]+(p[i][1]-p[i-1][1])*k]}L-=s}}
+function dot(color,r){const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('r',r||7);c.setAttribute('stroke','var(--ink)');c.setAttribute('stroke-width','1.2');c.style.fill=color;G.appendChild(c);return c}
+function flow(pts){const pa=document.createElementNS('http://www.w3.org/2000/svg','path');pa.setAttribute('d','M'+pts.map(q=>q.join(' ')).join(' L'));pa.setAttribute('class','flow');pa.setAttribute('fill','none');pa.setAttribute('stroke','var(--water)');pa.setAttribute('stroke-width','8');pa.setAttribute('stroke-linecap','round');pa.setAttribute('opacity','.75');F.appendChild(pa)}
+function clear(){cancelAnimationFrame(raf);G.innerHTML='';F.innerHTML='';dots=[]}
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function place(c,x,y){c.setAttribute('cx',x);c.setAttribute('cy',y)}
+// 各ステップの「止まった状態」
+
+const Z=document.getElementById('zdots'),zoom=document.getElementById('zoom');let zraf=0;
+function zdot(col,r){const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('r',r);c.setAttribute('stroke','var(--ink)');c.setAttribute('stroke-width','1');c.style.fill=col;Z.appendChild(c);return c}
+function samp(id,n){const el=document.getElementById(id);const L=el.getTotalLength();const a=[];for(let i=0;i<=n;i++){const q=el.getPointAtLength(L*i/n);a.push([q.x,q.y])}return a}
+function zstart(mode){cancelAnimationFrame(zraf);Z.innerHTML='';zoom.hidden=false;document.getElementById('zoomMark').hidden=false;
+ document.getElementById('zret').hidden=mode!=='re';document.getElementById('zlab2').style.opacity=mode==='re'?1:.25;
+ document.getElementById('zcap').innerHTML=mode==='re'?'管を流れるあいだ、ずっと<b style="color:var(--water)">水</b>がしみ出すように、となりの血管へ<b>もどっていく</b>。<b style="color:var(--food)">養分</b>も血管へもどる。液はだんだん少なくなり、<b style="color:var(--urea)">尿素</b>は残って尿になる。':'血液は、毛細血管の玉で強く押される。<b style="color:var(--water)">水</b>は<b style="color:var(--urea)">尿素</b>や<b style="color:var(--food)">養分</b>をとかしたまま、まわりのカップへしみ出す。<b style="color:var(--art)">赤血球</b>は大きくて出られず、血管を進む。';
+ const inP=[[0,70],[105,70],[128,90],[150,111]],cap=samp('capP',60),tube=samp('tubeOut',80);
+ const lq=['lq1','lq2','lq3'].map(id=>document.getElementById(id));const LL=lq.map(e=>e.getTotalLength());
+ lq.forEach((e,i)=>{e.style.strokeDasharray=LL[i];e.setAttribute('stroke-width',13)});
+ const P=[];for(let k=0;k<15;k++){const ty=k%5<2?'rbc':k%5<4?'u':'f';P.push({ty,c:zdot({rbc:'var(--art)',u:'var(--urea)',f:'var(--food)'}[ty],ty==='rbc'?9:5),off:k/15})}
+ const DR=[];if(mode==='re'){[[210,178,210,150],[240,178,240,152],[280,230,302,230],[280,270,302,270],[280,305,302,305],[362,300,340,300],[362,255,340,255],[362,215,340,215],[410,172,410,150],[450,172,450,150],[495,172,495,150]].forEach((d,i)=>{for(let j=0;j<2;j++){const e=document.createElementNS('http://www.w3.org/2000/svg','ellipse');e.style.fill='var(--water)';e.setAttribute('opacity','.85');Z.appendChild(e);DR.push({d,e,ph:(i*.13+j*.5)%1})}})}
+ const T=8000,t0=performance.now();
+ const tick=now=>{DR.forEach(o=>{const u=((now-t0)/1400+o.ph)%1,[x0,y0,x1,y1]=o.d,x=x0+(x1-x0)*u,y=y0+(y1-y0)*u,v=x0===x1;o.e.setAttribute('cx',x);o.e.setAttribute('cy',y);o.e.setAttribute('rx',v?3.5:5.5);o.e.setAttribute('ry',v?5.5:3.5);o.e.setAttribute('opacity',(u<.15?u/.15:u>.85?(1-u)/.15:1)*.85)});const g=((now-t0)/T)%1,e=Math.min(1,(now-t0)/3500);
+  // 液：こし出し＝管が満たされていく／もどす＝先へ行くほど細くなる
+  lq.forEach((el,i)=>{if(mode==='re'){el.style.strokeDashoffset=0;el.setAttribute('stroke-width',13-e*[0,6,10][i])}else{const f=Math.max(0,Math.min(1,e*3-i));el.style.strokeDashoffset=LL[i]*(1-f)}});
+  P.forEach(p=>{const t=(g+p.off)%1;let q;
+   if(t<.2){q=at(inP,t/.2)}
+   else if(p.ty==='rbc'){q=at(cap,(t-.2)/.8)}
+   else if(mode==='re'&&p.ty==='f'){const u=(t-.2)/.8;q=u<.45?at(tube,u/.45*.42):at(cap,.42+(u-.45)/.55*.58)}
+   else{q=at(tube,(t-.2)/.8)}
+   p.c.setAttribute('cx',q[0]);p.c.setAttribute('cy',q[1])});
+  zraf=requestAnimationFrame(tick)};
+ if(reduce)tick(t0+4000);else zraf=requestAnimationFrame(tick)}
+function zstop(){cancelAnimationFrame(zraf);zoom.hidden=true;document.getElementById('zoomMark').hidden=true}
+function rest(i){clear();const r=S[i].run;if(r==='filter')zstart('f');else if(r==='reabsorb')zstart('re');else zstop();const s=S[i].run;
+ const n=6;
+ const jitter=k=>[(k%3-1)*10,(Math.floor(k/3)-0.5)*14];
+ if(s==='make'){}
+ if(s==='toLiver'){for(let k=0;k<n;k++){const c=dot('var(--nh3)');const j=jitter(k);place(c,545+j[0],115+j[1])}}
+ if(s==='convert'){for(let k=0;k<n;k++){const c=dot('var(--nh3)');const j=jitter(k);place(c,160+j[0]*2,120+j[1])}}
+ if(s==='toKidney'){for(let k=0;k<n;k++){const c=dot('var(--urea)');const j=jitter(k);place(c,160+j[0]*2,120+j[1])}}
+ if(s==='filter'){for(let k=0;k<n;k++){const c=dot('var(--urea)');const j=jitter(k);place(c,515+j[0],300+j[1])}}
+ if(s==='out'){for(let k=0;k<n;k++){const c=dot('var(--urea)');place(c,500,362)}}
+ if(s==='reabsorb'){}
+ extra(i,false)}
+function extra(i,done){const e=document.getElementById('extra');
+ if(S[i].run==='reabsorb'){e.innerHTML='<div class="meter" style="margin-top:10px"><div>こし出す液 <b class="tab">150 L</b></div><div class="bar"></div><div>尿として出る <b class="tab">1.5 L</b>（約1％）</div><div class="bar" style="width:'+(done?1:100)+'%;transition:width 2.5s"></div></div>';
+  if(done)requestAnimationFrame(()=>{e.querySelectorAll('.bar')[1].style.width='1%'})}else e.innerHTML=''}
+function go(i,show){cur=Math.max(0,Math.min(S.length-1,i));
+ document.querySelectorAll('ol button').forEach((b,k)=>b.setAttribute('aria-current',k===cur?'step':'false'));
+ document.getElementById('t').textContent=(cur+1)+'　'+S[cur].t;document.getElementById('d').innerHTML=S[cur].d;
+ rest(cur);if(show)play()}
+function anim(items,dur,end){const t0=performance.now();
+ const tick=now=>{const t=reduce?1:Math.min(1,(now-t0)/dur);items.forEach(f=>f(t));if(t<1)raf=requestAnimationFrame(tick);else end&&end()};raf=requestAnimationFrame(tick)}
+function play(){const s=S[cur].run;clear();const n=6;
+ if(s==='resp'){const fo=[],ox=[],co=[],wa=[];
+  for(let k=0;k<4;k++){fo.push(dot('var(--food)'));ox.push(dot('var(--o2)'))}
+  for(let k=0;k<4;k++){co.push(dot('var(--co2)',0))}setTimeout(()=>flow([[545,130],[470,128],[352,128]]),3000);
+  const st=document.createElementNS('http://www.w3.org/2000/svg','text');st.setAttribute('x',545);st.setAttribute('y',122);st.setAttribute('text-anchor','middle');st.setAttribute('class','lbl');st.style.fill='var(--en)';st.style.fontSize='0px';st.textContent='★エネルギー';F.appendChild(st);
+  const inP=[[352,140],[470,140],[530,112]],outP=[[545,115],[470,115],[352,115],[310,115],[310,40]];
+  anim([...fo.map((c,k)=>t=>{const tt=Math.max(0,Math.min(1,t*2.2-k*.12));const q=at(inP,tt);place(c,q[0]+(k%2)*8,q[1]-6);c.style.opacity=t>.5?0:1}),
+        ...ox.map((c,k)=>t=>{const tt=Math.max(0,Math.min(1,t*2.2-k*.12-.05));const q=at(inP,tt);place(c,q[0]+(k%2)*8,q[1]+8);c.style.opacity=t>.5?0:1}),
+        t=>{const f=t<.45?0:t<.6?(t-.45)/.15:t<.8?1:Math.max(0,1-(t-.8)/.2);st.style.fontSize=(26*f)+'px'},
+        ...co.map((c,k)=>t=>{const tt=Math.max(0,Math.min(1,(t-.5)*2.4-k*.1));c.setAttribute('r',tt>0?7:0);const q=at(outP,tt);place(c,q[0],q[1])}),
+        ...wa.map((c,k)=>t=>{const tt=Math.max(0,Math.min(1,(t-.55)*2.4-k*.1));c.setAttribute('r',tt>0?6:0);const q=at(outP,tt);place(c,q[0]+8,q[1]+6)})],6000)}
+
+ if(s==='make'){const cs=[];for(let k=0;k<n;k++){cs.push(dot('var(--nh3)',0))}
+  const pos=[[510,100],[550,125],[585,95],[510,100],[550,125],[585,95]];
+  anim(cs.map((c,k)=>t=>{const tt=Math.max(0,Math.min(1,t*1.6-k*.12));place(c,pos[k][0]+(k>2?14:-10)*tt,pos[k][1]+(k>2?10:-8)*tt);c.setAttribute('r',7*tt)}),2200)}
+ if(s==='toLiver'||s==='toKidney'||s==='out'){const col=s==='toLiver'?'var(--nh3)':'var(--urea)';const p=P[s];
+  const cs=[];for(let k=0;k<n;k++)cs.push(dot(col));
+  anim(cs.map((c,k)=>t=>{const tt=Math.max(0,Math.min(1,t*1.5-k*.1));const q=at(p,tt);place(c,q[0]+(k%3-1)*4,q[1]+(k%2)*5)}),3200)}
+ if(s==='convert'){const cs=[];for(let k=0;k<n;k++)cs.push(dot('var(--nh3)'));
+  anim(cs.map((c,k)=>t=>{const a=k/n*6.28+t*6.28;place(c,160+Math.cos(a)*55,120+Math.sin(a)*28);if(t>.35+k*.08)c.style.fill='var(--urea)'}),3200)}
+ if(s==='filter'){flow(P.filter.concat(P.out.slice(1)));const u=[],w=[];for(let k=0;k<n;k++)u.push(dot('var(--urea)'));
+  anim([...u,...w].map((c,k)=>t=>{const tt=Math.max(0,Math.min(1,t*1.5-k*.06));const q=at(P.filter,tt);place(c,q[0]+(k%3-1)*5,q[1]+(k%2)*4)}),2600)}
+ if(s==='reabsorb'){extra(cur,true);flow(P.back);const cs=[];for(let k=0;k<3;k++)cs.push(dot(k<2?'var(--food)':'var(--urea)',6));
+  anim(cs.map((c,k)=>t=>{const tt=Math.max(0,Math.min(1,t*1.4-k*.02));const p=k<2?[[515,300],...P.back]:[[515,300],...P.filter,...P.out.slice(1)];const q=at(p,tt);place(c,q[0],q[1])}),4000)}
+}
+document.getElementById('next').onclick=()=>go(cur+1,true);
+document.getElementById('prev').onclick=()=>go(cur-1,false);
+document.getElementById('play').onclick=()=>play();
+go(0,false);
+</script>

@@ -1,0 +1,411 @@
+<title>ロウの実験ナビ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Roboto+Mono:wght@500&display=swap">
+<style>
+  /* 班ごとに自分のペースで進める実験ナビ。1年「とける実験ナビ」と同じ型（準備→手順→片づけ） */
+  :root{
+    --ground:#FAF8F3; --ink:#1A2B4C; --blue:#2E6FB7; --card:#E6EEF7; --orange:#FF9900;
+    --burnt:#E55A00; --gray:#5A6577; --line:#CBD6E4; --done:#1E7A46; --paper:#fff;
+    --f:"BIZ UDPGothic","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+    --mono:"Roboto Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:var(--f);margin:0;line-height:1.65}
+  .wrap{max-width:860px;margin:0 auto;padding:16px 16px 72px}
+
+  header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding-bottom:10px}
+  h1{font-size:clamp(21px,5vw,30px);margin:0;color:var(--blue);font-weight:700}
+  .eyebrow{font-size:12px;letter-spacing:.12em;color:var(--gray)}
+
+  .bar{background:var(--card);border-radius:12px;padding:12px 14px;margin:0 0 14px}
+  .track{height:12px;border-radius:99px;background:#E4E0D6;overflow:hidden}
+  .fill{height:100%;width:0;background:var(--blue);transition:width .3s ease}
+  .barrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+  .now{font-weight:700;font-size:15px}
+  .now span{color:var(--burnt)}
+  .count{font-family:var(--mono);font-size:13px;color:var(--gray)}
+
+  h2{font-size:17px;margin:26px 0 10px;display:flex;align-items:center;gap:10px}
+  h2 .no{background:var(--blue);color:#fff;border-radius:8px;font-size:14px;padding:3px 10px;font-weight:700}
+  .lead{margin:0 0 12px;font-size:15px;color:var(--gray)}
+
+  .aim{background:var(--card);border-radius:14px;padding:16px 18px;margin-bottom:6px}
+  .aim p{margin:0 0 8px;font-size:16px}
+  .aim b{color:var(--burnt)}
+  .aim ul{margin:6px 0 0;padding-left:1.2em}
+  .aim li{margin:2px 0}
+
+  .kit{list-style:none;margin:0;padding:0;display:grid;gap:10px;
+    grid-template-columns:repeat(auto-fill,minmax(196px,1fr));align-items:stretch}
+  .kit li{margin:0;display:flex}
+  .item{display:flex;align-items:center;gap:10px;width:100%;background:var(--paper);
+    border:2px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;
+    font-family:var(--f);font-size:15px;text-align:left;color:var(--ink);min-height:66px;height:100%}
+  .item .ic{width:34px;height:34px;flex:none}
+  .item .nm{font-weight:700;line-height:1.3}
+  .item .qt{font-family:var(--f);font-size:13px;color:var(--burnt);display:block;font-weight:400}
+  .item .tick{margin-left:auto;width:24px;height:24px;border-radius:7px;border:2px solid var(--line);
+    flex:none;display:grid;place-items:center;color:#fff;font-size:15px;font-weight:700}
+  .item[aria-pressed="true"]{border-color:var(--done);background:#F1F8F3}
+  .item[aria-pressed="true"] .tick{background:var(--done);border-color:var(--done)}
+  .item[aria-pressed="true"] .tick::after{content:"✓"}
+
+  .steps{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+  .step{background:var(--paper);border:2px solid var(--line);border-radius:14px;overflow:hidden}
+  .step.on{border-color:var(--blue);box-shadow:0 2px 0 rgba(46,111,183,.18)}
+  .step.fin{background:#F6F8F5;border-color:#CBDCD0}
+  .head{display:flex;gap:12px;align-items:flex-start;padding:14px 16px}
+  .num{font-family:var(--mono);font-weight:500;font-size:15px;background:var(--blue);color:#fff;
+    width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex:none}
+  .step.fin .num{background:var(--done)}
+  .ttl{font-weight:700;font-size:17px;margin:0}
+  .body{padding:0 16px 14px 58px}
+  .do{margin:0 0 10px;font-size:15px}
+  .do b{color:var(--burnt)}
+  .ws{display:inline-flex;align-items:center;gap:8px;background:#FFF3DF;border:2px solid var(--orange);
+    border-radius:10px;padding:7px 12px;font-size:14px;font-weight:700;margin-bottom:10px}
+  .ws .tag{background:var(--orange);color:var(--ink);border-radius:6px;padding:1px 8px;font-size:13px}
+  .caution{font-size:14px;font-weight:700;color:var(--burnt);margin:0 0 10px}
+  .check{display:flex;align-items:center;gap:10px;background:var(--paper);border:2px solid var(--blue);
+    color:var(--blue);border-radius:10px;padding:11px 16px;font-family:var(--f);font-size:15px;
+    font-weight:700;cursor:pointer;min-height:48px;width:100%}
+  .step.fin .check{border-color:var(--done);color:var(--done);background:#F1F8F3}
+  .check .box{width:22px;height:22px;border:2px solid currentColor;border-radius:6px;display:grid;
+    place-items:center;flex:none;font-size:14px}
+  .step.fin .check .box::after{content:"✓"}
+  .fig{background:#F7FAFC;border:2px solid var(--line);border-radius:12px;padding:8px;margin:0 0 12px}
+  .fig svg{display:block;width:100%;height:auto}
+  .think{background:#EEF6F0;border:2px solid #9EC7AC;border-radius:10px;padding:10px 14px;margin:0 0 10px}
+  .think .lb{display:inline-block;background:#1E7A46;color:#fff;border-radius:6px;font-size:13px;
+    padding:1px 9px;margin-right:8px;font-weight:700}
+  .think span.q{font-weight:700}
+  .tips{margin:0 0 10px;padding-left:1.1em;font-size:14px;color:var(--gray)}
+  .tips li{margin:2px 0}
+
+  .foot{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+    border-top:1px solid var(--line);padding-top:14px;font-size:13px;color:var(--gray)}
+  .reset{font-family:var(--f);font-size:14px;font-weight:700;color:var(--gray);background:var(--paper);
+    border:2px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer;min-height:44px}
+  button:focus-visible,.item:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){.fill{transition:none}}
+  @media (max-width:520px){.body{padding-left:16px}}
+</style>
+
+<svg style="display:none" aria-hidden="true">
+  <!-- 準備物の絵 -->
+  <symbol id="ic-wax" viewBox="0 0 48 48">
+    <path d="M10 8h28v32a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4z" fill="#fff" stroke="#1A2B4C" stroke-width="2.6"/>
+    <path d="M10 8 L5 10 L10 12" fill="none" stroke="#1A2B4C" stroke-width="2.4"/>
+    <rect x="12.5" y="24" width="23" height="17" fill="#F1DE9B"/>
+  </symbol>
+  <symbol id="ic-bigbeaker" viewBox="0 0 48 48">
+    <path d="M7 6h34v34a4 4 0 0 1-4 4H11a4 4 0 0 1-4-4z" fill="#fff" stroke="#1A2B4C" stroke-width="2.6"/>
+    <path d="M7 6 L2 8 L7 10" fill="none" stroke="#1A2B4C" stroke-width="2.4"/>
+    <rect x="9.5" y="20" width="29" height="21" fill="#CFE2F1"/>
+  </symbol>
+  <symbol id="ic-pot" viewBox="0 0 48 48">
+    <path d="M12 12h20l4 26a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3z" fill="#E7EAEE" stroke="#1A2B4C" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M32 16c8 0 8 12 0 12" fill="none" stroke="#1A2B4C" stroke-width="2.6"/>
+    <path d="M15 8h14" stroke="#1A2B4C" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M12 33h22" stroke="#5A6577" stroke-width="2"/>
+  </symbol>
+  <symbol id="ic-ice" viewBox="0 0 48 48">
+    <rect x="8" y="22" width="22" height="20" rx="4" fill="#E3F1FA" stroke="#1A2B4C" stroke-width="2.6"/>
+    <rect x="22" y="10" width="18" height="18" rx="4" fill="#CFE9F7" stroke="#1A2B4C" stroke-width="2.6" transform="rotate(12 31 19)"/>
+    <path d="M12 28l6 0" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="ic-scale" viewBox="0 0 48 48">
+    <rect x="5" y="22" width="38" height="16" rx="4" fill="#E7EAEE" stroke="#1A2B4C" stroke-width="2.6"/>
+    <rect x="12" y="16" width="24" height="6" rx="2" fill="#fff" stroke="#1A2B4C" stroke-width="2.4"/>
+    <rect x="24" y="27" width="14" height="7" rx="2" fill="#22303F"/>
+    <path d="M27 30.5h8" stroke="#9FE8A0" stroke-width="2.4"/>
+  </symbol>
+  <symbol id="ic-pen" viewBox="0 0 48 48">
+    <rect x="8" y="19" width="30" height="10" rx="3" transform="rotate(-35 23 24)" fill="#fff" stroke="#1A2B4C" stroke-width="2.6"/>
+    <path d="M9 36l5-1-4-4z" fill="#1A2B4C"/>
+    <rect x="22" y="14" width="10" height="10" transform="rotate(-35 27 19)" fill="#E55A00"/>
+  </symbol>
+  <symbol id="ic-cloth" viewBox="0 0 48 48">
+    <path d="M9 12h30v18a6 6 0 0 1-6 6H15a6 6 0 0 1-6-6z" fill="#D9E6DE" stroke="#1A2B4C" stroke-width="2.6"/>
+    <path d="M9 20h30M9 28h30" stroke="#7F9A8C" stroke-width="1.8"/>
+  </symbol>
+
+  <!-- 手順の図（すべて 520×210） -->
+  <!-- 1 固体のロウをはかる -->
+  <symbol id="fig-w1" viewBox="0 0 520 210">
+    <g stroke="#1A2B4C" stroke-width="3" fill="none" stroke-linejoin="round">
+      <g transform="translate(150,12)">
+        <path d="M38 6h72v74a4 4 0 0 1-4 4H42a4 4 0 0 1-4-4z" fill="#fff"/>
+        <path d="M38 12 L28 16 L38 20" stroke-width="2.6"/>
+        <rect x="41" y="38" width="66" height="43" fill="#F1DE9B" stroke="none"/>
+        <rect x="14" y="88" width="132" height="9" rx="3" fill="#fff"/>
+        <rect x="2" y="97" width="156" height="32" rx="6" fill="#E7EAEE"/>
+        <rect x="100" y="105" width="52" height="16" rx="3" fill="#22303F" stroke="none"/>
+        <text x="126" y="118" font-family="Roboto Mono,monospace" font-size="13" fill="#9FE8A0"
+              text-anchor="middle" stroke="none">00.00</text>
+      </g>
+      <text x="260" y="170" font-family="BIZ UDPGothic,sans-serif" font-size="17" font-weight="700"
+            fill="#1A2B4C" text-anchor="middle" stroke="none">ロウが入ったビーカーを ビーカーごとはかる</text>
+      <text x="260" y="194" font-family="BIZ UDPGothic,sans-serif" font-size="14"
+            fill="#5A6577" text-anchor="middle" stroke="none">この後も、同じビーカー・同じてんびんで</text>
+    </g>
+  </symbol>
+  <!-- 2 湯せん -->
+  <symbol id="fig-bath" viewBox="0 0 520 210">
+    <g stroke="#1A2B4C" stroke-width="3" fill="none" stroke-linejoin="round">
+      <g transform="translate(120,10)">
+        <path d="M20 10h130v118a6 6 0 0 1-6 6H26a6 6 0 0 1-6-6z" fill="#fff"/>
+        <rect x="23" y="62" width="124" height="69" fill="#CFE2F1" stroke="none"/>
+        <path d="M23 62h124" stroke="#5A6577" stroke-width="2"/>
+        <path d="M52 34h66v94H52z" fill="#fff"/>
+        <rect x="55" y="70" width="60" height="55" fill="#F1DE9B" stroke="none"/>
+        <path d="M52 40 L44 43 L52 46" stroke-width="2.4"/>
+        <path d="M70 6c-4 6 4 10 0 16M90 6c-4 6 4 10 0 16M110 6c-4 6 4 10 0 16" stroke="#5A6577" stroke-width="2.4"/>
+      </g>
+      <g stroke="#5A6577" stroke-width="2">
+        <path d="M296 70 L226 90"/><path d="M296 150 L246 140"/>
+      </g>
+      <g font-family="BIZ UDPGothic,sans-serif" font-size="16" font-weight="700" fill="#1A2B4C" stroke="none">
+        <text x="302" y="68">電気ポットの湯</text>
+        <text x="302" y="90" font-size="14" fill="#5A6577" font-weight="400">湯の高さは、ロウのビーカーの</text>
+        <text x="302" y="108" font-size="14" fill="#5A6577" font-weight="400">ロウより下にする</text>
+        <text x="302" y="156">湯せんの中のロウ</text>
+      </g>
+    </g>
+  </symbol>
+  <!-- 3 印をつける -->
+  <symbol id="fig-mark" viewBox="0 0 520 210">
+    <g stroke="#1A2B4C" stroke-width="3" fill="none" stroke-linejoin="round">
+      <g transform="translate(110,14)">
+        <path d="M30 6h96v138a5 5 0 0 1-5 5H35a5 5 0 0 1-5-5z" fill="#fff"/>
+        <path d="M30 12 L18 16 L30 20" stroke-width="2.6"/>
+        <rect x="33" y="62" width="90" height="84" fill="#F1DE9B" stroke="none"/>
+        <path d="M18 62h124" stroke="#E55A00" stroke-width="3.4" stroke-dasharray="7 5"/>
+        <rect x="140" y="44" width="46" height="12" rx="3" transform="rotate(-28 163 50)" fill="#fff"/>
+        <rect x="172" y="30" width="16" height="12" rx="2" transform="rotate(-28 180 36)" fill="#E55A00" stroke="none"/>
+      </g>
+      <g font-family="BIZ UDPGothic,sans-serif" font-size="17" font-weight="700" fill="#E55A00" stroke="none">
+        <text x="296" y="84">ビーカーの外側に</text>
+        <text x="296" y="108">液面と同じ高さで印</text>
+      </g>
+      <text x="296" y="150" font-family="BIZ UDPGothic,sans-serif" font-size="14" fill="#5A6577" stroke="none">印をつけたあと、質量をはかる</text>
+    </g>
+  </symbol>
+  <!-- 4 氷水で冷やす -->
+  <symbol id="fig-cool" viewBox="0 0 520 210">
+    <g stroke="#1A2B4C" stroke-width="3" fill="none" stroke-linejoin="round">
+      <g transform="translate(110,14)">
+        <path d="M0 80h180v62a8 8 0 0 1-8 8H8a8 8 0 0 1-8-8z" fill="#fff"/>
+        <rect x="3" y="98" width="174" height="49" fill="#D6ECF8" stroke="none"/>
+        <path d="M3 98h174" stroke="#5A6577" stroke-width="2"/>
+        <path d="M52 24h66v122H52z" fill="#fff"/>
+        <path d="M52 30 L44 33 L52 36" stroke-width="2.4"/>
+        <rect x="55" y="70" width="60" height="75" fill="#F1DE9B" stroke="none"/>
+        <path d="M45 70h80" stroke="#E55A00" stroke-width="3" stroke-dasharray="6 4"/>
+        <rect x="8" y="104" width="22" height="22" rx="4" fill="#fff" transform="rotate(-8 19 115)"/>
+        <rect x="138" y="108" width="24" height="22" rx="4" fill="#fff" transform="rotate(10 150 119)"/>
+      </g>
+      <g font-family="BIZ UDPGothic,sans-serif" font-size="17" font-weight="700" fill="#1A2B4C" stroke="none">
+        <text x="312" y="92">氷水で冷やして固める</text>
+      </g>
+      <g font-family="BIZ UDPGothic,sans-serif" font-size="14" fill="#5A6577" stroke="none">
+        <text x="312" y="120">氷水がビーカーの中に</text>
+        <text x="312" y="140">入らないように</text>
+      </g>
+    </g>
+  </symbol>
+  <!-- 5 印とくらべる -->
+  <symbol id="fig-cmp" viewBox="0 0 520 210">
+    <g stroke="#1A2B4C" stroke-width="3" fill="none" stroke-linejoin="round">
+      <g transform="translate(110,14)">
+        <path d="M30 6h96v138a5 5 0 0 1-5 5H35a5 5 0 0 1-5-5z" fill="#fff"/>
+        <path d="M30 12 L18 16 L30 20" stroke-width="2.6"/>
+        <path d="M18 62h124" stroke="#E55A00" stroke-width="3.4" stroke-dasharray="7 5"/>
+        <text x="80" y="108" font-family="BIZ UDPGothic,sans-serif" font-size="26" font-weight="700"
+              fill="#5A6577" text-anchor="middle" stroke="none">？</text>
+      </g>
+      <g font-family="BIZ UDPGothic,sans-serif" font-size="17" font-weight="700" fill="#1A2B4C" stroke="none">
+        <text x="296" y="78">表面の高さを、印と</text>
+        <text x="296" y="102">くらべる</text>
+      </g>
+      <g font-family="BIZ UDPGothic,sans-serif" font-size="14" fill="#5A6577" stroke="none">
+        <text x="296" y="134">高い・低い・同じ</text>
+        <text x="296" y="154">表面の形もよく見る</text>
+      </g>
+    </g>
+  </symbol>
+</svg>
+
+<div class="wrap">
+  <header>
+    <h1>ロウの実験ナビ</h1>
+    <span class="eyebrow">１年　身のまわりの物質　／　⑲ 状態変化と体積</span>
+  </header>
+
+  <h2><span class="no">０</span>この実験で調べること</h2>
+  <div class="aim">
+    <p><b>質量は変わらない。では、体積はどうなるだろう？</b></p>
+    <p>ロウをとかして液体にし、冷やして固体にもどして、次の2つを調べる。</p>
+    <ul>
+      <li>① 固体・液体・固体にもどしたとき、<b>質量</b>は変わるか</li>
+      <li>② 液体のときの<b>液面の印</b>と、固まったあとの<b>表面の高さ</b>をくらべると、体積はどうなったか</li>
+    </ul>
+  </div>
+
+  <h2><span class="no">１</span>準備する</h2>
+  <p class="lead">班で分担して集めよう。そろったものからタップしてチェック。</p>
+  <div class="bar">
+    <div class="barrow">
+      <span class="now" id="now">つぎは　<span>この実験で調べること</span></span>
+      <span class="count" id="count">0 / 0</span>
+    </div>
+    <div class="track"><div class="fill" id="fill"></div></div>
+  </div>
+  <ul class="kit" id="kit"></ul>
+
+  <h2><span class="no">２</span>実験する</h2>
+  <p class="lead">上から順に。終わった手順はチェックして、次へ進もう。</p>
+  <ol class="steps" id="steps"></ol>
+
+  <h2><span class="no">３</span>片づける</h2>
+  <p class="lead">次の班が気持ちよく使えるように。</p>
+  <ul class="kit" id="tidy"></ul>
+
+  <div class="foot">
+    <button class="reset" id="reset" type="button">チェックを全部消す</button>
+    <span>チェックはこの端末だけに残ります。班の1台で開いて使ってください。</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "rou19-navi-v1";
+
+  var KIT = [
+    {id:"k1", ic:"ic-wax",       nm:"ロウ（固体）入りのビーカー", qt:"1個（量は先生の指示）"},
+    {id:"k2", ic:"ic-bigbeaker", nm:"湯せん用のビーカー",         qt:"1個（大きいもの）"},
+    {id:"k3", ic:"ic-pot",       nm:"電気ポットの湯",             qt:"先生の指示でくむ"},
+    {id:"k4", ic:"ic-ice",       nm:"氷水",                       qt:"冷やす容器に入れて"},
+    {id:"k5", ic:"ic-scale",     nm:"電子てんびん",               qt:"1台"},
+    {id:"k6", ic:"ic-pen",       nm:"油性ペン",                   qt:"1本（印をつける用）"},
+    {id:"k7", ic:"ic-cloth",     nm:"ぞうきん",                   qt:"1枚（熱いビーカー用）"}
+  ];
+
+  var STEPS = [
+    {id:"s1", t:"固体のロウの質量をはかる", fig:"fig-w1",
+     do:"ロウが入ったビーカーを、<b>ビーカーごと</b>電子てんびんにのせて質量をはかる。",
+     tips:["このあと3回はかる。<b>同じビーカー・同じてんびん</b>ではかる","変わるのはロウだけなので、ビーカーごとの数字でくらべられる"],
+     ws:"３ 結果", wsd:"「固体（はじめ）」の質量を書く"},
+    {id:"s2", t:"湯せんでロウをとかす", fig:"fig-bath",
+     do:"湯せん用のビーカーに電気ポットの湯を入れ、ロウのビーカーをつけて、<b>全部とかす</b>。",
+     tips:["ロウは火にかけない。湯せんだけでとかす","湯がロウのビーカーの中に入らないようにする"],
+     caution:"湯は熱い。やけどに注意。"},
+    {id:"s3", t:"液面に印をつけて、質量をはかる", fig:"fig-mark",
+     do:"全部とけたら、ビーカーの<b>外側</b>に、液面と同じ高さで油性ペンの<b>印</b>をつける。そのあと、質量をはかる。",
+     tips:["印は、液面とぴったり同じ高さにつける","ビーカーは熱い。ぞうきんで持つ"],
+     caution:"熱いビーカーは、ぞうきんで持つ。",
+     ws:"３ 結果", wsd:"「液体」の質量を書き、高さの欄は「印をつける」"},
+    {id:"s4", t:"氷水で冷やして固める", fig:"fig-cool",
+     do:"ロウのビーカーを氷水につけて冷やし、<b>固体にもどす</b>。",
+     tips:["氷水がビーカーの中に入らないようにする","固まるまで動かさない","待つ間に、ワークシートの４に、表面の形の予想を考えておく"]},
+    {id:"s5", t:"質量をはかり、表面の高さを見る", fig:"fig-cmp",
+     do:"固まったら、ビーカーの外側の水気をふいて、質量をはかる。表面の高さを<b>印</b>とくらべ、形をよく見る。",
+     tips:["水気が残っていると、質量が変わってしまう","印より高い・低い・同じ、のどれか","表面の形（まっすぐ・へこみ・もりあがり）をスケッチする"],
+     ws:"３ 結果 / ４ 固まったロウの形", wsd:"質量・印とくらべた高さを書き、形をかく"},
+    {id:"s6", t:"考察を書く",
+     think:{ws:"５ 考察", q:"結果（事実）と、そこから言えることを分けて書く。"},
+     do:"質量と体積は、それぞれどうなったか。<b>結果を根拠</b>にして、予想が合っていたかを書く。",
+     tips:["「結果」には、数字や見たことだけを書く","「そこから言えること」には、結果から考えたことを書く"],
+     ws:"５ 考察 / ★まとめ", wsd:"結果と言えることを分けて書き、まとめの（　）をうめる"}
+  ];
+
+  var TIDY = [
+    {id:"t1", ic:"ic-pot",       nm:"湯を捨てる",       qt:"先生の指示にしたがう"},
+    {id:"t2", ic:"ic-ice",       nm:"氷水を捨てる",     qt:"先生の指示にしたがう"},
+    {id:"t3", ic:"ic-wax",       nm:"ロウのビーカー",   qt:"先生の指示にしたがう"},
+    {id:"t4", ic:"ic-scale",     nm:"もとの場所へ",     qt:"てんびん・ビーカー・ペン"},
+    {id:"t5", ic:"ic-cloth",     nm:"机をふく",         qt:"水気とロウのかけら"}
+  ];
+
+  var state = load();
+  function load(){
+    try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ return {}; }
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+  }
+
+  function itemHTML(o){
+    return '<li><button class="item" type="button" id="' + o.id + '" aria-pressed="false">' +
+      '<svg class="ic" viewBox="0 0 48 48" aria-hidden="true"><use href="#' + o.ic + '"></use></svg>' +
+      '<span class="nm">' + o.nm + '<span class="qt">' + o.qt + '</span></span>' +
+      '<span class="tick" aria-hidden="true"></span></button></li>';
+  }
+
+  document.getElementById("kit").innerHTML = KIT.map(itemHTML).join("");
+  document.getElementById("tidy").innerHTML = TIDY.map(itemHTML).join("");
+
+  document.getElementById("steps").innerHTML = STEPS.map(function(s, i){
+    var tips = (s.tips || []).map(function(t){ return "<li>" + t + "</li>"; }).join("");
+    return '<li class="step" id="wrap-' + s.id + '">' +
+      '<div class="head"><span class="num">' + (i+1) + '</span><p class="ttl">' + s.t + '</p></div>' +
+      '<div class="body">' +
+        '<p class="do">' + s.do + '</p>' +
+        (s.fig ? '<div class="fig"><svg viewBox="0 0 520 210" role="img" aria-label="' + s.t + 'の図"><use href="#' + s.fig + '"></use></svg></div>' : '') +
+        (tips ? '<ul class="tips">' + tips + '</ul>' : '') +
+        (s.caution ? '<p class="caution">' + s.caution + '</p>' : '') +
+        (s.ws ? '<div class="ws"><span class="tag">ワークシート</span>' + s.ws + '　' + s.wsd + '</div>' : '') +
+        (s.think ? '<div class="think"><span class="lb">考察</span><span class="q">' + s.think.q +
+                   '</span>　→　ワークシート ' + s.think.ws + ' に書く</div>' : '') +
+        '<button class="check" type="button" id="' + s.id + '"><span class="box"></span>この手順ができた</button>' +
+      '</div></li>';
+  }).join("");
+
+  var ALL = KIT.concat(STEPS).concat(TIDY);
+
+  function render(){
+    var doneCount = 0;
+    KIT.concat(TIDY).forEach(function(o){
+      var el = document.getElementById(o.id);
+      var on = !!state[o.id];
+      el.setAttribute("aria-pressed", on ? "true" : "false");
+      if(on) doneCount++;
+    });
+    STEPS.forEach(function(s){
+      var on = !!state[s.id];
+      document.getElementById("wrap-" + s.id).classList.toggle("fin", on);
+      if(on) doneCount++;
+    });
+    var next = null;
+    for(var i=0;i<ALL.length;i++){ if(!state[ALL[i].id]){ next = ALL[i]; break; } }
+    var kitLeft = KIT.filter(function(o){ return !state[o.id]; }).length;
+    var label;
+    if(!next) label = "ぜんぶ終わり。おつかれさま";
+    else if(kitLeft > 0) label = "準備　<span>のこり " + kitLeft + " 個</span>";
+    else if(next.t) label = "つぎは　<span>" + next.t + "</span>";
+    else label = "片づけ　<span>" + next.nm + "</span>";
+    document.getElementById("now").innerHTML = label;
+    document.getElementById("count").textContent = doneCount + " / " + ALL.length;
+    document.getElementById("fill").style.width = (doneCount / ALL.length * 100) + "%";
+    STEPS.forEach(function(s){
+      var el = document.getElementById("wrap-" + s.id);
+      el.classList.toggle("on", !!next && next.id === s.id);
+    });
+  }
+
+  ALL.forEach(function(o){
+    document.getElementById(o.id).addEventListener("click", function(){
+      state[o.id] = !state[o.id]; save(); render();
+    });
+  });
+
+  document.getElementById("reset").addEventListener("click", function(){
+    state = {}; save(); render();
+    window.scrollTo({top:0, behavior:"smooth"});
+  });
+
+  render();
+})();
+</script>

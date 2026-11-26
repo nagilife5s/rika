@@ -1,0 +1,397 @@
+<title>神経の経路シミュレーター</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+/* 配置: 上にタブ。ものさしキャッチ（落下・計算・グラフ）と、からだの中の経路（人体図で信号を動かす）。授業スライドと同じ紺・青・赤橙 */
+:root{
+  --bg:#FAF8F3; --panel:#FFFFFF; --ink:#1A2B4C; --muted:#5B6678; --line:#C9CFDA;
+  --sense:#2E6FB7; --motor:#E55A00; --brain:#1A2B4C; --glow:#FFE2C2;
+  --skin:#F2E2D2; --skin-ln:#B89C85; --brainfill:#F4B8C4; --muscle:#E9A59B; --cord:#D8DEE9; --ruler:#F3D98B; --ruler-ln:#8A6D1F;
+  --font:'BIZ UDPGothic','Hiragino Sans','Yu Gothic',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1826; --panel:#172236; --ink:#EDEFF4; --muted:#9AA6BA; --line:#33415A;
+  --sense:#5BA3EC; --motor:#FF8A4C; --brain:#EDEFF4; --glow:#5A3A22;
+  --skin:#3A4660; --skin-ln:#6F7F9F; --brainfill:#9A5568; --muscle:#A8564E; --cord:#55627C; --ruler:#8A7330; --ruler-ln:#D9C06A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1826; --panel:#172236; --ink:#EDEFF4; --muted:#9AA6BA; --line:#33415A;
+  --sense:#5BA3EC; --motor:#FF8A4C; --brain:#EDEFF4; --glow:#5A3A22;
+  --skin:#3A4660; --skin-ln:#6F7F9F; --brainfill:#9A5568; --muscle:#A8564E; --cord:#55627C; --ruler:#8A7330; --ruler-ln:#D9C06A; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);
+  padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  font-size:16px;line-height:1.6}
+.wrap{max-width:900px;margin:0 auto;display:grid;gap:16px}
+h1{font-size:1.5rem;margin:0;text-wrap:balance}
+h2{font-size:1.1rem;margin:0}
+.sub{margin:0;color:var(--muted);font-size:.95rem}
+.tabs{display:flex;gap:0;border-bottom:3px solid var(--ink)}
+.tabs button{flex:1 1 0;border:2px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;background:var(--panel);color:var(--muted);padding:10px 8px}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button,input,select{font:inherit}
+button{font-weight:700;padding:8px 16px;border-radius:8px;border:2px solid var(--ink);background:var(--panel);color:var(--ink);cursor:pointer}
+button.main{background:var(--motor);border-color:var(--motor);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--sense);outline-offset:2px}
+button:disabled{opacity:.45;cursor:default}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:8px;overflow:hidden}
+.seg label{cursor:pointer;font-weight:700;background:var(--panel);position:relative}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;padding:8px 14px}
+.seg input:checked+span{background:var(--ink);color:var(--bg)}
+.seg input:focus-visible+span{outline:3px solid var(--sense);outline-offset:-3px}
+.board{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px}
+svg{display:block;width:100%;height:auto;max-width:100%}
+svg text{font-family:var(--font);fill:var(--ink)}
+.grid2{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:16px}
+@media (max-width:640px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.stack{display:grid;gap:12px;min-width:0;align-content:start}
+.field{display:grid;gap:6px}
+.field label{font-weight:700}
+.field .in{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.field input[type=number]{width:6.5em;padding:8px;border:2px solid var(--ink);border-radius:8px;background:var(--panel);color:var(--ink);font-size:1.2rem;font-variant-numeric:tabular-nums}
+.field input[type=range]{flex:1 1 160px;min-width:0;accent-color:var(--motor)}
+.result{background:var(--panel);border:2px solid var(--motor);border-radius:12px;padding:12px 16px}
+.result .big{font-size:2.2rem;font-weight:700;color:var(--motor);font-variant-numeric:tabular-nums;line-height:1.2}
+.result .lead{color:var(--muted);font-size:.95rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:2px 12px;background:var(--panel);font-variant-numeric:tabular-nums}
+.note{margin:0;color:var(--muted);font-size:.9rem}
+.cap{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-height:5em}
+.cap b{color:var(--motor)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:.9rem;font-weight:700}
+.legend span::before{content:"";display:inline-block;width:22px;height:5px;border-radius:3px;margin-right:6px;vertical-align:middle;background:currentColor}
+.legend .a{color:var(--sense)} .legend .b{color:var(--motor)} .legend .c{color:var(--brain)} .legend .d{color:var(--muted)}
+.cmp{display:grid;gap:8px}
+.row{display:grid;grid-template-columns:9em 1fr 4.5em;gap:12px;align-items:center}
+.row .bar{height:22px;border-radius:6px;background:var(--line);overflow:hidden}
+.row .bar i{display:block;height:100%;background:var(--sense);width:0;transition:width .4s}
+.row.r .bar i{background:var(--motor)}
+.row output{color:var(--muted);font-variant-numeric:tabular-nums}
+@media (max-width:480px){.row{grid-template-columns:1fr 3.5em}.row b{grid-column:1/-1}}
+/* ものさし */
+.g-ruler{transition:none}
+.tick{stroke:var(--ruler-ln);stroke-width:1.2}
+.rtxt{font-size:11px;fill:var(--ruler-ln)}
+.finger{fill:var(--skin);stroke:var(--skin-ln);stroke-width:2}
+.finger.got{fill:var(--glow);stroke:var(--motor)}
+.axis{stroke:var(--muted);stroke-width:1.5}
+.gridl{stroke:var(--line);stroke-width:1}
+.gtxt{font-size:12px;fill:var(--muted)}
+.curve{fill:none;stroke:var(--sense);stroke-width:3}
+.mk{fill:var(--motor);stroke:var(--panel);stroke-width:2}
+.guide{stroke:var(--motor);stroke-width:1.5;stroke-dasharray:4 4}
+/* 人体 */
+.sk{fill:var(--skin);stroke:var(--skin-ln);stroke-width:2}
+.limb{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.limb.o{stroke:var(--skin-ln)} .limb.i{stroke:var(--skin)}
+.part{transition:filter .2s,stroke .2s}
+.part.on{filter:drop-shadow(0 0 6px var(--motor))}
+.brainp{fill:var(--brainfill);stroke:var(--skin-ln);stroke-width:2}
+.cordp{fill:none;stroke:var(--cord);stroke-width:11;stroke-linecap:round}
+.musc{fill:var(--muscle);stroke:var(--skin-ln);stroke-width:1.5}
+.chair{fill:none;stroke:var(--line);stroke-width:5;stroke-linecap:round}
+.ed{fill:none;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;opacity:.22;transition:opacity .2s}
+.ed.sense{stroke:var(--sense)} .ed.motor{stroke:var(--motor)} .ed.brain{stroke:var(--brain)} .ed.light{stroke:var(--muted);stroke-dasharray:3 8;stroke-width:4}
+.ed.late{stroke:var(--brain);stroke-dasharray:2 9}
+.ed.seen{opacity:.95} .ed.hide{opacity:.06}
+.lb{font-size:15px;font-weight:700;paint-order:stroke;stroke:var(--panel);stroke-width:5px;stroke-linejoin:round}
+.lb.s{fill:var(--sense)} .lb.m{fill:var(--motor)}
+.dot{fill:var(--motor);stroke:var(--panel);stroke-width:3}
+.shank{transition:transform .35s ease-out;transform-origin:300px 392px}
+.kick{transform:rotate(28deg)}
+@media (prefers-reduced-motion: reduce){.shank{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>神経の経路シミュレーター</h1>
+    <p class="sub">２年 生物 神経。ものさしキャッチの反応時間を計算して、からだの中の信号の道すじを比べよう。</p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab1" aria-selected="true" aria-controls="p1" type="button">ものさしキャッチ</button>
+    <button role="tab" id="tab2" aria-selected="false" aria-controls="p2" type="button">からだの中の経路</button>
+  </div>
+
+  <!-- ====== 1 ものさしキャッチ ====== -->
+  <section id="p1" role="tabpanel" aria-labelledby="tab1" class="stack">
+    <div class="grid2">
+      <div class="board">
+        <svg id="rsvg" viewBox="0 0 300 460" role="img" aria-label="落ちるものさしと、つかむ指">
+          <defs><clipPath id="clipR"><rect x="0" y="0" width="300" height="460"/></clipPath></defs>
+          <g clip-path="url(#clipR)">
+            <g id="ruler" class="g-ruler"></g>
+            <rect class="finger" id="fgL" x="60" y="322" width="62" height="16" rx="8"/>
+            <rect class="finger" id="fgR" x="178" y="322" width="62" height="16" rx="8"/>
+            <text x="150" y="366" text-anchor="middle" font-size="14" style="fill:var(--muted)">つかむ指（0cmの位置）</text>
+          </g>
+        </svg>
+      </div>
+      <div class="stack">
+        <div class="field">
+          <label for="dist">何cmでつかんだ？（落ちた距離）</label>
+          <div class="in">
+            <input id="dist" type="number" min="0" max="30" step="0.5" value="20" inputmode="decimal"> <span>cm</span>
+            <input id="rng" type="range" min="1" max="30" step="0.5" value="20" aria-label="落ちた距離（cm）">
+          </div>
+        </div>
+        <div class="result" aria-live="polite">
+          <div class="lead">あなたの反応時間は</div>
+          <div class="big"><span id="tOut">0.20</span> 秒</div>
+          <div class="lead" id="tNote">目安：多くの人は15〜25cm（約0.17〜0.23秒）</div>
+        </div>
+        <div class="ctl">
+          <button class="main" id="drop" type="button">ものさしを放す</button>
+          <button id="add" type="button">記録に追加</button>
+          <button id="clr" type="button">記録を消す</button>
+          <label>速さ <select id="slow"><option value="1">そのまま</option><option value="3" selected>ゆっくり（×3）</option><option value="6">もっとゆっくり（×6）</option></select></label>
+        </div>
+        <div>
+          <div class="note">記録（３回はかって平均を出そう）</div>
+          <div class="chips" id="chips" aria-live="polite"></div>
+          <div id="avg" class="note"></div>
+        </div>
+      </div>
+    </div>
+    <div class="board">
+      <svg id="gsvg" viewBox="0 0 560 280" role="img" aria-label="ものさしの落下距離と反応時間のグラフ"></svg>
+    </div>
+    <details class="note"><summary>計算のしくみ</summary>
+      <p class="note">ものさしは重力で速さを増しながら落ちる。落ちた距離 d（cm）から、かかった時間 t（秒）は t ＝ √(2d ÷ 980) で決まる（980 cm/秒² は重力による加速のしかた）。このグラフは、教科書の図２と同じ形になる。</p>
+    </details>
+  </section>
+
+  <!-- ====== 2 からだの中の経路 ====== -->
+  <section id="p2" role="tabpanel" aria-labelledby="tab2" class="stack" hidden>
+    <div class="ctl" role="group" aria-label="操作">
+      <div class="seg">
+        <label><input type="radio" name="mode" value="voluntary" checked><span>ものさしキャッチ</span></label>
+        <label><input type="radio" name="mode" value="reflex"><span>ひざの下をたたく</span></label>
+      </div>
+      <button class="main" id="play" type="button">信号を送る</button>
+      <button id="step" type="button">１つずつ進める</button>
+      <button id="reset" type="button">もどす</button>
+    </div>
+
+    <div class="board">
+      <svg id="bsvg" viewBox="0 0 800 560" role="img" aria-label="いすにすわった人の体の中を、信号が伝わる経路の図">
+        <!-- いす -->
+        <path class="chair" d="M330 392 L545 392 M545 392 L545 240 M360 392 L360 520 M520 392 L520 520"/>
+        <!-- 胴体・首・頭 -->
+        <path class="sk" d="M392 190 Q384 280 400 392 L486 392 Q496 280 478 190 Z"/>
+        <rect class="sk" x="410" y="160" width="44" height="40" rx="10"/>
+        <circle class="sk" cx="420" cy="115" r="58"/>
+        <!-- 脳 -->
+        <g id="p_brain" class="part">
+          <path class="brainp" d="M392 98 C390 70 420 58 442 66 C468 70 476 96 466 114 C458 130 432 134 416 128 C400 122 394 112 392 98 Z"/>
+          <path d="M410 80 C420 92 418 108 410 118 M434 70 C440 84 446 96 440 110 M452 78 C458 92 458 104 452 118" fill="none" stroke="var(--skin-ln)" stroke-width="1.6"/>
+        </g>
+        <!-- 目 -->
+        <g id="p_eye" class="part"><ellipse cx="372" cy="118" rx="12" ry="9" fill="#fff" stroke="var(--skin-ln)" stroke-width="2"/><circle cx="368" cy="118" r="5" fill="var(--ink)"/></g>
+        <!-- せきずい -->
+        <path id="p_cord" class="cordp part" d="M452 150 C470 180 476 230 472 290 C471 320 470 340 468 352"/>
+        <!-- うで -->
+        <path class="limb o" stroke-width="30" d="M430 208 L412 288 L312 262"/>
+        <path class="limb i" stroke-width="26" d="M430 208 L412 288 L312 262"/>
+        <circle class="sk" cx="298" cy="259" r="17"/>
+        <g id="p_hand" class="part"><ellipse class="musc" cx="360" cy="276" rx="50" ry="10" transform="rotate(-14 360 276)"/></g>
+        <!-- ものさし -->
+        <g><rect x="282" y="168" width="14" height="92" fill="var(--ruler)" stroke="var(--ruler-ln)" stroke-width="1.5"/><path d="M282 180 h5 M282 192 h5 M282 204 h5 M282 216 h5 M282 228 h5 M282 240 h5" stroke="var(--ruler-ln)" stroke-width="1.2"/></g>
+        <!-- 脚 -->
+        <path class="limb o" stroke-width="34" d="M460 392 L300 392"/>
+        <path class="limb i" stroke-width="30" d="M460 392 L300 392"/>
+        <g id="p_thigh" class="part"><ellipse class="musc" cx="380" cy="383" rx="62" ry="12"/></g>
+        <g id="shank" class="shank">
+          <path class="limb o" stroke-width="30" d="M300 392 L292 505 L236 510"/>
+          <path class="limb i" stroke-width="26" d="M300 392 L292 505 L236 510"/>
+          <g id="p_knee" class="part"><circle cx="296" cy="440" r="10" fill="var(--glow)" stroke="var(--motor)" stroke-width="2"/></g>
+        </g>
+        <!-- ハンマー -->
+        <g id="hammer"><path d="M214 492 L276 456" stroke="var(--muted)" stroke-width="7" stroke-linecap="round"/><rect x="268" y="440" width="26" height="22" rx="4" fill="var(--muted)" transform="rotate(-30 281 451)"/></g>
+
+        <!-- 経路 -->
+        <g id="edges">
+          <path id="c1" class="ed light" d="M289 166 L366 116"/>
+          <path id="c2" class="ed sense" d="M370 118 C380 114 392 108 410 100"/>
+          <path id="c3" class="ed brain" d="M440 128 C452 140 462 152 466 172 L472 222"/>
+          <path id="c4" class="ed motor" d="M472 222 C446 222 430 244 414 272 L354 280 L316 266"/>
+          <path id="r1" class="ed light" d="M262 462 L292 448"/>
+          <path id="r2" class="ed sense" d="M296 438 L298 408 C300 396 316 396 340 396 L440 396 C462 396 468 380 468 356"/>
+          <path id="r3" class="ed motor" d="M468 356 C468 372 458 378 440 378 L330 378"/>
+          <path id="r4" class="ed late" d="M468 352 C474 310 476 260 472 222 C468 190 458 160 444 134"/>
+        </g>
+        <text class="lb s" id="lbS" x="300" y="64" visibility="hidden">感覚神経</text>
+        <!-- ラベル -->
+        <text class="lb" x="496" y="84">脳</text>
+        <text class="lb" x="322" y="150" text-anchor="end">目</text>
+        <text class="lb" x="500" y="300">せきずい</text>
+        <text class="lb" x="320" y="318" text-anchor="middle">手の筋肉</text>
+        <text class="lb" x="372" y="364" text-anchor="middle">太ももの筋肉</text>
+        <text class="lb" x="262" y="165" text-anchor="end">ものさし</text>
+        <text class="lb" x="214" y="528">ハンマー</text>
+        <text class="lb" x="322" y="452">ひざの下</text>
+        <g id="tags"></g>
+        <circle id="dot" class="dot" r="9" cx="0" cy="0" visibility="hidden"></circle>
+      </svg>
+    </div>
+
+    <div class="legend"><span class="a">感覚神経</span><span class="b">運動神経</span><span class="c">せきずい・脳の中</span><span class="d">光・衝撃（刺激）</span></div>
+    <div class="cap" id="cap" aria-live="polite">モードを選んで「信号を送る」を押そう。</div>
+
+    <div class="cmp" aria-label="反応までに通る区間の数">
+      <div class="row"><b>ものさしキャッチ</b><div class="bar"><i id="b1"></i></div><output id="o1">–</output></div>
+      <div class="row r"><b>ひざの下をたたく</b><div class="bar"><i id="b2"></i></div><output id="o2">–</output></div>
+      <p class="note">棒の長さは、反応までに信号が通った区間の数。反射は脳を通らないので、通る区間が少ない。</p>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  var NS="http://www.w3.org/2000/svg";
+  function el(n,a,p){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+  var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- タブ ---------- */
+  var tabs=[["tab1","p1"],["tab2","p2"]];
+  tabs.forEach(function(t){document.getElementById(t[0]).onclick=function(){
+    tabs.forEach(function(u){var on=u[0]===t[0];document.getElementById(u[0]).setAttribute("aria-selected",on);document.getElementById(u[1]).hidden=!on;});
+    try{location.hash=t[0]==="tab2"?"route":"ruler";}catch(e){}
+  };});
+  if(location.hash==="#route")document.getElementById("tab2").click();
+
+  /* ---------- 1 ものさしキャッチ ---------- */
+  var PX=10, H0=330;               // 1cm = 10px、つかむ位置の高さ
+  var rg=document.getElementById("ruler");
+  el("rect",{x:112,y:H0-300,width:76,height:300,fill:"var(--ruler)",stroke:"var(--ruler-ln)","stroke-width":2,rx:2},rg);
+  for(var c=0;c<=30;c++){
+    var y=H0-c*PX, long=(c%5===0);
+    el("line",{x1:188,y1:y,x2:188-(long?22:12),y2:y,"class":"tick"},rg);
+    if(long){var tx=el("text",{x:112+8,y:y+4,"class":"rtxt"},rg);tx.textContent=c;}
+  }
+  var t0=el("text",{x:150,y:H0-6,"text-anchor":"middle","class":"rtxt"},rg);t0.textContent="0cm";
+  
+  var dist=document.getElementById("dist"),rng=document.getElementById("rng"),tOut=document.getElementById("tOut"),tNote=document.getElementById("tNote");
+  var fgL=document.getElementById("fgL"),fgR=document.getElementById("fgR");
+  function calc(d){return Math.sqrt(2*d/980);}
+  function getD(){var v=parseFloat(dist.value);if(isNaN(v))v=0;return Math.max(0,Math.min(30,v));}
+
+  /* グラフ */
+  var gs=document.getElementById("gsvg"),GX0=60,GX1=530,GY0=235,GY1=25,XM=30,YM=0.25;
+  function gx(d){return GX0+(GX1-GX0)*d/XM;} function gy(t){return GY0-(GY0-GY1)*t/YM;}
+  for(var i=0;i<=6;i++){var d=i*5;el("line",{x1:gx(d),y1:GY0,x2:gx(d),y2:GY1,"class":"gridl"},gs);var a=el("text",{x:gx(d),y:GY0+18,"text-anchor":"middle","class":"gtxt"},gs);a.textContent=d;}
+  for(var j=0;j<=5;j++){var tt=j*0.05;el("line",{x1:GX0,y1:gy(tt),x2:GX1,y2:gy(tt),"class":"gridl"},gs);var b=el("text",{x:GX0-8,y:gy(tt)+4,"text-anchor":"end","class":"gtxt"},gs);b.textContent=tt.toFixed(2);}
+  el("line",{x1:GX0,y1:GY0,x2:GX1,y2:GY0,"class":"axis"},gs);el("line",{x1:GX0,y1:GY0,x2:GX0,y2:GY1,"class":"axis"},gs);
+  var xl=el("text",{x:(GX0+GX1)/2,y:GY0+40,"text-anchor":"middle","class":"gtxt"},gs);xl.textContent="ものさしの落下距離（cm）";
+  var yl=el("text",{x:14,y:(GY0+GY1)/2,"text-anchor":"middle","class":"gtxt",transform:"rotate(-90 14 "+((GY0+GY1)/2)+")"},gs);yl.textContent="落下時間（秒）";
+  var pts=[];for(var k=0;k<=120;k++){var dd=XM*k/120;pts.push(gx(dd).toFixed(1)+","+gy(calc(dd)).toFixed(1));}
+  el("polyline",{points:pts.join(" "),"class":"curve"},gs);
+  var gH=el("line",{"class":"guide"},gs),gV=el("line",{"class":"guide"},gs),gM=el("circle",{r:7,"class":"mk"},gs),gT=el("text",{"class":"gtxt","font-weight":"700"},gs);
+  gT.style.fill="var(--motor)";gT.style.fontSize="14px";
+  function updateGraph(d){
+    var t=calc(d),x=gx(d),y=gy(t);
+    gH.setAttribute("x1",GX0);gH.setAttribute("y1",y);gH.setAttribute("x2",x);gH.setAttribute("y2",y);
+    gV.setAttribute("x1",x);gV.setAttribute("y1",y);gV.setAttribute("x2",x);gV.setAttribute("y2",GY0);
+    gM.setAttribute("cx",x);gM.setAttribute("cy",y);
+    gT.setAttribute("x",Math.min(x+12,GX1-110));gT.setAttribute("y",Math.min(y+30,GY0-10));gT.textContent=d.toFixed(1)+"cm → "+t.toFixed(2)+"秒";
+  }
+  function update(fromRange){
+    var d=getD();rng.value=Math.max(1,d);
+    tOut.textContent=calc(d).toFixed(2);
+    var t=calc(d);
+    tNote.textContent=t<0.15?"とても速い反応（目安は約0.17〜0.23秒）":(t<=0.25?"ふつうの範囲（目安は約0.17〜0.23秒）":"目安より少しゆっくり（目安は約0.17〜0.23秒）");
+    updateGraph(d);
+    if(!anim){setRuler(0);fgL.classList.remove("got");fgR.classList.remove("got");}
+  }
+  var anim=null;
+  function setRuler(cm){rg.setAttribute("transform","translate(0,"+(cm*PX)+")");}
+  dist.addEventListener("input",function(){update();});
+  rng.addEventListener("input",function(){dist.value=rng.value;update();});
+  document.getElementById("drop").onclick=function(){
+    if(anim)cancelAnimationFrame(anim);
+    var d=getD();if(d<=0)return;
+    var slow=parseFloat(document.getElementById("slow").value)||1,T=calc(d)*slow*(reduce?0:1)*1000,s=null;
+    fgL.classList.remove("got");fgR.classList.remove("got");setRuler(0);
+    if(T===0){setRuler(d);fgL.classList.add("got");fgR.classList.add("got");anim=null;return;}
+    function f(ts){if(s===null)s=ts;var u=Math.min(1,(ts-s)/T);setRuler(d*u*u);
+      if(u<1){anim=requestAnimationFrame(f);}else{anim=null;fgL.classList.add("got");fgR.classList.add("got");}}
+    anim=requestAnimationFrame(f);
+  };
+  var trials=[];
+  function renderTrials(){
+    var c=document.getElementById("chips");c.textContent="";
+    trials.forEach(function(d,i){var s=document.createElement("span");s.className="chip";s.textContent=(i+1)+"回目 "+d.toFixed(1)+"cm → "+calc(d).toFixed(2)+"秒";c.appendChild(s);});
+    var a=document.getElementById("avg");
+    if(trials.length){var m=trials.reduce(function(x,y){return x+calc(y);},0)/trials.length;a.textContent=trials.length+"回の平均：約 "+m.toFixed(2)+" 秒";}else a.textContent="";
+  }
+  document.getElementById("add").onclick=function(){if(trials.length>=5)trials.shift();trials.push(getD());renderTrials();};
+  document.getElementById("clr").onclick=function(){trials=[];renderTrials();};
+  update();
+
+  /* ---------- 2 からだの中の経路 ---------- */
+  var P=function(id){return document.getElementById(id);};
+  var SEQ={
+    voluntary:[
+      ["c1","刺激","ものさしが落ちる。光が目に入る。","p_eye"],
+      ["c2","感覚神経","目で受け取った信号が、感覚神経で脳へ。","p_brain"],
+      ["c3","脳の命令","脳が「つかめ」と判断。命令がせきずいへ。","p_cord"],
+      ["c4","運動神経","命令が運動神経で、手の筋肉へ。手の筋肉が縮み、ものさしをつかむ。","p_hand"]],
+    reflex:[
+      ["r1","刺激","ハンマーが、ひざの下のけんをたたく。","p_knee"],
+      ["r2","感覚神経","信号が感覚神経でせきずいへ。","p_cord"],
+      ["r3","運動神経","せきずいから、脳を通らずに運動神経へ命令が出る。太ももの筋肉が縮み、足が上がる。","p_thigh"],
+      ["r4","あとから脳へ","同時に信号は脳にも伝わり、「たたかれた」と気づく。反応のあとで起こる。","p_brain"]]
+  };
+  var REACT={voluntary:3,reflex:2};   // この番号の区間で反応が起こる（0始まり）
+  var edges=["c1","c2","c3","c4","r1","r2","r3","r4"].map(P);
+  var parts=["p_eye","p_brain","p_cord","p_hand","p_thigh","p_knee"];
+  var mode="voluntary",idx=-1,timer=null,dot=P("dot"),cap=P("cap");
+  var tags=P("tags");
+  function addTag(id,x,y,cls,txt){var t=el("text",{x:x,y:y,"class":"lb "+cls,visibility:"hidden",id:"tag_"+id},tags);t.textContent=txt;}
+  addTag("c2",326,86,"s","感覚神経"); addTag("c3",486,196,"","脳の命令"); addTag("c4",410,312,"m","運動神経");
+  addTag("r2",272,412,"s","感覚神経"); addTag("r3",400,438,"m","運動神経"); addTag("r4",486,262,"","あとから脳へ");
+  P("tag_r2").setAttribute("text-anchor","end");
+  function seq(){return SEQ[mode];}
+  function paint(){
+    var used=seq().map(function(s){return s[0];});
+    edges.forEach(function(e){var cls=e.getAttribute("class").split(" ").filter(function(c){return c!=="seen"&&c!=="hide";});
+      if(used.indexOf(e.id)<0)cls.push("hide");e.setAttribute("class",cls.join(" "));});
+    parts.forEach(function(p){P(p).classList.remove("on");});
+    Object.keys({c2:1,c3:1,c4:1,r2:1,r3:1,r4:1}).forEach(function(k){P("tag_"+k).setAttribute("visibility","hidden");});
+    for(var i=0;i<=idx;i++){var s=seq()[i];P(s[0]).classList.add("seen");var tg=P("tag_"+s[0]);if(tg)tg.setAttribute("visibility","visible");}
+    if(idx>=0)P(seq()[idx][3]).classList.add("on");
+    P("shank").classList.toggle("kick",mode==="reflex"&&idx>=2);
+  }
+  function showCap(){
+    if(idx<0){cap.textContent="モードを選んで「信号を送る」を押そう。";return;}
+    var s=seq()[idx];cap.innerHTML="<b>"+(idx+1)+" / "+seq().length+"　"+s[1]+"</b><br>"+s[2];
+    if(idx===seq().length-1)cap.innerHTML+="<br><b>反応までに通った区間：</b>"+(REACT[mode]+1)+"つ"+(mode==="reflex"?"（脳を通らない）":"（脳を通る）");
+  }
+  function bars(){
+    if(idx>=REACT[mode]){var n=REACT[mode]+1;(mode==="voluntary"?P("b1"):P("b2")).style.width=(n/4*100)+"%";(mode==="voluntary"?P("o1"):P("o2")).textContent=n+"区間";}
+  }
+  function stop(){if(timer){cancelAnimationFrame(timer);timer=null;}}
+  function animate(id,done){
+    var p=P(id),len=p.getTotalLength(),t0=null,dur=reduce?0:900;dot.setAttribute("visibility","visible");
+    function f(ts){if(t0===null)t0=ts;var u=dur?Math.min(1,(ts-t0)/dur):1;var pt=p.getPointAtLength(len*u);
+      dot.setAttribute("cx",pt.x);dot.setAttribute("cy",pt.y);
+      if(u<1)timer=requestAnimationFrame(f);else{timer=null;done&&done();}}
+    timer=requestAnimationFrame(f);
+  }
+  function stepOnce(done){
+    if(timer)return;
+    if(idx>=seq().length-1){done&&done(false);return;}
+    idx++;paint();showCap();bars();
+    animate(seq()[idx][0],function(){done&&done(true);});
+  }
+  function reset(clearBars){stop();idx=-1;dot.setAttribute("visibility","hidden");
+    if(clearBars){P("b1").style.width="0";P("b2").style.width="0";P("o1").textContent="–";P("o2").textContent="–";}
+    paint();showCap();}
+  function runAll(){reset(false);(function loop(){stepOnce(function(more){if(more&&idx<seq().length-1)setTimeout(loop,reduce?0:250);});})();}
+  P("play").onclick=runAll;
+  P("step").onclick=function(){stepOnce();};
+  P("reset").onclick=function(){reset(true);};
+  Array.prototype.forEach.call(document.querySelectorAll("input[name=mode]"),function(r){r.onchange=function(){mode=r.value;reset(false);};});
+  paint();showCap();
+})();
+</script>

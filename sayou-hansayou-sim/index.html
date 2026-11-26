@@ -1,0 +1,478 @@
+<title>作用・反作用の法則</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+/* Layout: 投影用の1画面ステージ。上にタブ、中央に大きな図、下に説明と操作。 */
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#15233b; --sub:#56637a; --line:#cfd6df; --soft:#e4e9ef;
+  --act:#1f63c6; --react:#d9480f; --ok:#1d8a4e; --ng:#c0262d; --obj:#ffd75e; --obj2:#9fd3c7; --floor:#9aa6b6;
+  --font:"BIZ UDPGothic","BIZ UDゴシック","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1622; --panel:#172131; --ink:#e8eef7; --sub:#9fb0c8; --line:#2c3a50; --soft:#1f2b3e;
+  --act:#5b9dff; --react:#ff8a4c; --ok:#4cc78a; --ng:#ff6b70; --obj:#e3b93a; --obj2:#4f9e8e; --floor:#5d6b80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1622; --panel:#172131; --ink:#e8eef7; --sub:#9fb0c8; --line:#2c3a50; --soft:#1f2b3e;
+  --act:#5b9dff; --react:#ff8a4c; --ok:#4cc78a; --ng:#ff6b70; --obj:#e3b93a; --obj2:#4f9e8e; --floor:#5d6b80; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:18px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:14px 24px}
+.wrap{max-width:1400px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.eyebrow{font-size:14px;letter-spacing:.14em;color:var(--sub)}
+h1{margin:0;font-size:clamp(26px,3vw,40px);line-height:1.2;text-wrap:balance}
+h1 .a{color:var(--act)} h1 .r{color:var(--react)}
+button{font:inherit;color:inherit;cursor:pointer;border:2px solid var(--line);background:var(--panel);border-radius:12px;padding:10px 18px;min-height:48px}
+button:hover{border-color:var(--sub)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--act);outline-offset:2px}
+.primary{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:700}
+nav{display:flex;gap:8px;flex-wrap:wrap}
+nav button{font-size:18px;font-weight:700;border-radius:999px;padding:8px 20px}
+nav button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px 24px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+svg{display:block;width:100%;height:auto}
+svg text{font-family:var(--font);fill:var(--ink)}
+.lead{font-size:clamp(20px,2.2vw,28px);font-weight:700;margin:0 0 6px;text-wrap:balance}
+.note{color:var(--sub);font-size:16px;margin:0}
+.ctrl{display:flex;flex-direction:column;gap:14px}
+.ctrl label{display:flex;justify-content:space-between;font-weight:700}
+.ctrl output{font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--ink);height:28px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1}
+.seg button[aria-pressed="true"]{background:var(--soft);border-color:var(--ink)}
+.meter{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;font-variant-numeric:tabular-nums}
+.meter .bar{height:14px;border-radius:7px;background:var(--soft);overflow:hidden}
+.meter .bar i{display:block;height:100%;border-radius:7px}
+.key{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-1px;margin-right:6px}
+.law{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.law{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.law div{background:var(--soft);border-radius:14px;padding:14px 16px;font-size:clamp(17px,1.6vw,22px);font-weight:700}
+.law small{display:block;font-weight:400;font-size:15px;color:var(--sub)}
+.law b{color:var(--act)}
+.scenes{display:flex;gap:8px;flex-wrap:wrap}
+.scenes button[aria-pressed="true"]{background:var(--soft);border-color:var(--ink);font-weight:700}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:700px){.pair{grid-template-columns:1fr}}
+.pair div{border-radius:14px;padding:14px 18px;font-size:clamp(18px,1.9vw,25px);font-weight:700;border:3px solid}
+.pair .pa{border-color:var(--act);color:var(--act)}
+.pair .pr{border-color:var(--react);color:var(--react)}
+.pair .pr.off{border-style:dashed;color:var(--sub);border-color:var(--line)}
+.pair small{display:block;color:var(--sub);font-weight:400;font-size:15px}
+.flist{display:flex;flex-direction:column;gap:8px}
+.flist button{text-align:left;display:flex;gap:10px;align-items:center}
+.flist button[aria-pressed="true"]{border-color:var(--ink);background:var(--soft)}
+.flist .sw{width:18px;height:18px;border-radius:50%;flex:none}
+.verdict{font-size:clamp(20px,2vw,28px);font-weight:700;margin:0}
+.chk{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+@media (max-width:700px){.chk{grid-template-columns:1fr 1fr}}
+.chk span{background:var(--soft);border-radius:10px;padding:8px 10px;font-size:15px;text-align:center}
+.chk .y{outline:2px solid var(--ok)} .chk .n{outline:2px solid var(--ng)}
+.q{font-size:clamp(21px,2.3vw,30px);font-weight:700;margin:0 0 14px;text-wrap:balance}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:700px){.choices{grid-template-columns:1fr}}
+.choices button{text-align:left;font-size:clamp(18px,1.8vw,23px);padding:14px 18px}
+.choices button.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--panel))}
+.choices button.ng{border-color:var(--ng);background:color-mix(in srgb,var(--ng) 12%,var(--panel))}
+.explain{margin-top:14px;padding:14px 18px;background:var(--soft);border-radius:12px;font-size:clamp(17px,1.7vw,22px)}
+.qnav{display:flex;align-items:center;gap:10px;margin-top:14px}
+.qnav span{margin-left:auto;color:var(--sub);font-variant-numeric:tabular-nums}
+.tabpane[hidden]{display:none!important}
+.stagebox{background:var(--soft);border-radius:14px;overflow:hidden}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div>
+    <div class="eyebrow">中学３年　運動とエネルギー　11｜作用・反作用の法則</div>
+    <h1><span class="a">作用</span>と<span class="r">反作用</span></h1>
+  </div>
+  <div class="row">
+    <button id="fs">全画面</button>
+  </div>
+</header>
+
+<nav role="tablist" id="tabs">
+  <button role="tab" data-tab="sim" aria-selected="true">① 押し合い実験</button>
+  <button role="tab" data-tab="law" aria-selected="false">② 法則のまとめ</button>
+  <button role="tab" data-tab="find" aria-selected="false">③ 力の相手さがし</button>
+  <button role="tab" data-tab="bal" aria-selected="false">④ つり合いとの違い</button>
+  <button role="tab" data-tab="quiz" aria-selected="false">⑤ 確認問題</button>
+</nav>
+
+<!-- ① 実験 -->
+<section class="tabpane" id="sim">
+  <div class="grid">
+    <div class="card">
+      <p class="lead" id="simLead"></p>
+      <p class="note" style="font-size:clamp(17px,1.6vw,22px);color:var(--ink);margin:0 0 10px" id="simNote2"></p>
+      <div class="stagebox"><svg id="simSvg" viewBox="0 0 1000 420" role="img" aria-label="台車に乗った二人の押し合い"></svg></div>
+      <div class="row" style="margin-top:12px">
+        <button id="sPrev">← 戻る</button>
+        <button class="primary" id="sNext">次へ →</button>
+        <button class="primary" id="play" style="background:var(--act);border-color:var(--act)">▶ 再生</button>
+        <span id="stepNo" style="align-self:center;color:var(--sub);font-variant-numeric:tabular-nums"></span>
+        <span style="flex:1"></span>
+        <button id="slow" aria-pressed="false">スロー</button>
+        <button id="reset">↺ 最初から</button>
+      </div>
+    </div>
+    <div class="card ctrl">
+      <div class="row seg">
+        <button id="mPerson" aria-pressed="true">人どうし</button>
+        <button id="mWall" aria-pressed="false">壁を押す</button>
+      </div>
+      <div><label for="mA">Aさんの質量 <output id="oA">50 kg</output></label><input type="range" id="mA" min="30" max="90" step="5" value="50"></div>
+      <div id="boxB"><label for="mB">Bさんの質量 <output id="oB">50 kg</output></label><input type="range" id="mB" min="30" max="90" step="5" value="50"></div>
+      <div><label for="F">押す力の大きさ <output id="oF">200 N</output></label><input type="range" id="F" min="50" max="400" step="10" value="200"></div>
+      <div class="meter" id="meter"></div>
+      <p class="note" id="simNote"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ② 法則 -->
+<section class="tabpane" id="law" hidden>
+  <div class="card">
+    <p class="lead">物体Aが物体Bに力を加えると、Aも<strong style="color:var(--react)">同時に</strong>Bから力を受ける。</p>
+    <div class="stagebox" style="margin:12px 0"><svg id="lawSvg" viewBox="0 0 1000 300" role="img" aria-label="作用と反作用の矢印"></svg></div>
+    <div class="law">
+      <div><b>① 大きさ</b>等しい<small>矢印の長さが同じ</small></div>
+      <div><b>② 向き</b>反対<small>押せば押し返される</small></div>
+      <div><b>③ 作用線</b>同一直線上<small>同じ線の上にある</small></div>
+      <div><b>④ はたらく物体</b>別々の物体<small>だから打ち消し合わない</small></div>
+    </div>
+    <p class="note" style="margin-top:12px">「作用」「反作用」の呼び名は、どちらの力に注目するかで入れかわる。2つの力に時間の前後はない。</p>
+  </div>
+</section>
+
+<!-- ③ 相手さがし -->
+<section class="tabpane" id="find" hidden>
+  <div class="card">
+    <div class="scenes" id="scenes"></div>
+    <div class="stagebox" style="margin:14px 0"><svg id="findSvg" viewBox="0 0 1000 400" role="img" aria-label="場面の図"></svg></div>
+    <div class="pair">
+      <div class="pa" id="pa"></div>
+      <div class="pr off" id="pr"></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="primary" id="reveal">反作用を見る</button>
+      <p class="note" id="findNote" style="align-self:center"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ④ つり合い -->
+<section class="tabpane" id="bal" hidden>
+  <div class="grid">
+    <div class="card">
+      <p class="lead">机の上で静止している本。力を<strong>2つ</strong>選んで比べよう。</p>
+      <div class="stagebox"><svg id="balSvg" viewBox="0 0 1000 460" role="img" aria-label="机の上の本にはたらく力"></svg></div>
+    </div>
+    <div class="card ctrl">
+      <div class="flist" id="flist"></div>
+      <p class="verdict" id="verdict">2つ選んでください</p>
+      <div class="chk" id="chk"></div>
+      <p class="note">見分けるポイントは<strong>「力を受ける物体」</strong>。同じ物体ならつり合い、別々なら作用・反作用。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ⑤ 確認 -->
+<section class="tabpane" id="quiz" hidden>
+  <div class="card">
+    <p class="q" id="qText"></p>
+    <div class="choices" id="qChoices"></div>
+    <div class="explain" id="qExp" hidden></div>
+    <div class="qnav"><button id="qPrev">← 前へ</button><button class="primary" id="qNext">次へ →</button><span id="qCount"></span></div>
+  </div>
+</section>
+</div>
+
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const NS='http://www.w3.org/2000/svg';
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- SVG helpers ---------- */
+let uid=0;
+function arrow(x1,y1,x2,y2,color,label,opt={}){
+  const id='h'+(uid++), w=opt.w||12, dx=x2-x1, dy=y2-y1, L=Math.hypot(dx,dy)||1, ux=dx/L, uy=dy/L;
+  const hx=x2-ux*26, hy=y2-uy*26;
+  const lx=opt.lx!=null?opt.lx:(x1+x2)/2+(opt.ox||0), ly=opt.ly!=null?opt.ly:(y1+y2)/2+(opt.oy||-22);
+  return `<g opacity="${opt.op??1}">
+   <line x1="${x1}" y1="${y1}" x2="${hx}" y2="${hy}" stroke="${color}" stroke-width="${w}" stroke-linecap="round"/>
+   <polygon points="${x2},${y2} ${hx-uy*20},${hy+ux*20} ${hx+uy*20},${hy-ux*20}" fill="${color}"/>
+   <circle cx="${x1}" cy="${y1}" r="8" fill="var(--panel)" stroke="${color}" stroke-width="4"/>
+   ${label?`<text x="${lx}" y="${ly}" text-anchor="${opt.anchor||'middle'}" font-size="${opt.fs||24}" font-weight="700" style="fill:${color}">${label}</text>`:''}</g>`;
+}
+function person(cx,ground,s,face,name,fill,armTo){
+  // s: scale, face: 1 => facing right
+  const h=150*s, bw=46*s, head=22*s, top=ground-34-h;
+  const armY=top+head*2+28*s;
+  return `<g>
+   <rect x="${cx-70}" y="${ground-26}" width="140" height="14" rx="7" fill="var(--sub)"/>
+   <circle cx="${cx-48}" cy="${ground-6}" r="9" fill="var(--ink)"/><circle cx="${cx+48}" cy="${ground-6}" r="9" fill="var(--ink)"/>
+   <rect x="${cx-bw/2}" y="${top+head*2}" width="${bw}" height="${h-head*2}" rx="${bw/2.4}" fill="${fill}"/>
+   <circle cx="${cx}" cy="${top+head}" r="${head}" fill="${fill}"/>
+   <line x1="${cx}" y1="${armY}" x2="${armTo!=null?armTo:cx+face*(bw/2+30)}" y2="${armY}" stroke="${fill}" stroke-width="${16*s}" stroke-linecap="round"/>
+   <text x="${cx}" y="${top+head*2+ (h-head*2)/2+12}" text-anchor="middle" font-size="34" font-weight="700" style="fill:var(--panel)">${name}</text>
+  </g>`;
+}
+
+/* ---------- Tabs ---------- */
+const tabs=[...document.querySelectorAll('[role=tab]')];
+function show(t){
+  tabs.forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
+  document.querySelectorAll('.tabpane').forEach(p=>p.hidden=p.id!==t);
+  try{history.replaceState(null,'','#'+t)}catch(e){}
+  if(t==='law')drawLaw();
+}
+tabs.forEach(b=>b.onclick=()=>show(b.dataset.tab));
+const start=location.hash.slice(1); if(tabs.some(b=>b.dataset.tab===start))show(start);
+$('fs').onclick=()=>{const d=document.documentElement;(document.fullscreenElement?document.exitFullscreen():d.requestFullscreen?.())?.catch?.(()=>{})};
+
+/* ---------- ① Simulator ---------- */
+const S={mode:'person',mA:50,mB:50,F:200,T:0.25,t:0,run:false,slow:false,step:0};
+const SCALE=90, G=360, X0=500, ARM=46;
+const STEPS={
+ person:[
+  ['AさんがBさんの手を押します。','どちらが動くか予想しよう。床との摩擦は考えない。'],
+  ['① Aが押す → <span style="color:var(--act)">AがBを押す力</span>が生まれる','この力を受けるのはBさん。'],
+  ['② もし力がこの1本だけなら…？','力を受けるのはBだけ → <strong>Bだけが動き、Aは止まったまま</strong>のはず。（仮の世界）'],
+  ['③ 実は同時に、<span style="color:var(--react)">BがAを押す力</span>も生まれている','2つの力は同時に生まれ、大きさは等しく、向きは反対。これが<strong>作用・反作用</strong>。'],
+  ['④ 実際は… AもBも反対向きに動く！','Aを動かしたのは、Bから受けた力（反作用）。'],
+ ],
+ wall:[
+  ['Aさんが動かない壁を押します。','Aさんはどうなるか予想しよう。床との摩擦は考えない。'],
+  ['① Aが押す → <span style="color:var(--act)">Aが壁を押す力</span>が生まれる','この力を受けるのは壁。'],
+  ['② もし力がこの1本だけなら…？','Aは力を受けていない → <strong>何も動かない</strong>はず。（仮の世界）'],
+  ['③ 実は同時に、<span style="color:var(--react)">壁がAを押す力</span>も生まれている','壁は動かなくても、Aを押し返している。'],
+  ['④ 実際は… Aが後ろへ動く！','Aを動かしたのは、壁から受けた力（反作用）。'],
+ ]};
+const animSteps=[2,4];
+function accel(){
+  const hypo=S.step===2;
+  return {aA:hypo?0:S.F/S.mA, aB:S.mode==='wall'?0:S.F/S.mB};
+}
+function posAt(t){
+  const {aA,aB}=accel(), T=S.T;
+  const d=a=>t<T?0.5*a*t*t:0.5*a*T*T+a*T*(t-T);
+  return {xA:-d(aA),xB:d(aB)};
+}
+function drawSim(){
+  const {xA,xB}=posAt(S.t), contact=S.t<S.T, st=S.step;
+  const sA=0.75+S.mA/200, sB=0.75+S.mB/200;
+  const reach=s=>46*s/2+ARM;
+  const cA=X0-reach(sA)+xA*SCALE, cB=X0+(S.mode==='wall'?999:reach(sB))+xB*SCALE;
+  const fl=S.F/400*190+40;
+  let g=`<rect x="0" y="${G}" width="1000" height="60" fill="var(--floor)" opacity=".35"/>
+   <line x1="0" y1="${G}" x2="1000" y2="${G}" stroke="var(--floor)" stroke-width="3"/>`;
+  for(let i=0;i<=10;i++)g+=`<line x1="${i*100}" y1="${G}" x2="${i*100}" y2="${G+12}" stroke="var(--floor)" stroke-width="2"/>`;
+  if(st===2)g+=`<rect x="6" y="6" width="988" height="${G-12}" rx="12" fill="none" stroke="var(--sub)" stroke-width="3" stroke-dasharray="14 10"/>
+   <text x="24" y="40" font-size="22" font-weight="700" style="fill:var(--sub)">仮の世界（反作用がないとしたら）</text>`;
+  g+=person(cA,G,sA,1,'A','var(--act)',cA+46*sA/2+ARM);
+  if(S.mode==='wall')g+=`<rect x="${X0}" y="70" width="70" height="${G-70}" fill="var(--sub)" opacity=".85"/>
+     <text x="${X0+35}" y="110" text-anchor="middle" font-size="28" font-weight="700" style="fill:var(--panel)">壁</text>`;
+  else g+=person(cB,G,sB,-1,'B','var(--react)',cB-46*sB/2-ARM);
+  const y=G-34-150*sA+22*sA*2+28*sA;
+  const px=X0;
+  const showAct=st>=1&&contact, showReact=st>=3&&st!==2&&contact;
+  if(showAct)g+=arrow(px,80,px+fl,80,'var(--act)',S.mode==='wall'?'Aが壁を押す力（壁が受ける）':'AがBを押す力（Bが受ける）',{lx:px+12,ly:52,anchor:'start'});
+  if(showReact)g+=arrow(px,140,px-fl,140,'var(--react)',S.mode==='wall'?'壁がAを押す力（Aが受ける）':'BがAを押す力（Aが受ける）',{lx:px-12,ly:188,anchor:'end'});
+  if(showAct)g+=`<line x1="${px}" y1="66" x2="${px}" y2="${y}" stroke="var(--sub)" stroke-width="2" stroke-dasharray="6 6"/>`;
+  if(st===2&&!contact&&S.t>0)g+=`<text x="500" y="${G+44}" text-anchor="middle" font-size="22" font-weight="700" style="fill:var(--sub)">${S.mode==='wall'?'何も動かない…？':'Bだけが動いて、Aは止まったまま…？'}</text>`;
+  if(st===4&&!contact)g+=`<text x="500" y="${G+44}" text-anchor="middle" font-size="22" font-weight="700" style="fill:var(--sub)">手がはなれると力はなくなり、そのままの速さで進む</text>`;
+  $('simSvg').innerHTML=g;
+  const L=STEPS[S.mode][st];
+  $('simLead').innerHTML=L[0];$('simNote2').innerHTML=L[1];$('simNote').textContent='質量や力を変えて試せます。床との摩擦は考えない。';
+  $('stepNo').textContent=`${st+1} / 5`;
+  $('sPrev').disabled=st===0;$('sNext').disabled=st===4;
+  $('play').hidden=!animSteps.includes(st);
+  // meter
+  const vA=st===4?S.F*S.T/S.mA:0, vB=(st>=2&&S.mode!=='wall')?S.F*S.T/S.mB:0, vmax=400*S.T/30;
+  const done=S.t>=S.T;
+  const bar=(lab,c,v,txt)=>`<span>${lab}</span><div class="bar"><i style="width:${v}%;background:${c}"></i></div><span>${txt}</span>`;
+  $('meter').innerHTML=
+    bar(`<i class="key" style="background:var(--act)"></i>${S.mode==='wall'?'A→壁':'A→B'}`,'var(--act)',st>=1?S.F/4:0,st>=1?S.F+' N':'—')+
+    bar(`<i class="key" style="background:var(--react)"></i>${S.mode==='wall'?'壁→A':'B→A'}`,'var(--react)',st>=3?S.F/4:0,st>=3?S.F+' N':(st===2?'0 N（仮）':'—'))+
+    bar('Aの速さ','var(--ink)',done?vA/vmax*100:0,done&&animSteps.includes(st)?vA.toFixed(1)+' m/s':'—')+
+    (S.mode==='wall'?'':bar('Bの速さ','var(--ink)',done?vB/vmax*100:0,done&&animSteps.includes(st)?vB.toFixed(1)+' m/s':'—'));
+}
+let last=0;
+function loop(ts){
+  if(!S.run)return;
+  const dt=Math.min(0.05,(ts-last)/1000);last=ts;
+  S.t+=dt*(S.slow?0.25:1);
+  const {xA,xB}=posAt(S.t);
+  if(xA*SCALE<-380||xB*SCALE>380||S.t>4)S.run=false;
+  drawSim(); if(S.run)requestAnimationFrame(loop);
+}
+function go(n){S.step=Math.max(0,Math.min(4,n));S.run=false;S.t=0;drawSim()}
+$('sPrev').onclick=()=>go(S.step-1);
+$('sNext').onclick=()=>go(S.step+1);
+$('play').onclick=()=>{S.t=0;S.run=true;last=performance.now();
+  if(reduce){S.t=S.T+1;S.run=false;drawSim();return}
+  requestAnimationFrame(loop)};
+$('reset').onclick=()=>go(0);
+$('slow').onclick=e=>{S.slow=!S.slow;e.currentTarget.setAttribute('aria-pressed',S.slow)};
+const bind=(id,key,unit,out)=>$(id).oninput=e=>{S[key]=+e.target.value;$(out).textContent=S[key]+' '+unit;S.run=false;S.t=0;drawSim()};
+bind('mA','mA','kg','oA');bind('mB','mB','kg','oB');bind('F','F','N','oF');
+function setMode(m){S.mode=m;$('mPerson').setAttribute('aria-pressed',m==='person');$('mWall').setAttribute('aria-pressed',m==='wall');$('boxB').hidden=m==='wall';go(0)}
+$('mPerson').onclick=()=>setMode('person');$('mWall').onclick=()=>setMode('wall');
+
+/* ---------- ② Law ---------- */
+function drawLaw(){
+  let g=`<line x1="40" y1="160" x2="960" y2="160" stroke="var(--line)" stroke-width="3" stroke-dasharray="10 10"/>
+   <text x="950" y="148" text-anchor="end" font-size="18" style="fill:var(--sub)">同一直線</text>
+   <rect x="250" y="80" width="220" height="160" rx="20" fill="var(--obj)"/><text x="360" y="174" text-anchor="middle" font-size="44" font-weight="700">A</text>
+   <rect x="530" y="80" width="220" height="160" rx="20" fill="var(--obj2)"/><text x="640" y="174" text-anchor="middle" font-size="44" font-weight="700">B</text>`;
+  g+=arrow(500,160,780,160,'var(--act)','作用：AがBを押す力',{ly:60,lx:690});
+  g+=arrow(500,160,220,160,'var(--react)','反作用：BがAを押す力',{ly:280,lx:310});
+  g+=`<text x="830" y="60" font-size="20" style="fill:var(--act)">→ Bにはたらく</text><text x="40" y="280" font-size="20" style="fill:var(--react)">Aにはたらく ←</text>`;
+  $('lawSvg').innerHTML=g;
+}
+
+/* ---------- ③ Find partner ---------- */
+const scenes=[
+ {name:'ロケット',
+  draw:r=>`<rect x="0" y="360" width="1000" height="40" fill="var(--floor)" opacity=".3"/>
+   <path d="M500 40 L560 130 L560 270 L440 270 L440 130 Z" fill="var(--panel)" stroke="var(--ink)" stroke-width="4"/>
+   <circle cx="500" cy="160" r="20" fill="var(--obj2)"/>
+   <path d="M440 220 L400 280 L440 270 Z M560 220 L600 280 L560 270Z" fill="var(--sub)"/>
+   <path d="M455 275 Q500 400 545 275 Z" fill="var(--obj)" opacity=".85"/>
+   <text x="620" y="350" font-size="22" style="fill:var(--sub)">ふき出すガス</text>
+   ${arrow(500,280,500,390,'var(--act)','',{})}<text x="380" y="380" font-size="22" font-weight="700" style="fill:var(--act)">作用 ↓</text>
+   ${r?arrow(500,130,500,20,'var(--react)','',{}):''}${r?'<text x="530" y="40" font-size="22" font-weight="700" style="fill:var(--react)">反作用 ↑</text>':''}`,
+  a:['ロケットがガスを押す力','下向き・ガスにはたらく'],b:['ガスがロケットを押す力','上向き・ロケットにはたらく'],
+  note:'ロケットはガスに押されて上昇する。空気がなくても進める。'},
+ {name:'プールの壁をける',
+  draw:r=>`<rect x="0" y="120" width="1000" height="280" fill="var(--obj2)" opacity=".35"/>
+   <rect x="0" y="40" width="70" height="360" fill="var(--sub)"/><text x="35" y="30" text-anchor="middle" font-size="22" style="fill:var(--sub)">壁</text>
+   <ellipse cx="300" cy="230" rx="150" ry="34" fill="var(--act)" opacity=".85"/><circle cx="470" cy="226" r="30" fill="var(--act)" opacity=".85"/>
+   <line x1="160" y1="230" x2="72" y2="230" stroke="var(--act)" stroke-opacity=".85" stroke-width="24" stroke-linecap="round"/>
+   ${arrow(70,180,-0,180,'var(--act)','',{})}<text x="90" y="170" font-size="22" font-weight="700" style="fill:var(--act)">作用（壁へ）</text>
+   ${r?arrow(72,290,300,290,'var(--react)','',{}):''}${r?'<text x="120" y="340" font-size="22" font-weight="700" style="fill:var(--react)">反作用 →</text>':''}`,
+  a:['人が壁をける力','左向き・壁にはたらく'],b:['壁が人を押す力','右向き・人にはたらく'],
+  note:'人を前に進めたのは、壁が人を押す力。'},
+ {name:'歩く',
+  draw:r=>`<rect x="0" y="330" width="1000" height="70" fill="var(--floor)" opacity=".35"/><line x1="0" y1="330" x2="1000" y2="330" stroke="var(--floor)" stroke-width="3"/>
+   <circle cx="500" cy="70" r="30" fill="var(--act)"/><rect x="475" y="105" width="50" height="120" rx="22" fill="var(--act)"/>
+   <line x1="490" y1="215" x2="430" y2="328" stroke="var(--act)" stroke-width="22" stroke-linecap="round"/>
+   <line x1="510" y1="215" x2="560" y2="320" stroke="var(--act)" stroke-width="22" stroke-linecap="round"/>
+   ${arrow(430,345,290,345,'var(--act)','作用（地面へ）',{ly:385})}
+   ${r?arrow(430,300,600,300,'var(--react)','反作用',{ly:285,lx:640}):''}`,
+  a:['足が地面を後ろへ押す力','後ろ向き・地面にはたらく'],b:['地面が足を前へ押す力','前向き・人にはたらく'],
+  note:'氷の上で歩きにくいのは、地面を後ろへ押す力（摩擦）が小さいから。'},
+ {name:'ドローン',
+  draw:r=>`<rect x="350" y="150" width="300" height="40" rx="14" fill="var(--panel)" stroke="var(--ink)" stroke-width="4"/>
+   <line x1="370" y1="150" x2="370" y2="120" stroke="var(--ink)" stroke-width="5"/><line x1="630" y1="150" x2="630" y2="120" stroke="var(--ink)" stroke-width="5"/>
+   <ellipse cx="370" cy="116" rx="70" ry="9" fill="var(--sub)"/><ellipse cx="630" cy="116" rx="70" ry="9" fill="var(--sub)"/>
+   <g fill="none" stroke="var(--obj2)" stroke-width="4" stroke-dasharray="8 10"><path d="M340 210 v150"/><path d="M400 210 v150"/><path d="M600 210 v150"/><path d="M660 210 v150"/></g>
+   <text x="700" y="320" font-size="22" style="fill:var(--sub)">押し下げられた空気</text>
+   ${arrow(500,200,500,330,'var(--act)','',{})}<text x="380" y="300" font-size="22" font-weight="700" style="fill:var(--act)">作用 ↓</text>
+   ${r?arrow(500,140,500,20,'var(--react)','',{}):''}${r?'<text x="530" y="50" font-size="22" font-weight="700" style="fill:var(--react)">反作用 ↑</text>':''}`,
+  a:['プロペラが空気を下へ押す力','下向き・空気にはたらく'],b:['空気がドローンを上へ押す力','上向き・ドローンにはたらく'],
+  note:'空中で止まるとき、空気から受ける上向きの力と重力が「つり合って」いる。'},
+ {name:'磁石',
+  draw:r=>`<rect x="220" y="160" width="220" height="80" fill="var(--react)" opacity=".85"/><rect x="220" y="160" width="110" height="80" fill="var(--act)" opacity=".85"/>
+   <text x="275" y="214" text-anchor="middle" font-size="34" font-weight="700" style="fill:var(--panel)">S</text><text x="385" y="214" text-anchor="middle" font-size="34" font-weight="700" style="fill:var(--panel)">N</text>
+   <rect x="560" y="160" width="220" height="80" fill="var(--react)" opacity=".85"/><rect x="670" y="160" width="110" height="80" fill="var(--act)" opacity=".85"/>
+   <text x="615" y="214" text-anchor="middle" font-size="34" font-weight="700" style="fill:var(--panel)">N</text><text x="725" y="214" text-anchor="middle" font-size="34" font-weight="700" style="fill:var(--panel)">S</text>
+   <text x="330" y="140" text-anchor="middle" font-size="24" font-weight="700">磁石A</text><text x="670" y="140" text-anchor="middle" font-size="24" font-weight="700">磁石B</text>
+   ${arrow(780,300,940,300,'var(--act)','作用（Bへ）',{ly:345,lx:860})}
+   ${r?arrow(220,300,60,300,'var(--react)','反作用（Aへ）',{ly:345,lx:140}):''}`,
+  a:['磁石Aが磁石Bをしりぞける力','右向き・Bにはたらく'],b:['磁石Bが磁石Aをしりぞける力','左向き・Aにはたらく'],
+  note:'はなれていてはたらく力でも、作用・反作用は成り立つ。'},
+];
+let sc=0,rev=false;
+$('scenes').innerHTML=scenes.map((s,i)=>`<button data-i="${i}" aria-pressed="${i===0}">${s.name}</button>`).join('');
+$('scenes').onclick=e=>{const b=e.target.closest('button');if(!b)return;sc=+b.dataset.i;rev=false;drawFind()};
+$('reveal').onclick=()=>{rev=!rev;drawFind()};
+function drawFind(){
+  const s=scenes[sc];
+  [...$('scenes').children].forEach((b,i)=>b.setAttribute('aria-pressed',i===sc));
+  $('findSvg').innerHTML=s.draw(rev);
+  $('pa').innerHTML=`作用：${s.a[0]}<small>${s.a[1]}</small>`;
+  $('pr').className='pr'+(rev?'':' off');
+  $('pr').innerHTML=rev?`反作用：${s.b[0]}<small>${s.b[1]}</small>`:'反作用：？？？<small>「誰が・誰に」を入れかえて考えよう</small>';
+  $('reveal').textContent=rev?'かくす':'反作用を見る';
+  $('findNote').textContent=rev?s.note:'';
+}
+
+/* ---------- ④ Balance vs pair ---------- */
+const forces=[
+ {id:'g', name:'地球が本を引く力（重力）', on:'本', by:'地球', dir:'下', c:'var(--act)'},
+ {id:'n', name:'机が本を押す力（垂直抗力）', on:'本', by:'机', dir:'上', c:'var(--ok)'},
+ {id:'p', name:'本が机を押す力', on:'机', by:'本', dir:'下', c:'var(--react)'},
+ {id:'e', name:'本が地球を引く力', on:'地球', by:'本', dir:'上', c:'var(--sub)'},
+];
+let sel=[];
+$('flist').innerHTML=forces.map(f=>`<button data-id="${f.id}" aria-pressed="false"><span class="sw" style="background:${f.c}"></span>${f.name}<small style="margin-left:auto;color:var(--sub)">${f.on}が受ける</small></button>`).join('');
+$('flist').onclick=e=>{const b=e.target.closest('button');if(!b)return;const id=b.dataset.id;
+  sel=sel.includes(id)?sel.filter(x=>x!==id):[...sel,id].slice(-2);drawBal()};
+function drawBal(){
+  const on=id=>sel.length===0||sel.includes(id);
+  const hl=o=>sel.some(id=>forces.find(f=>f.id===id).on===o);
+  let g=`<rect x="0" y="420" width="1000" height="40" fill="var(--floor)" opacity=".35"/>
+   <text x="980" y="448" text-anchor="end" font-size="20" style="fill:var(--sub)">地球</text>
+   <rect x="250" y="250" width="500" height="26" rx="6" fill="var(--sub)" ${hl('机')?'stroke="var(--ink)" stroke-width="5"':''}/>
+   <rect x="290" y="276" width="22" height="144" fill="var(--sub)"/><rect x="688" y="276" width="22" height="144" fill="var(--sub)"/>
+   <text x="760" y="245" font-size="24" font-weight="700">机</text>
+   <rect x="400" y="170" width="200" height="80" rx="6" fill="var(--obj)" ${hl('本')?'stroke="var(--ink)" stroke-width="5"':''}/>
+   <text x="620" y="200" font-size="30" font-weight="700">本</text>
+   ${hl('地球')?'<rect x="0" y="420" width="1000" height="40" fill="none" stroke="var(--ink)" stroke-width="5"/>':''}`;
+  g+=arrow(440,210,440,360,'var(--act)','重力',{op:on('g')?1:.15,lx:395,ly:330});
+  g+=arrow(500,250,500,110,'var(--ok)','垂直抗力',{op:on('n')?1:.15,ly:95});
+  g+=arrow(560,250,560,390,'var(--react)','本→机',{op:on('p')?1:.15,lx:625,ly:330});
+  g+=arrow(860,440,860,330,'var(--sub)','本→地球',{op:on('e')?1:.15,ly:315});
+  $('balSvg').innerHTML=g;
+  [...$('flist').children].forEach(b=>b.setAttribute('aria-pressed',sel.includes(b.dataset.id)));
+  if(sel.length<2){$('verdict').textContent=sel.length?'もう1つ選んでください':'2つ選んでください';$('verdict').style.color='';$('chk').innerHTML='';return}
+  const [a,b]=sel.map(id=>forces.find(f=>f.id===id));
+  const same=a.on===b.on, opp=a.dir!==b.dir, swap=a.on===b.by&&b.on===a.by;
+  let v,col;
+  if(same&&opp){v='⚖️ つり合いの関係（同じ「'+a.on+'」が受ける）';col='var(--ok)'}
+  else if(swap){v='🔁 作用・反作用の関係（'+a.on+'と'+b.on+'、別々の物体）';col='var(--act)'}
+  else {v='どちらの関係でもない';col='var(--sub)'}
+  $('verdict').textContent=v;$('verdict').style.color=col;
+  const item=(t,y)=>`<span class="${y?'y':'n'}">${t} ${y?'○':'×'}</span>`;
+  $('chk').innerHTML=item('大きさ等しい',same&&opp||swap)+item('向き反対',opp)+item('同じ物体',same)+item('誰が↔誰に 入れかえ',swap);
+}
+
+/* ---------- ⑤ Quiz ---------- */
+const Q=[
+ {q:'Aさんが体重の重いBさんを押した。BさんがAさんを押し返す力の大きさは？',c:['Aが押す力より大きい','Aが押す力と等しい','Aが押す力より小さい','0（押し返していない）'],a:1,e:'作用と反作用の大きさは、質量に関係なく<strong>常に等しい</strong>。動き方が違うのは質量が違うから。'},
+ {q:'「人が壁を押す力」の反作用はどれ？',c:['人が床を押す力','壁が人を押す力','地球が人を引く力','床が人を押す力'],a:1,e:'「誰が・誰に」を入れかえる。人→壁 の反作用は <strong>壁→人</strong>。'},
+ {q:'机の上の本にはたらく「重力」とつり合っている力は？',c:['本が机を押す力','本が地球を引く力','机が本を押す力','机が床を押す力'],a:2,e:'つり合う2力は<strong>同じ物体（本）</strong>にはたらく。本が受ける上向きの力は「机が本を押す力」。'},
+ {q:'作用・反作用の2力が打ち消し合わないのはなぜ？',c:['大きさがちがうから','向きが同じだから','別々の物体にはたらくから','はたらく時間がずれるから'],a:2,e:'作用と反作用は<strong>別々の物体</strong>にはたらくので、1つの物体の上で合成されない。'},
+ {q:'ロケットが宇宙空間（空気がない）でも進めるのはなぜ？',c:['ガスが空気を押すから','ロケットがガスを押し、ガスがロケットを押し返すから','重力がないから','慣性だけで進むから'],a:1,e:'ガスを後ろへ押し出すと、<strong>ガスがロケットを前へ押す力</strong>（反作用）を受ける。空気は必要ない。'},
+ {q:'スケートボードの上で壁を押すと人が後ろへ動いた。人を動かした力は？',c:['人が壁を押す力','壁が人を押す力','人の慣性','床が人を押す力'],a:1,e:'人の運動を変えたのは<strong>人が受ける力</strong>＝壁が人を押す力。'},
+ {q:'正しい説明はどれ？',c:['作用が先に生じ、少しおくれて反作用が生じる','作用と反作用は同時にはたらく','動いていない物体は反作用を生じない','反作用は作用より必ず小さい'],a:1,e:'作用と反作用は<strong>同時</strong>に生じ、同時に消える。'},
+];
+let qi=0,ans=Array(Q.length).fill(null);
+function drawQ(){
+  const x=Q[qi];$('qText').textContent=`Q${qi+1}．${x.q}`;
+  $('qChoices').innerHTML=x.c.map((t,i)=>{let cls='';if(ans[qi]!=null){if(i===x.a)cls='ok';else if(i===ans[qi])cls='ng'}return`<button data-i="${i}" class="${cls}">${'アイウエ'[i]}　${t}</button>`}).join('');
+  $('qExp').hidden=ans[qi]==null;
+  $('qExp').innerHTML=ans[qi]==null?'':(ans[qi]===x.a?'<strong style="color:var(--ok)">正解！</strong>　':'<strong style="color:var(--ng)">正解は '+'アイウエ'[x.a]+'</strong>　')+x.e;
+  $('qCount').textContent=`${qi+1} / ${Q.length}`;
+  $('qPrev').disabled=qi===0;$('qNext').textContent=qi===Q.length-1?'最初へ':'次へ →';
+}
+$('qChoices').onclick=e=>{const b=e.target.closest('button');if(!b)return;ans[qi]=+b.dataset.i;drawQ()};
+$('qPrev').onclick=()=>{if(qi>0){qi--;drawQ()}};
+$('qNext').onclick=()=>{qi=qi===Q.length-1?0:qi+1;drawQ()};
+
+/* keyboard */
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;
+  if(e.key===' '&&!$('sim').hidden){e.preventDefault();$('play').click()}});
+
+drawSim();drawLaw();drawFind();drawBal();drawQ();
+})();
+</script>

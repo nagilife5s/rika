@@ -1,0 +1,496 @@
+<title>溶解度の粒子モデル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+/* Layout: 左に水のつぶのモデル（ビーカー＋操作）、右に溶解度曲線と数値。電子黒板（横長）を基準にし、狭い画面では縦に積む。 */
+:root {
+  --bg: #FAF8F3;
+  --panel: #FFFFFF;
+  --fg: #1A2B4C;
+  --muted: #55627A;
+  --line: #D9D4C7;
+  --accent: #2E6FB7;
+  --accent-fg: #FFFFFF;
+  --accent-soft: #E6EEF7;
+  --warn: #B83C00;
+  --ok: #1F7A4D;
+  --water-cold: #D2E6F8;
+  --water-hot: #F8DEC9;
+  --glass: #1A2B4C;
+  --waterdot: #5F8FC2;
+  --kno3: #F08A1C;
+  --nacl: #1B8A7A;
+  --sug: #3C8D40;
+  --font-body: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1726; --panel: #16233A; --fg: #EDEDED; --muted: #A7B2C4; --line: #2C3B55;
+    --accent: #4DC4FF; --accent-fg: #0A1929; --accent-soft: #1B2D48;
+    --warn: #FF8A5B; --ok: #5BD39A; --water-cold: #1D3B5E; --water-hot: #4A3326;
+    --glass: #C9D6EA; --waterdot: #7FA8D6; --kno3: #FFA340; --nacl: #3FD0B8; --sug: #6CC070;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1726; --panel: #16233A; --fg: #EDEDED; --muted: #A7B2C4; --line: #2C3B55;
+  --accent: #4DC4FF; --accent-fg: #0A1929; --accent-soft: #1B2D48;
+  --warn: #FF8A5B; --ok: #5BD39A; --water-cold: #1D3B5E; --water-hot: #4A3326;
+  --glass: #C9D6EA; --waterdot: #7FA8D6; --kno3: #FFA340; --nacl: #3FD0B8; --sug: #6CC070;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.5; padding-inline: 16px; padding-block: 16px 28px; }
+button, input { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.app { max-width: 1480px; margin-inline: auto; display: grid; gap: 16px; }
+.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+.top h1 { margin: 0; font-size: clamp(22px, 2.4vw, 30px); line-height: 1.2; text-wrap: balance; }
+.top p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+.seg { display: inline-flex; border: 2px solid var(--accent); border-radius: 10px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 10px 18px; font-weight: 700; font-size: 17px; cursor: pointer; color: var(--accent); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
+
+.cols { display: grid; gap: 16px; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); align-items: start; }
+@media (max-width: 900px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; min-width: 0; }
+.stage canvas { display: block; width: 100%; aspect-ratio: 560 / 500; max-width: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); margin-top: 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1.5px solid var(--glass); }
+.dot.w { width: 9px; height: 9px; background: var(--waterdot); border-color: transparent; }
+.dot.halo { background: color-mix(in srgb, var(--waterdot) 35%, transparent); width: 18px; height: 18px; position: relative; }
+.dot.halo::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--sub, var(--kno3)); border: 1.5px solid var(--glass); }
+
+.msg { margin-top: 10px; padding: 12px 14px; border-radius: 10px; background: var(--accent-soft); font-size: clamp(17px, 1.5vw, 21px); font-weight: 700; line-height: 1.45; min-height: 3.4em; text-wrap: pretty; }
+
+.ctl { display: grid; gap: 12px; margin-top: 12px; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.row > .lbl { min-width: 5.2em; font-weight: 700; color: var(--muted); font-size: 14px; }
+.btn { border: 2px solid var(--accent); background: var(--panel); color: var(--accent); border-radius: 10px; padding: 9px 14px; font-weight: 700; font-size: 16px; cursor: pointer; min-height: 44px; }
+.btn:hover { background: var(--accent-soft); }
+.btn.pri { background: var(--accent); color: var(--accent-fg); }
+.btn.pri:hover { filter: brightness(1.08); }
+.btn[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
+.btn.quiet { border-color: var(--line); color: var(--muted); }
+.temp { display: flex; align-items: center; gap: 10px; flex: 1 1 260px; min-width: 0; }
+.temp input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); height: 32px; }
+.tval { font-size: 28px; font-weight: 700; min-width: 3.3em; text-align: right; font-variant-numeric: tabular-nums; }
+
+.graph svg { display: block; width: 100%; height: auto; }
+.graph .ax { stroke: var(--fg); stroke-width: 1.6; fill: none; }
+.graph .gr { stroke: var(--line); stroke-width: 1; }
+.graph text { fill: var(--fg); font-family: var(--font-body); font-size: 13px; }
+.graph text.mut { fill: var(--muted); }
+.graph .curve { fill: none; stroke-width: 3.4; stroke-linecap: round; }
+.graph .curve.other { stroke-width: 2; stroke-dasharray: 6 5; opacity: .6; }
+.graph .k { stroke: var(--kno3); } .graph .n { stroke: var(--nacl); } .graph .s { stroke: var(--sug); }
+.graph .region-ok { fill: var(--ok); opacity: .1; }
+.graph .region-no { fill: var(--warn); opacity: .08; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; background: var(--panel); min-width: 0; }
+.stat .k { font-size: 13px; color: var(--muted); }
+.stat .v { font-size: clamp(24px, 2.4vw, 32px); font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.stat .v small { font-size: 15px; font-weight: 400; margin-left: 2px; }
+.stat.hl { border-width: 2px; border-color: var(--warn); }
+.stat.hl .v { color: var(--warn); }
+.chip { display: inline-block; padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 17px; border: 2px solid var(--line); }
+.chip.room { border-color: var(--ok); color: var(--ok); }
+.chip.sat { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.chip.over { border-color: var(--warn); color: var(--warn); }
+.chiprow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 4px; }
+.note { font-size: 13px; color: var(--muted); margin: 10px 0 0; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+</style>
+
+<main class="app">
+  <header class="top">
+    <div>
+      <h1>溶解度の粒子モデル</h1>
+      <p>水100 gに、つぶ（物質）はどこまでとけるか。温度を変えるとどうなるか。</p>
+    </div>
+    <div class="seg" role="group" aria-label="物質をえらぶ">
+      <button type="button" id="sub-kno3" aria-pressed="true">硝酸カリウム</button>
+      <button type="button" id="sub-nacl" aria-pressed="false">食塩</button>
+      <button type="button" id="sub-sug" aria-pressed="false">砂糖</button>
+    </div>
+  </header>
+
+  <div class="cols">
+    <section class="card stage" aria-label="粒子モデル">
+      <canvas id="sim" width="560" height="500" role="img" aria-label="ビーカーの水に物質のつぶがとけていくようすのモデル"></canvas>
+      <div class="legend">
+        <span><i class="dot w"></i>水のつぶ</span>
+        <span><i class="dot halo" id="lg-sub"></i>とけているつぶ（水にかこまれてバラバラ）</span>
+        <span><i class="dot" id="lg-solid" style="background:var(--sub, var(--kno3))"></i>固体のつぶ（きれいにならぶ）</span>
+      </div>
+      <div class="msg" id="msg" role="status" aria-live="polite"></div>
+
+      <div class="ctl">
+        <div class="row">
+          <span class="lbl">入れる</span>
+          <button type="button" class="btn" data-add="1">＋2 g</button>
+          <button type="button" class="btn" data-add="5">＋10 g</button>
+          <button type="button" class="btn" data-add="15">＋30 g</button>
+          <button type="button" class="btn pri" id="pour" aria-pressed="false">どんどん入れる</button>
+          <button type="button" class="btn quiet" id="reset">からにする</button>
+        </div>
+        <div class="row">
+          <span class="lbl">水の温度</span>
+          <button type="button" class="btn" data-dt="-20">冷やす −20℃</button>
+          <button type="button" class="btn" data-dt="20">あたためる ＋20℃</button>
+          <div class="temp">
+            <input type="range" id="temp" min="0" max="100" step="5" value="20" aria-label="水の温度">
+            <span class="tval" id="tval">20℃</span>
+          </div>
+        </div>
+        <div class="row">
+          <span class="lbl">デモ</span>
+          <button type="button" class="btn" id="demo1">20℃でとけきるまで入れる</button>
+          <button type="button" class="btn" id="demo2">60℃の飽和水溶液を20℃に冷やす</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card graph" aria-label="溶解度曲線">
+      <svg id="gr" viewBox="0 0 480 360" role="img" aria-label="溶解度曲線のグラフ。いまの温度と入れた量の点が動く"></svg>
+      <div class="chiprow"><span class="chip" id="chip">　</span></div>
+      <div class="stats">
+        <div class="stat"><div class="k">水の温度</div><div class="v"><span id="s-t">20</span><small>℃</small></div></div>
+        <div class="stat"><div class="k">溶解度（水100 g）</div><div class="v">約<span id="s-sol">32</span><small>g</small></div></div>
+        <div class="stat"><div class="k">入れた量</div><div class="v"><span id="s-in">0</span><small>g</small></div></div>
+        <div class="stat"><div class="k">とけている量</div><div class="v"><span id="s-dis">0</span><small>g</small></div></div>
+        <div class="stat" id="s-out-box"><div class="k">とけ残り（固体）</div><div class="v"><span id="s-out">0</span><small>g</small></div></div>
+      </div>
+      <p class="note">モデルでは、つぶ1個を<span id="unit">2</span> gとして数えている。溶解度の値は理科年表などの標準値をもとにした自作データ（一部は教科書での照合が必要）。</p>
+    </section>
+  </div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var MAXP = 150;
+  var DATA = {
+    kno3: { name: "硝酸カリウム", T: [0, 20, 40, 60, 80, 100], G: [13.3, 31.6, 63.9, 109, 169, 246], v: "--kno3", cls: "k", unit: 2, ymax: 300, lx: 86 },
+    nacl: { name: "食塩", T: [0, 20, 40, 60, 80, 100], G: [35.7, 35.9, 36.4, 37.1, 38.0, 39.2], v: "--nacl", cls: "n", unit: 2, ymax: 300, lx: 100 },
+    sug: { name: "砂糖", T: [0, 20, 40, 60, 80, 100], G: [179, 204, 238, 287, 362, 487], v: "--sug", cls: "s", unit: 5, ymax: 500, lx: 86 }
+  };
+
+  /* ---- 単調な3次補間（PCHIP）で、データ点のあいだをなめらかにつなぐ ---- */
+  function pchip(xs, ys) {
+    var n = xs.length, h = [], d = [], m = [], i;
+    for (i = 0; i < n - 1; i++) { h[i] = xs[i + 1] - xs[i]; d[i] = (ys[i + 1] - ys[i]) / h[i]; }
+    for (i = 1; i < n - 1; i++) {
+      if (d[i - 1] * d[i] <= 0) m[i] = 0;
+      else { var w1 = 2 * h[i] + h[i - 1], w2 = h[i] + 2 * h[i - 1]; m[i] = (w1 + w2) / (w1 / d[i - 1] + w2 / d[i]); }
+    }
+    function endp(h0, h1, d0, d1) {
+      var e = ((2 * h0 + h1) * d0 - h0 * d1) / (h0 + h1);
+      if (Math.sign(e) !== Math.sign(d0)) e = 0;
+      else if (Math.sign(d0) !== Math.sign(d1) && Math.abs(e) > 3 * Math.abs(d0)) e = 3 * d0;
+      return e;
+    }
+    m[0] = endp(h[0], h[1], d[0], d[1]);
+    m[n - 1] = endp(h[n - 2], h[n - 3], d[n - 2], d[n - 3]);
+    return function (x) {
+      if (x <= xs[0]) return ys[0]; if (x >= xs[n - 1]) return ys[n - 1];
+      var k = 0; while (x > xs[k + 1]) k++;
+      var t = (x - xs[k]) / h[k], t2 = t * t, t3 = t2 * t;
+      return (2 * t3 - 3 * t2 + 1) * ys[k] + (t3 - 2 * t2 + t) * h[k] * m[k] + (-2 * t3 + 3 * t2) * ys[k + 1] + (t3 - t2) * h[k] * m[k + 1];
+    };
+  }
+  for (var key in DATA) DATA[key].f = pchip(DATA[key].T, DATA[key].G);
+
+  /* ---- 状態 ---- */
+  var sub = "kno3", Ttarget = 20, Tshown = 20, S = [], Wt = [], pour = false, pourAcc = 0, lastCause = "empty", lastConv = 0, demoId = 0, autoStop = false;
+  var $ = function (id) { return document.getElementById(id); };
+  var canvas = $("sim"), ctx = canvas.getContext("2d");
+  var CW = 560, CH = 500, X0 = 90, X1 = 470, RIM = 50, WTOP = 130, BOT = 470, R = 8, SP = 17, ROWH = 15;
+  var COLS = Math.floor((X1 - X0 - 10 - SP / 2) / SP);
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function sol(T) { return DATA[sub].f(T); }
+  function U() { return DATA[sub].unit; }
+  function capOf(T) { return Math.max(0, Math.round(sol(T) / U())); }
+
+  for (var i = 0; i < 80; i++) Wt.push({ x: rnd(X0 + 6, X1 - 6), y: rnd(WTOP + 6, BOT - 6), vx: rnd(-1, 1), vy: rnd(-1, 1) });
+
+  function counts() {
+    var nf = 0, ns = 0;
+    for (var i = 0; i < S.length; i++) { if (S[i].mode === "free") nf++; else ns++; }
+    return { nf: nf, ns: ns };
+  }
+  function addParticles(n, instant) {
+    var c = counts(), cap = capOf(Tshown), added = 0;
+    for (var i = 0; i < n; i++) {
+      if (S.length >= MAXP) { setMsgFull(); break; }
+      var free = c.nf < cap;
+      var p = instant ? { x: rnd(X0 + 20, X1 - 20), y: rnd(WTOP + 20, BOT - 40), vx: 0, vy: 0 } : { x: rnd(X0 + 80, X1 - 80), y: rnd(20, 40), vx: rnd(-.5, .5), vy: 2 };
+      p.mode = free ? "free" : "solid"; p.slot = 1e9; p.inWater = !!instant;
+      if (free) c.nf++; else c.ns++;
+      S.push(p); added++;
+    }
+    if (added) lastCause = "add";
+    return added;
+  }
+  var fullFlag = false;
+  function setMsgFull() { fullFlag = true; }
+
+  function resetAll() {
+    demoId++; S = []; pour = false; autoStop = false; lastCause = "reset"; fullFlag = false; syncPour();
+  }
+  function setT(v, cause) {
+    v = clamp(Math.round(v / 5) * 5, 0, 100);
+    if (v === Ttarget) return;
+    lastCause = v < Ttarget ? "cool" : "heat";
+    Ttarget = v; $("temp").value = v; $("tval").textContent = v + "℃";
+  }
+  function syncPour() { var b = $("pour"); b.setAttribute("aria-pressed", pour ? "true" : "false"); b.textContent = pour ? "とめる" : "どんどん入れる"; }
+
+  /* ---- 物理（見た目のための簡単な動き） ---- */
+  function step(dt, now) {
+    var d = Ttarget - Tshown;
+    if (Math.abs(d) > 0.01) { var sp = 14 * dt; Tshown += clamp(d, -sp, sp); } else Tshown = Ttarget;
+    var cap = capOf(Tshown), c = counts(), i, p;
+    if (pour) {
+      pourAcc += dt * 6 * (sub === "sug" ? 2 : 1);
+      while (pourAcc >= 1) { pourAcc -= 1; if (!addParticles(1)) { pour = false; syncPour(); break; } }
+      if (autoStop && counts().ns >= 6) { pour = false; autoStop = false; syncPour(); }
+    }
+    if (now - lastConv > 55) {
+      c = counts();
+      if (c.nf > cap) {
+        var fr = []; for (i = 0; i < S.length; i++) if (S[i].mode === "free") fr.push(S[i]);
+        p = fr[Math.floor(Math.random() * fr.length)]; p.mode = "solid"; p.slot = 1e9; p.vx = 0; p.vy = 0; lastConv = now;
+      } else if (c.nf < cap && c.ns > 0) {
+        var best = null; for (i = 0; i < S.length; i++) if (S[i].mode === "solid" && (!best || S[i].slot > best.slot)) best = S[i];
+        best.mode = "free"; best.vx = rnd(-1.5, 1.5); best.vy = rnd(-3, -1.5); lastConv = now;
+      }
+    }
+    var solids = S.filter(function (q) { return q.mode === "solid"; }).sort(function (a, b) { return a.slot - b.slot; });
+    solids.forEach(function (q, k) { q.slot = k; });
+    var rows = Math.ceil(solids.length / COLS), yMax = BOT - R - rows * ROWH - 2;
+    var sp2 = 0.4 + (Tshown / 100) * 1.6, vmax = 1.3 * sp2 + 0.3;
+    for (i = 0; i < S.length; i++) {
+      p = S[i];
+      if (p.mode === "solid") {
+        var row = Math.floor(p.slot / COLS), col = p.slot % COLS;
+        var tx = X0 + 5 + SP / 2 + col * SP + (row % 2) * SP / 2, ty = BOT - R - 1 - row * ROWH;
+        p.x += (tx - p.x) * 0.2;
+        if (p.y < ty) { p.vy += 0.55; p.y += p.vy; if (p.y > ty) { p.y = ty; p.vy = 0; } }
+        else p.y += (ty - p.y) * 0.2;
+      } else {
+        if (p.y < WTOP - R) { p.vy += 0.4; }
+        else {
+          if (!p.inWater) { p.inWater = true; p.vy *= 0.3; }
+          p.vx += rnd(-.5, .5) * 0.7 * sp2; p.vy += rnd(-.5, .5) * 0.7 * sp2;
+          var v = Math.hypot(p.vx, p.vy); if (v > vmax) { p.vx *= vmax / v; p.vy *= vmax / v; }
+        }
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < X0 + R) { p.x = X0 + R; p.vx = Math.abs(p.vx); } else if (p.x > X1 - R) { p.x = X1 - R; p.vx = -Math.abs(p.vx); }
+        if (p.inWater) {
+          if (p.y < WTOP + R) { p.y = WTOP + R; p.vy = Math.abs(p.vy); }
+          if (p.y > yMax) { p.y = yMax; p.vy = -Math.abs(p.vy); }
+        }
+      }
+    }
+    var fl = S.filter(function (q) { return q.mode === "free" && q.inWater; });
+    for (i = 0; i < fl.length; i++) for (var j = i + 1; j < fl.length; j++) {
+      var a = fl[i], b = fl[j], dx = b.x - a.x, dy = b.y - a.y, dd = Math.hypot(dx, dy), min = 2 * R + 3;
+      if (dd > 0 && dd < min) { var push = (min - dd) / 2 / dd; a.x -= dx * push; a.y -= dy * push; b.x += dx * push; b.y += dy * push; }
+    }
+    for (i = 0; i < Wt.length; i++) {
+      var w = Wt[i];
+      w.vx += rnd(-.5, .5) * 0.8 * sp2; w.vy += rnd(-.5, .5) * 0.8 * sp2;
+      var wv = Math.hypot(w.vx, w.vy), wm = 1.6 * sp2 + 0.3; if (wv > wm) { w.vx *= wm / wv; w.vy *= wm / wv; }
+      w.x += w.vx; w.y += w.vy;
+      if (w.x < X0 + 5) { w.x = X0 + 5; w.vx = Math.abs(w.vx); } else if (w.x > X1 - 5) { w.x = X1 - 5; w.vx = -Math.abs(w.vx); }
+      if (w.y < WTOP + 5) { w.y = WTOP + 5; w.vy = Math.abs(w.vy); } else if (w.y > BOT - 5) { w.y = BOT - 5; w.vy = -Math.abs(w.vy); }
+    }
+  }
+
+  /* ---- 描画 ---- */
+  var cache = { t: 0, c: null };
+  function colors() {
+    var now = performance.now();
+    if (cache.c && now - cache.t < 400) return cache.c;
+    var cs = getComputedStyle(document.documentElement), g = function (n) { return cs.getPropertyValue(n).trim(); };
+    cache.c = { cold: g("--water-cold"), hot: g("--water-hot"), glass: g("--glass"), wd: g("--waterdot"), kno3: g("--kno3"), nacl: g("--nacl"), sug: g("--sug"), fg: g("--fg"), muted: g("--muted"), warn: g("--warn"), panel: g("--panel"), font: g("--font-body") };
+    cache.t = now; return cache.c;
+  }
+  function hex(s) { s = s.replace("#", ""); return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)]; }
+  function mix(a, b, t) { var A = hex(a), B = hex(b); return "rgb(" + A.map(function (v, i) { return Math.round(v + (B[i] - v) * t); }).join(",") + ")"; }
+
+  function draw() {
+    var C = colors(), W = canvas.clientWidth || CW, sc = W / CW, dpr = window.devicePixelRatio || 1;
+    var bw = Math.round(W * dpr), bh = Math.round(W * CH / CW * dpr);
+    if (canvas.width !== bw || canvas.height !== bh) { canvas.width = bw; canvas.height = bh; }
+    ctx.setTransform(sc * dpr, 0, 0, sc * dpr, 0, 0);
+    ctx.clearRect(0, 0, CW, CH);
+    var tt = Tshown / 100, wc = mix(C.cold, C.hot, tt), col = C[sub];
+    // 水
+    ctx.fillStyle = wc; ctx.fillRect(X0, WTOP, X1 - X0, BOT - WTOP);
+    // 水のつぶ
+    ctx.fillStyle = C.wd; ctx.globalAlpha = 0.8;
+    for (var i = 0; i < Wt.length; i++) { ctx.beginPath(); ctx.arc(Wt[i].x, Wt[i].y, 3.6, 0, 6.2832); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    // つぶ
+    var k, p;
+    for (k = 0; k < S.length; k++) {
+      p = S[k]; if (p.mode !== "free") continue;
+      ctx.globalAlpha = 0.4; ctx.fillStyle = C.wd; ctx.beginPath(); ctx.arc(p.x, p.y, R + 5, 0, 6.2832); ctx.fill(); ctx.globalAlpha = 1;
+    }
+    ctx.lineWidth = 1.6; ctx.strokeStyle = C.glass;
+    for (k = 0; k < S.length; k++) {
+      p = S[k]; ctx.fillStyle = col; ctx.beginPath(); ctx.arc(p.x, p.y, R, 0, 6.2832); ctx.fill(); ctx.stroke();
+    }
+    // ガラス
+    ctx.strokeStyle = C.glass; ctx.lineWidth = 4; ctx.lineJoin = "round"; ctx.lineCap = "round";
+    ctx.beginPath(); ctx.moveTo(X0 - 12, RIM); ctx.lineTo(X0, RIM + 10); ctx.lineTo(X0, BOT); ctx.lineTo(X1, BOT); ctx.lineTo(X1, RIM + 10); ctx.lineTo(X1 + 12, RIM); ctx.stroke();
+    // 水面
+    ctx.lineWidth = 2; ctx.strokeStyle = C.glass; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.moveTo(X0, WTOP); ctx.lineTo(X1, WTOP); ctx.stroke(); ctx.globalAlpha = 1;
+    // ラベル
+    ctx.font = "700 22px " + C.font; ctx.textBaseline = "alphabetic";
+    ctx.fillStyle = C.fg; ctx.textAlign = "left"; ctx.fillText("水 100 g", X0 + 6, WTOP - 12);
+    ctx.textAlign = "right"; ctx.fillStyle = tt > 0.55 ? C.warn : C.fg; ctx.fillText(Math.round(Tshown) + "℃", X1, WTOP - 12);
+    ctx.font = "400 14px " + C.font; ctx.fillStyle = C.muted; ctx.textAlign = "right";
+    ctx.fillText("水のつぶの動き：" + (tt < 0.25 ? "ゆっくり" : tt < 0.65 ? "ふつう" : "はやい"), X1, BOT + 24);
+    ctx.textAlign = "left"; ctx.fillText("1つぶ＝" + U() + " g", X0, BOT + 24);
+  }
+
+  /* ---- グラフ ---- */
+  var NS = "http://www.w3.org/2000/svg", ML = 56, MR = 18, MT = 22, MB = 46, PW = 480 - ML - MR, PH = 360 - MT - MB, YMAX = 300;
+  var gx = function (t) { return ML + t / 100 * PW; }, gy = function (g) { return MT + PH - clamp(g, 0, YMAX) / YMAX * PH; };
+  var svg = $("gr"), G = {};
+  function el(n, a, parent, txt) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; (parent || svg).appendChild(e); return e; }
+  function buildGraph() {
+    var t, g;
+    for (g = 0; g <= YMAX; g += (YMAX > 300 ? 100 : 50)) { el("line", { x1: ML, x2: ML + PW, y1: gy(g), y2: gy(g), class: "gr" }); el("text", { x: ML - 8, y: gy(g) + 4, "text-anchor": "end", class: "mut" }, null, g); }
+    for (t = 0; t <= 100; t += 20) { el("line", { x1: gx(t), x2: gx(t), y1: MT, y2: MT + PH, class: "gr" }); el("text", { x: gx(t), y: MT + PH + 18, "text-anchor": "middle", class: "mut" }, null, t); }
+    G.regOk = el("path", { class: "region-ok" }); G.regNo = el("path", { class: "region-no" });
+    G.tOk = el("text", { x: ML + PW - 8, y: MT + PH - 10, "text-anchor": "end", class: "mut" }, null, "線より下：ぜんぶとける");
+    G.tNo = el("text", { x: ML + 8, y: MT + 16, class: "mut" }, null, "線より上：とけ残りが出る");
+    G.cur = {}; G.lab = {};
+    for (var kk in DATA) { G.cur[kk] = el("path", { class: "curve" }); G.lab[kk] = el("text", { "text-anchor": "end" }); }
+    G.vline = el("line", { stroke: "var(--muted)", "stroke-dasharray": "4 4", "stroke-width": 1.5 });
+    G.gap = el("line", { stroke: "var(--warn)", "stroke-width": 5, "stroke-linecap": "round" });
+    G.pL = el("circle", { r: 7, fill: "var(--panel)", "stroke-width": 3.5 });
+    G.pP = el("rect", { width: 14, height: 14, rx: 2, fill: "var(--fg)", transform: "" });
+    G.tL = el("text", { style: "font-weight:700" }); G.tP = el("text", { style: "font-weight:700" });
+    el("text", { x: ML + PW / 2, y: 354, "text-anchor": "middle" }, null, "水の温度〔℃〕");
+    el("text", { x: 14, y: MT + PH / 2, "text-anchor": "middle", transform: "rotate(-90 14 " + (MT + PH / 2) + ")" }, null, "100 gの水にとける質量〔g〕");
+    el("line", { x1: ML, x2: ML, y1: MT, y2: MT + PH, class: "ax" }); el("line", { x1: ML, x2: ML + PW, y1: MT + PH, y2: MT + PH, class: "ax" });
+  }
+  function pathOf(f) { var d = "", t; for (t = 0; t <= 100; t += 1) d += (t ? "L" : "M") + gx(t).toFixed(1) + " " + gy(f(t)).toFixed(1); return d; }
+  function curveClass(k) { return "curve " + DATA[k].cls; }
+  function refreshCurves() {
+    var d = pathOf(DATA[sub].f);
+    G.regOk.setAttribute("d", d + "L" + gx(100) + " " + gy(0) + "L" + gx(0) + " " + gy(0) + "Z");
+    G.regNo.setAttribute("d", d + "L" + gx(100) + " " + gy(YMAX) + "L" + gx(0) + " " + gy(YMAX) + "Z");
+    for (var k in DATA) {
+      var D = DATA[k], main = k === sub, show = main || Math.max.apply(null, D.G) <= YMAX;
+      G.cur[k].style.display = show ? "" : "none"; G.lab[k].style.display = show ? "" : "none";
+      if (!show) continue;
+      G.cur[k].setAttribute("d", pathOf(D.f)); G.cur[k].setAttribute("class", curveClass(k) + (main ? "" : " other"));
+      var lt = D.lx, ly = gy(D.f(lt)) - (lt >= 100 ? 10 : 12);
+      G.lab[k].textContent = D.name; G.lab[k].setAttribute("fill", "var(" + D.v + ")");
+      G.lab[k].setAttribute("x", gx(lt)); G.lab[k].setAttribute("y", ly);
+      G.lab[k].setAttribute("style", main ? "font-weight:700" : "opacity:.75");
+    }
+    G.pL.setAttribute("stroke", "var(" + DATA[sub].v + ")");
+  }
+  function updateGraph(total) {
+    var T = Tshown, s = sol(T), x = gx(T), flip = T > 62;
+    G.vline.setAttribute("x1", x); G.vline.setAttribute("x2", x); G.vline.setAttribute("y1", MT); G.vline.setAttribute("y2", MT + PH);
+    G.pL.setAttribute("cx", x); G.pL.setAttribute("cy", gy(s));
+    var showP = total > 0;
+    G.pP.style.display = showP ? "" : "none"; G.tP.style.display = showP ? "" : "none"; G.gap.style.display = showP ? "" : "none";
+    var anchor = flip ? "end" : "start", dx = flip ? -14 : 14;
+    G.tL.setAttribute("text-anchor", anchor); G.tP.setAttribute("text-anchor", anchor);
+    G.tL.textContent = "溶解度 約" + Math.round(s) + " g"; G.tL.setAttribute("x", x + dx);
+    var over = total > s;
+    if (showP) {
+      var py = gy(total);
+      G.pP.setAttribute("x", x - 7); G.pP.setAttribute("y", py - 7); G.pP.setAttribute("transform", "rotate(45 " + x + " " + py + ")");
+      G.pP.setAttribute("fill", over ? "var(--warn)" : "var(--fg)");
+      G.tP.textContent = "入れた量 " + total + " g"; G.tP.setAttribute("x", x + dx);
+      G.gap.setAttribute("x1", x); G.gap.setAttribute("x2", x); G.gap.setAttribute("y1", gy(s)); G.gap.setAttribute("y2", py);
+      G.gap.setAttribute("stroke", over ? "var(--warn)" : "var(--ok)"); G.gap.setAttribute("opacity", Math.abs(total - s) < 1 ? 0 : 0.85);
+      var sy = gy(s), ty = py;
+      var tyP = over ? ty - 12 : ty + 22, tyL = over ? sy + 22 : sy - 12;
+      if (Math.abs(sy - ty) > 30) { tyP = ty + (over ? -12 : 22); tyL = sy + (over ? 22 : -12); }
+      G.tP.setAttribute("y", clamp(tyP, 14, MT + PH - 4)); G.tL.setAttribute("y", clamp(tyL, 14, MT + PH - 4));
+    } else { G.tL.setAttribute("y", gy(s) - 12); }
+  }
+
+  /* ---- 数値・メッセージ ---- */
+  var last = {};
+  function setText(id, v) { if (last[id] !== v) { last[id] = v; $(id).textContent = v; } }
+  function msgFor(st, c, s) {
+    if (st === "empty") return "水100 gに、つぶを入れていこう。どこまでとけると思う？";
+    if (st === "room") return lastCause === "heat" ? "あたためると、とけられる量がふえた。底の固体は、水にとけていく。" : "ぜんぶ水にとけた。つぶは水のつぶにかこまれて、バラバラに散らばっている。まだ入りそう。";
+    if (st === "sat") return "ちょうど限界。もうこれ以上とけられない。この水溶液を「飽和水溶液」という。";
+    var out = c.ns * U();
+    if (lastCause === "cool") return sub === "nacl" ? "冷やしても、食塩はほとんど出てこない（約" + out + " g）。温度でとける量があまり変わらないから。" : "冷やすと、とけられる量がへった。とけきれなくなった分が固体（結晶）になって出てきた。約" + out + " g。";
+    return fullFlag ? "ビーカーがいっぱい。からにするか、温度を変えてみよう。" : "入れても、もうとけない。とけ残りが底にたまっていく。100 gの水がとかせる量には限界がある。";
+  }
+  function refreshUI() {
+    var c = counts(), total = S.length * U(), dis = c.nf * U(), out = c.ns * U(), cap = capOf(Tshown);
+    var st = total === 0 ? "empty" : c.ns > 0 ? "over" : (c.nf >= cap && cap > 0) ? "sat" : "room";
+    setText("s-t", String(Math.round(Tshown))); setText("s-sol", String(Math.round(sol(Tshown))));
+    setText("s-in", String(total)); setText("s-dis", String(dis)); setText("s-out", String(out));
+    $("s-out-box").classList.toggle("hl", out > 0);
+    var chip = $("chip"), txt = { empty: "まだ入れていない", room: "まだとける", sat: "飽和水溶液（これ以上とけない）", over: "とけきれない！" }[st];
+    if (last.chip !== st) { last.chip = st; chip.textContent = txt; chip.className = "chip " + (st === "empty" ? "" : st); }
+    var m = msgFor(st, c); if (last.msg !== m) { last.msg = m; $("msg").textContent = m; }
+    updateGraph(total);
+  }
+
+  /* ---- 操作 ---- */
+  function addMul() { return sub === "sug" ? 2 : 1; }
+  function syncBtns() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-add]"), function (b) { b.textContent = "＋" + (+b.getAttribute("data-add") * addMul() * U()) + " g"; });
+    $("unit").textContent = U();
+  }
+  function setSub(k) {
+    if (k === sub) return;
+    sub = k; resetAll(); cache.c = null; YMAX = DATA[k].ymax;
+    ["kno3", "nacl", "sug"].forEach(function (q) { $("sub-" + q).setAttribute("aria-pressed", q === k); });
+    document.documentElement.style.setProperty("--sub", "var(" + DATA[k].v + ")");
+    svg.innerHTML = ""; buildGraph(); refreshCurves(); syncBtns(); last = {};
+  }
+  $("sub-kno3").onclick = function () { setSub("kno3"); };
+  $("sub-nacl").onclick = function () { setSub("nacl"); };
+  $("sub-sug").onclick = function () { setSub("sug"); };
+  Array.prototype.forEach.call(document.querySelectorAll("[data-add]"), function (b) { b.onclick = function () { demoId++; fullFlag = false; addParticles(+b.getAttribute("data-add") * addMul()); }; });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-dt]"), function (b) { b.onclick = function () { demoId++; setT(Ttarget + +b.getAttribute("data-dt")); }; });
+  $("pour").onclick = function () { demoId++; fullFlag = false; pour = !pour; autoStop = false; syncPour(); };
+  $("reset").onclick = resetAll;
+  $("temp").oninput = function () { demoId++; setT(+this.value); };
+
+  $("demo1").onclick = function () {
+    resetAll(); var id = demoId; Tshown = 20; Ttarget = 20; $("temp").value = 20; $("tval").textContent = "20℃";
+    lastCause = "add"; pour = true; autoStop = true; syncPour();
+  };
+  $("demo2").onclick = function () {
+    resetAll(); var id = demoId; sub = sub; Tshown = 60; Ttarget = 60; $("temp").value = 60; $("tval").textContent = "60℃";
+    addParticles(capOf(60), true); lastCause = "add";
+    setTimeout(function () { if (id === demoId) setT(20); }, 2200);
+  };
+
+  /* ---- 起動 ---- */
+  buildGraph(); document.documentElement.style.setProperty("--sub", "var(--kno3)"); refreshCurves();
+  addParticles(5, true); lastCause = "add";
+  var prev = performance.now();
+  function loop(now) {
+    var dt = Math.min(0.05, (now - prev) / 1000); prev = now;
+    step(dt, now); draw(); refreshUI(); requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
