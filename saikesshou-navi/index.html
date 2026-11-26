@@ -1,0 +1,471 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>再結晶の実験ナビ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Roboto+Mono:wght@500&display=swap">
+<style>
+  /* レイアウト：上に進み具合、下に準備→手順→片づけを縦に並べる。授業スライド・ワークシートと同じ配色。教室の明るさに合わせて明るい配色で固定 */
+  :root{
+    color-scheme:light;
+    --ground:#FAF8F3; --ink:#1A2B4C; --blue:#2E6FB7; --card:#E6EEF7; --orange:#FF9900;
+    --burnt:#E55A00; --gray:#5A6577; --line:#CBD6E4; --done:#1E7A46; --paper:#fff;
+    --f:"BIZ UDPGothic","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+    --mono:"Roboto Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--ground);color:var(--ink);font-family:var(--f);margin:0;line-height:1.65}
+  .wrap{max-width:860px;margin:0 auto;padding:16px 16px 72px}
+
+  header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding-bottom:10px}
+  h1{font-size:clamp(21px,5vw,30px);margin:0;color:var(--blue);font-weight:700}
+  .eyebrow{font-size:12px;letter-spacing:.12em;color:var(--gray)}
+
+  .bar{background:var(--card);border-radius:12px;padding:12px 14px;margin:0 0 14px}
+  .track{height:12px;border-radius:99px;background:#E4E0D6;overflow:hidden}
+  .fill{height:100%;width:0;background:var(--blue);transition:width .3s ease}
+  .barrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+  .now{font-weight:700;font-size:15px;min-width:0}
+  .now span{color:var(--burnt)}
+  .count{font-family:var(--mono);font-size:13px;color:var(--gray);flex:none}
+
+  h2{font-size:17px;margin:26px 0 10px;display:flex;align-items:center;gap:10px}
+  h2 .no{background:var(--blue);color:#fff;border-radius:8px;font-size:14px;padding:3px 10px;font-weight:700}
+  .lead{margin:0 0 12px;font-size:15px;color:var(--gray)}
+
+  .aim{background:var(--card);border-radius:14px;padding:16px 18px;margin-bottom:6px}
+  .aim p{margin:0 0 8px;font-size:16px}
+  .aim b{color:var(--burnt)}
+  .aim ul{margin:6px 0 0;padding-left:1.2em}
+  .aim li{margin:2px 0}
+
+  .scroll{overflow-x:auto;border:2px solid var(--line);border-radius:12px;background:var(--paper)}
+  table{border-collapse:collapse;width:100%;font-size:15px;min-width:420px}
+  th,td{padding:9px 12px;text-align:center;border-bottom:1px solid var(--line)}
+  th{background:#EEF2F7;font-weight:700}
+  tr:last-child td{border-bottom:0}
+  td:first-child,th:first-child{font-weight:700;font-size:17px}
+  td.hot{color:var(--burnt);font-weight:700}
+
+  .kit{list-style:none;margin:0;padding:0;display:grid;gap:10px;
+    grid-template-columns:repeat(auto-fill,minmax(196px,1fr));align-items:stretch}
+  .kit li{margin:0;display:flex}
+  .item{display:flex;align-items:center;gap:10px;width:100%;background:var(--paper);
+    border:2px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;
+    font-family:var(--f);font-size:15px;text-align:left;color:var(--ink);min-height:66px;height:100%}
+  .item .ic{width:34px;height:34px;flex:none}
+  .item .nm{font-weight:700;line-height:1.3;min-width:0}
+  .item .qt{font-family:var(--f);font-size:13px;color:var(--burnt);display:block;font-weight:400}
+  .item .tick{margin-left:auto;width:24px;height:24px;border-radius:7px;border:2px solid var(--line);
+    flex:none;display:grid;place-items:center;color:#fff;font-size:15px;font-weight:700}
+  .item[aria-pressed="true"]{border-color:var(--done);background:#F1F8F3}
+  .item[aria-pressed="true"] .tick{background:var(--done);border-color:var(--done)}
+  .item[aria-pressed="true"] .tick::after{content:"✓"}
+
+  .steps{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+  .step{background:var(--paper);border:2px solid var(--line);border-radius:14px;overflow:hidden}
+  .step.on{border-color:var(--blue);box-shadow:0 2px 0 rgba(46,111,183,.18)}
+  .step.fin{background:#F6F8F5;border-color:#CBDCD0}
+  .head{display:flex;gap:12px;align-items:flex-start;padding:14px 16px}
+  .num{font-family:var(--mono);font-weight:500;font-size:15px;background:var(--blue);color:#fff;
+    width:30px;height:30px;border-radius:50%;display:grid;place-items:center;flex:none}
+  .step.fin .num{background:var(--done)}
+  .ttl{font-weight:700;font-size:17px;margin:0;min-width:0}
+  .body{padding:0 16px 14px 58px}
+  .do{margin:0 0 10px;font-size:15px}
+  .do b{color:var(--burnt)}
+  .photo{display:inline-flex;align-items:center;gap:8px;background:#EAF2FB;border:2px solid var(--blue);
+    border-radius:10px;padding:6px 12px;font-size:14px;font-weight:700;margin:0 8px 10px 0}
+  .photo .tag{background:var(--blue);color:#fff;border-radius:6px;padding:1px 8px;font-size:13px}
+  .ws{display:inline-flex;align-items:center;gap:8px;background:#FFF3DF;border:2px solid var(--orange);
+    border-radius:10px;padding:7px 12px;font-size:14px;font-weight:700;margin-bottom:10px}
+  .ws .tag{background:var(--orange);color:var(--ink);border-radius:6px;padding:1px 8px;font-size:13px;white-space:nowrap}
+  .photo .tag{white-space:nowrap}
+  .caution{font-size:14px;font-weight:700;color:var(--burnt);margin:0 0 10px;
+    border:2px solid var(--burnt);border-radius:10px;padding:8px 12px;background:#FFF7F0}
+  .check{display:flex;align-items:center;gap:10px;background:var(--paper);border:2px solid var(--blue);
+    color:var(--blue);border-radius:10px;padding:11px 16px;font-family:var(--f);font-size:15px;
+    font-weight:700;cursor:pointer;min-height:48px;width:100%}
+  .step.fin .check{border-color:var(--done);color:var(--done);background:#F1F8F3}
+  .check .box{width:22px;height:22px;border:2px solid currentColor;border-radius:6px;display:grid;
+    place-items:center;flex:none;font-size:14px}
+  .step.fin .check .box::after{content:"✓"}
+  .fig{background:#F7FAFC;border:2px solid var(--line);border-radius:12px;padding:8px;margin:0 0 12px}
+  .fig svg{display:block;width:100%;height:auto}
+  .think{background:#EEF6F0;border:2px solid #9EC7AC;border-radius:10px;padding:10px 14px;margin:0 0 10px}
+  .think .lb{display:inline-block;background:#1E7A46;color:#fff;border-radius:6px;font-size:13px;
+    padding:1px 9px;margin-right:8px;font-weight:700}
+  .think span.q{font-weight:700}
+  .tips{margin:0 0 10px;padding-left:1.1em;font-size:14px;color:var(--gray)}
+  .tips li{margin:2px 0}
+
+  .timer{display:flex;align-items:center;gap:12px;margin:0 0 12px;flex-wrap:wrap}
+  .tbtn{font-family:var(--f);font-size:15px;font-weight:700;color:var(--ink);background:var(--paper);
+    border:2px solid var(--ink);border-radius:10px;padding:9px 16px;cursor:pointer;min-height:44px}
+  .tnum{font-family:var(--mono);font-size:30px;color:var(--ink);min-width:3.4ch}
+  .timer.end .tnum{color:var(--burnt)}
+  .timer.end .tbtn{background:var(--orange);border-color:var(--orange)}
+  .tmsg{font-size:14px;font-weight:700;color:var(--burnt)}
+
+  .foot{margin-top:28px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+    border-top:1px solid var(--line);padding-top:14px;font-size:13px;color:var(--gray)}
+  .reset{font-family:var(--f);font-size:14px;font-weight:700;color:var(--gray);background:var(--paper);
+    border:2px solid var(--line);border-radius:10px;padding:9px 14px;cursor:pointer;min-height:44px}
+  button:focus-visible,.item:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){.fill{transition:none}}
+</style>
+
+<svg style="display:none" aria-hidden="true">
+  <symbol id="ic-tube" viewBox="0 0 48 48">
+    <path d="M17 6h14v28a7 7 0 0 1-14 0z" fill="#DCE9F2" stroke="#1A2B4C" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M17 24h14" stroke="#5A6577" stroke-width="2" stroke-dasharray="4 3"/>
+  </symbol>
+  <symbol id="ic-rack" viewBox="0 0 48 48">
+    <rect x="6" y="14" width="36" height="6" rx="2" fill="#E7EAEE" stroke="#1A2B4C" stroke-width="2.4"/>
+    <rect x="6" y="36" width="36" height="6" rx="2" fill="#E7EAEE" stroke="#1A2B4C" stroke-width="2.4"/>
+    <path d="M12 8v28M20 8v28M28 8v28M36 8v28" stroke="#5A6577" stroke-width="2.4"/>
+  </symbol>
+  <symbol id="ic-beaker" viewBox="0 0 48 48">
+    <path d="M13 8h22v27a9 9 0 0 1-9 9h-4a9 9 0 0 1-9-9z" fill="#DCE9F2" stroke="#1A2B4C" stroke-width="2.6"/>
+    <path d="M13 8 L8 10 L13 12" fill="none" stroke="#1A2B4C" stroke-width="2.4"/>
+    <path d="M13 26h22" stroke="#5A6577" stroke-width="2" stroke-dasharray="4 3"/>
+  </symbol>
+  <symbol id="ic-scale" viewBox="0 0 48 48">
+    <rect x="5" y="22" width="38" height="16" rx="4" fill="#E7EAEE" stroke="#1A2B4C" stroke-width="2.6"/>
+    <rect x="12" y="16" width="24" height="6" rx="2" fill="#fff" stroke="#1A2B4C" stroke-width="2.4"/>
+    <rect x="24" y="27" width="14" height="7" rx="2" fill="#22303F"/>
+    <path d="M27 30.5h8" stroke="#9FE8A0" stroke-width="2.4"/>
+  </symbol>
+  <symbol id="ic-paper" viewBox="0 0 48 48">
+    <path d="M17 14h14l9 20H8z" fill="#fff" stroke="#1A2B4C" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M17 14 40 34M31 14 8 34" stroke="#8A93A2" stroke-width="1.6"/>
+  </symbol>
+  <symbol id="ic-thermo" viewBox="0 0 48 48">
+    <rect x="20" y="6" width="8" height="28" rx="4" fill="#fff" stroke="#1A2B4C" stroke-width="2.6"/>
+    <circle cx="24" cy="38" r="6" fill="#E55A00" stroke="#1A2B4C" stroke-width="2.6"/>
+    <path d="M24 16v22" stroke="#E55A00" stroke-width="3"/>
+  </symbol>
+  <symbol id="ic-glasses" viewBox="0 0 48 48">
+    <rect x="5" y="16" width="16" height="12" rx="4" fill="#E6F0F8" stroke="#1A2B4C" stroke-width="2.6"/>
+    <rect x="27" y="16" width="16" height="12" rx="4" fill="#E6F0F8" stroke="#1A2B4C" stroke-width="2.6"/>
+    <path d="M21 21h6M5 20 2 18M43 20l3-2" stroke="#1A2B4C" stroke-width="2.4" fill="none"/>
+  </symbol>
+  <symbol id="ic-water" viewBox="0 0 48 48">
+    <path d="M24 6c8 10 12 15 12 21a12 12 0 0 1-24 0c0-6 4-11 12-21z" fill="#CFE2F1" stroke="#1A2B4C" stroke-width="2.6"/>
+  </symbol>
+  <symbol id="ic-salt" viewBox="0 0 48 48">
+    <rect x="9" y="16" width="30" height="20" rx="4" fill="#F3EFE6" stroke="#1A2B4C" stroke-width="2.6"/>
+    <circle cx="17" cy="24" r="2.2" fill="#B9B2A3"/><circle cx="26" cy="29" r="2.2" fill="#B9B2A3"/>
+    <circle cx="32" cy="22" r="2.2" fill="#B9B2A3"/>
+  </symbol>
+  <symbol id="ic-kno3" viewBox="0 0 48 48">
+    <rect x="9" y="16" width="30" height="20" rx="4" fill="#fff" stroke="#1A2B4C" stroke-width="2.6"/>
+    <path d="M15 28l4-6 4 6zM27 30l3-5 3 5z" fill="#CFE2F1" stroke="#5A6577" stroke-width="1.6"/>
+  </symbol>
+  <symbol id="ic-cloth" viewBox="0 0 48 48">
+    <path d="M9 12h30v18a6 6 0 0 1-6 6H15a6 6 0 0 1-6-6z" fill="#D9E6DE" stroke="#1A2B4C" stroke-width="2.6"/>
+    <path d="M9 20h30M9 28h30" stroke="#7F9A8C" stroke-width="1.8"/>
+  </symbol>
+  <symbol id="ic-tablet" viewBox="0 0 48 48">
+    <rect x="9" y="6" width="30" height="36" rx="4" fill="#fff" stroke="#1A2B4C" stroke-width="2.6"/>
+    <circle cx="24" cy="36" r="2" fill="#1A2B4C"/>
+    <circle cx="24" cy="20" r="6" fill="#DCE9F2" stroke="#1A2B4C" stroke-width="2.2"/>
+  </symbol>
+  <symbol id="ic-waste" viewBox="0 0 48 48">
+    <path d="M13 12h22l-3 28H16z" fill="#E7EAEE" stroke="#1A2B4C" stroke-width="2.6" stroke-linejoin="round"/>
+    <path d="M10 12h28M20 8h8" stroke="#1A2B4C" stroke-width="2.6" stroke-linecap="round"/>
+  </symbol>
+
+  <!-- 湯せん -->
+  <symbol id="fig-bath" viewBox="0 0 520 230">
+    <g stroke="#1A2B4C" stroke-width="3" fill="none" stroke-linejoin="round">
+      <rect x="120" y="50" width="130" height="150" rx="6" fill="#fff"/>
+      <path d="M120 58 L108 62 L120 66" stroke-width="2.6"/>
+      <rect x="123" y="92" width="124" height="105" fill="#CFE2F1" stroke="none"/>
+      <path d="M123 92h124" stroke="#5A6577" stroke-width="2"/>
+      <path d="M150 112c6-8 6-14 0-22M185 114c6-8 6-14 0-22M220 112c6-8 6-14 0-22" stroke="#E55A00" stroke-width="2.4" stroke-linecap="round"/>
+      <!-- 試験管 -->
+      <path d="M156 18h34v118a17 17 0 0 1-34 0z" fill="#fff"/>
+      <path d="M158 100h30v36a15 15 0 0 1-30 0z" fill="#E9E4D6" stroke="none"/>
+      <circle cx="166" cy="128" r="3" fill="#B9B2A3" stroke="none"/><circle cx="178" cy="136" r="3" fill="#B9B2A3" stroke="none"/>
+      <!-- 温度計 -->
+      <rect x="216" y="22" width="9" height="136" rx="4.5" fill="#fff"/>
+      <circle cx="220.5" cy="164" r="8" fill="#E55A00"/>
+      <path d="M220.5 60v100" stroke="#E55A00" stroke-width="3.4"/>
+    </g>
+    <g font-family="BIZ UDPGothic,sans-serif" font-size="16" font-weight="700" fill="#1A2B4C">
+      <text x="276" y="44">① お湯は 60〜70℃</text>
+      <text x="276" y="80">② 試験管を入れて</text>
+      <text x="294" y="102">ときどき ふる</text>
+      <text x="276" y="140">③ 温度計で たしかめる</text>
+      <text x="276" y="176" fill="#E55A00">④ 試験管の口は</text>
+      <text x="294" y="198" fill="#E55A00">人に向けない</text>
+    </g>
+    <g stroke="#5A6577" stroke-width="2" fill="none">
+      <path d="M270 40 L248 110"/><path d="M270 76 L192 76"/><path d="M270 134 L232 134"/>
+    </g>
+  </symbol>
+
+  <!-- 冷やし方 -->
+  <symbol id="fig-cool" viewBox="0 0 520 240">
+    <g stroke="#1A2B4C" stroke-width="3" fill="none" stroke-linejoin="round">
+      <!-- 左：水を入れたビーカーに A・B・D を入れる -->
+      <rect x="30" y="56" width="200" height="146" rx="6" fill="#fff"/>
+      <path d="M30 64 L18 68 L30 72" stroke-width="2.6"/>
+      <rect x="33" y="104" width="194" height="95" fill="#CFE2F1" stroke="none"/>
+      <path d="M33 104h194" stroke="#5A6577" stroke-width="2"/>
+      <g transform="translate(80,34) rotate(-10)">
+        <path d="M-14 0h28v118a14 14 0 0 1-28 0z" fill="#fff"/>
+        <path d="M-12 84h24v34a12 12 0 0 1-24 0z" fill="#DCE9F2" stroke="none"/>
+      </g>
+      <g transform="translate(126,28) rotate(-3)">
+        <path d="M-14 0h28v118a14 14 0 0 1-28 0z" fill="#fff"/>
+        <path d="M-12 84h24v34a12 12 0 0 1-24 0z" fill="#DCE9F2" stroke="none"/>
+      </g>
+      <g transform="translate(172,30) rotate(7)">
+        <path d="M-14 0h28v118a14 14 0 0 1-28 0z" fill="#fff"/>
+        <path d="M-12 84h24v34a12 12 0 0 1-24 0z" fill="#DCE9F2" stroke="none"/>
+      </g>
+      <path d="M190 172 L252 172" stroke="#5A6577" stroke-width="2"/>
+      <!-- 右：お湯ごと放置 -->
+      <rect x="320" y="56" width="170" height="146" rx="6" fill="#fff"/>
+      <path d="M320 64 L308 68 L320 72" stroke-width="2.6"/>
+      <rect x="323" y="104" width="164" height="95" fill="#F6DFC6" stroke="none"/>
+      <path d="M323 104h164" stroke="#5A6577" stroke-width="2"/>
+      <g transform="translate(405,30)">
+        <path d="M-14 0h28v118a14 14 0 0 1-28 0z" fill="#fff"/>
+        <path d="M-12 84h24v34a12 12 0 0 1-24 0z" fill="#E9E4D6" stroke="none"/>
+      </g>
+      <path d="M350 98c6-8 6-14 0-22M460 98c6-8 6-14 0-22" stroke="#E55A00" stroke-width="2.4" stroke-linecap="round"/>
+    </g>
+    <g font-family="BIZ UDPGothic,sans-serif" font-weight="700" fill="#1A2B4C">
+      <g text-anchor="middle" font-size="18">
+        <text x="76" y="24">A</text><text x="126" y="18">B</text><text x="178" y="22">D</text>
+        <text x="405" y="22" fill="#E55A00">C</text>
+      </g>
+      <text x="258" y="178" font-size="18">水</text>
+      <text x="130" y="232" font-size="16" text-anchor="middle">A・B・D　水のビーカーで冷やす</text>
+      <text x="405" y="237" font-size="16" text-anchor="middle" fill="#E55A00">C　お湯ごと置いておく</text>
+      <text x="405" y="219" font-size="13" text-anchor="middle" fill="#5A6577">さわらない・ゆらさない</text>
+    </g>
+  </symbol>
+</svg>
+
+<div class="wrap">
+  <header>
+    <h1>再結晶の実験ナビ</h1>
+    <span class="eyebrow">１年　身のまわりの物質　／　⑰ 再結晶の実験</span>
+  </header>
+
+  <h2><span class="no">０</span>この実験で調べること</h2>
+  <div class="aim">
+    <p><b>冷やすと、一度とけた物質は結晶になって出てくるだろうか。</b></p>
+    <p>水5 g に物質を入れて温め、冷やして、結晶が出るかどうかを4本の試験管で比べる。</p>
+    <ul>
+      <li>どの試験管で、結晶が出るか</li>
+      <li>出る・出ないのちがいは、<b>溶解度曲線</b>で説明できるか</li>
+      <li>写真は<b>3枚</b>：①温める前　②温めた後　③冷やした後</li>
+    </ul>
+  </div>
+
+  <h2><span class="no">１</span>条件を確かめる</h2>
+  <p class="lead">水はすべて5 g。温める温度は60〜70℃。ワークシート３と同じ。</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>試験管</th><th>入れる物質</th><th>温める</th><th>冷やし方</th></tr></thead>
+      <tbody>
+        <tr><td>Ａ</td><td>食塩 3.0 g</td><td>60〜70℃</td><td>水で冷やす</td></tr>
+        <tr><td>Ｂ</td><td>硝酸カリウム 3.0 g</td><td>60〜70℃</td><td>水で冷やす</td></tr>
+        <tr><td>Ｃ</td><td>硝酸カリウム 3.0 g</td><td>60〜70℃</td><td class="hot">お湯ごと置いておく</td></tr>
+        <tr><td>Ｄ</td><td>硝酸カリウム 1.0 g</td><td>60〜70℃</td><td>水で冷やす</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2><span class="no">２</span>準備する</h2>
+  <p class="lead">班で分担して集めよう。そろったものからタップしてチェック。</p>
+  <div class="bar">
+    <div class="barrow">
+      <span class="now" id="now">つぎは　<span>準備</span></span>
+      <span class="count" id="count">0 / 0</span>
+    </div>
+    <div class="track"><div class="fill" id="fill"></div></div>
+  </div>
+  <ul class="kit" id="kit"></ul>
+
+  <h2><span class="no">３</span>実験する</h2>
+  <p class="lead">上から順に。終わった手順はチェックして、次へ進もう。</p>
+  <ol class="steps" id="steps"></ol>
+
+  <h2><span class="no">４</span>片づける</h2>
+  <p class="lead">次の班が気持ちよく使えるように。</p>
+  <ul class="kit" id="tidy"></ul>
+
+  <div class="foot">
+    <button class="reset" id="reset" type="button">チェックを全部消す</button>
+    <span>チェックはこの端末だけに残ります。班の1台で開いて使ってください。</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "saiketsusho17-navi-v1";
+
+  var KIT = [
+    {id:"k1", ic:"ic-glasses", nm:"保護眼鏡", qt:"全員"},
+    {id:"k2", ic:"ic-tube",    nm:"試験管", qt:"4本（Ａ・Ｂ・Ｃ・Ｄ）"},
+    {id:"k3", ic:"ic-rack",    nm:"試験管立て", qt:"1台"},
+    {id:"k4", ic:"ic-scale",   nm:"電子てんびん", qt:"1台"},
+    {id:"k5", ic:"ic-paper",   nm:"薬包紙", qt:"3枚（食塩・硝酸カリウム）"},
+    {id:"k6", ic:"ic-beaker",  nm:"ビーカー", qt:"3個（湯せん用・冷却用の水・廃液用）"},
+    {id:"k7", ic:"ic-thermo",  nm:"温度計", qt:"1本"},
+    {id:"k8", ic:"ic-water",   nm:"お湯（60〜70℃）", qt:"先生の電気ポットから"},
+    {id:"k9", ic:"ic-water",   nm:"水", qt:"5 g × 4本"},
+    {id:"k10",ic:"ic-salt",    nm:"食塩", qt:"3.0 g"},
+    {id:"k11",ic:"ic-kno3",    nm:"硝酸カリウム", qt:"3.0 g × 2　1.0 g × 1"},
+    {id:"k12",ic:"ic-tablet",  nm:"端末（写真用）", qt:"1台"}
+  ];
+
+  var STEPS = [
+    {id:"s1", t:"水と物質を試験管に入れる",
+     do:"試験管に<b>水5 g</b>を入れ、薬包紙ではかった物質を、条件のとおりに入れる。",
+     tips:["Ａ：食塩 3.0 g　Ｂ・Ｃ：硝酸カリウム 3.0 g　Ｄ：硝酸カリウム 1.0 g","試験管に、Ａ・Ｂ・Ｃ・Ｄと書いたシールをはる","薬包紙ごとはかり、粉はこぼさず入れる"],
+     caution:"硝酸カリウムのそばに、紙や布を置かない。",
+     ws:"３ 実験の条件", wsd:"条件を見ながら入れる"},
+    {id:"s2", t:"1分ふって、ようすを見る", timer:60,
+     do:"試験管を<b>1分</b>ふる。粉は<b>とけた</b>か、<b>とけない</b>か。<b>写真①</b>を撮る。",
+     tips:["4本とも同じ時間だけふる","とけ残りがあるかは、底を見て確かめる"],
+     photo:"①", photod:"温める前（ふった後）",
+     ws:"５ 結果", wsd:"「温める前」を○で囲む"},
+    {id:"s3", t:"お湯で温めて、ふる", fig:"fig-bath",
+     do:"60〜70℃のお湯に試験管を入れて温め、ときどきふる。ようすが変わったら<b>写真②</b>を撮る。",
+     tips:["お湯の温度は温度計で確かめる","4本を同時に温めてもよい","ふった後に、とけたか・とけないかを見る"],
+     caution:"お湯はやけどに注意。試験管の口を人に向けない。",
+     photo:"②", photod:"温めた後（ふった後）",
+     ws:"５ 結果", wsd:"「温めた後」を○で囲む"},
+    {id:"s4", t:"冷やして、ようすを見る", fig:"fig-cool",
+     think:{ws:"６ の考察", q:"A・B・D は、どうして結果がちがったのか。"},
+     do:"<b>Ａ・Ｂ・Ｄ</b>は、水を入れたビーカーに試験管を入れて冷やす。<b>Ｃ</b>はお湯ごと置いておく。結晶が出たか見て、<b>写真③</b>を撮る。",
+     tips:["ビーカーの水に、試験管の液の部分がつかるように入れる","冷やしている間、試験管はゆらさない","出てきた結晶の形や量を見る","Ｃは次の時間に観察する"],
+     photo:"③", photod:"冷やした後",
+     ws:"５ 結果", wsd:"「冷やした後」を○で囲む"},
+    {id:"s5", t:"結果と考察を書く",
+     do:"<b>結果</b>（見えたこと）と、<b>そこから言えること</b>を分けて書く。溶解度曲線を使って説明する。",
+     tips:["結果には、事実だけを書く","「溶解度が〜なので」の形で書くと、説明しやすい","Ａ・Ｂ・Ｄの3本すべてについて書く"],
+     ws:"６ 考察", wsd:"結果と、言えることを書く"},
+    {id:"s6", t:"計算でたしかめる",
+     do:"水5 g に3.0 g 入れたとき、20℃でとけられるのは約1.6 g。Ｂで出てくる結晶は何 g のはずか。",
+     tips:["出てくる量 ＝ 入れた量 − 20℃でとけられる量","計算の結果と、実際の結晶をくらべる"],
+     ws:"７ 計算でたしかめる", wsd:"式と答えを書く"}
+  ];
+
+  var TIDY = [
+    {id:"t1", ic:"ic-waste",  nm:"液を捨てる", qt:"多量の水で薄めて流す"},
+    {id:"t2", ic:"ic-tube",   nm:"試験管を洗う", qt:"食塩・硝酸カリウムを流す"},
+    {id:"t3", ic:"ic-beaker", nm:"器具をもどす", qt:"ビーカー・温度計"},
+    {id:"t4", ic:"ic-paper",  nm:"薬包紙を捨てる", qt:"ごみ箱へ"},
+    {id:"t5", ic:"ic-cloth",  nm:"机を拭く", qt:"こぼれた粉も"},
+    {id:"t6", ic:"ic-rack",   nm:"Ｃの試験管", qt:"試験管立てで、そのまま保管"}
+  ];
+
+  var state = load();
+  function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ return {}; } }
+  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+  function itemHTML(o){
+    return '<li><button class="item" type="button" id="' + o.id + '" aria-pressed="false">' +
+      '<svg class="ic" aria-hidden="true"><use href="#' + o.ic + '"></use></svg>' +
+      '<span class="nm">' + o.nm + '<span class="qt">' + o.qt + '</span></span>' +
+      '<span class="tick" aria-hidden="true"></span></button></li>';
+  }
+  document.getElementById("kit").innerHTML = KIT.map(itemHTML).join("");
+  document.getElementById("tidy").innerHTML = TIDY.map(itemHTML).join("");
+
+  function fmt(s){ var m = Math.floor(s/60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+
+  document.getElementById("steps").innerHTML = STEPS.map(function(s, i){
+    var tips = (s.tips || []).map(function(t){ return "<li>" + t + "</li>"; }).join("");
+    var vb = s.fig === "fig-bath" ? "0 0 520 230" : "0 0 520 240";
+    return '<li class="step" id="wrap-' + s.id + '">' +
+      '<div class="head"><span class="num">' + (i+1) + '</span><p class="ttl">' + s.t + '</p></div>' +
+      '<div class="body">' +
+        '<p class="do">' + s.do + '</p>' +
+        (s.timer ? '<div class="timer" id="tm-' + s.id + '"><button class="tbtn" type="button" id="tb-' + s.id + '">タイマー開始</button>' +
+                   '<span class="tnum" id="tn-' + s.id + '">' + fmt(s.timer) + '</span><span class="tmsg" id="tg-' + s.id + '"></span></div>' : '') +
+        (s.fig ? '<div class="fig"><svg viewBox="' + vb + '" role="img" aria-label="' + s.t + 'の図"><use href="#' + s.fig + '"></use></svg></div>' : '') +
+        (tips ? '<ul class="tips">' + tips + '</ul>' : '') +
+        (s.caution ? '<p class="caution">' + s.caution + '</p>' : '') +
+        (s.photo ? '<span class="photo"><span class="tag">写真' + s.photo + '</span>' + s.photod + '</span>' : '') +
+        '<div class="ws"><span class="tag">ワークシート</span>' + s.ws + '　' + s.wsd + '</div>' +
+        (s.think ? '<div class="think"><span class="lb">考察</span><span class="q">' + s.think.q +
+                   '</span>　→　ワークシート ' + s.think.ws + ' に書く</div>' : '') +
+        '<button class="check" type="button" id="' + s.id + '"><span class="box"></span>この手順ができた</button>' +
+      '</div></li>';
+  }).join("");
+
+  var ALL = KIT.concat(STEPS).concat(TIDY);
+
+  function render(){
+    var doneCount = 0;
+    KIT.concat(TIDY).forEach(function(o){
+      var on = !!state[o.id];
+      document.getElementById(o.id).setAttribute("aria-pressed", on ? "true" : "false");
+      if(on) doneCount++;
+    });
+    STEPS.forEach(function(s){
+      var on = !!state[s.id];
+      document.getElementById("wrap-" + s.id).classList.toggle("fin", on);
+      if(on) doneCount++;
+    });
+    var next = null;
+    for(var i=0;i<ALL.length;i++){ if(!state[ALL[i].id]){ next = ALL[i]; break; } }
+    var kitLeft = KIT.filter(function(o){ return !state[o.id]; }).length;
+    var label;
+    if(!next) label = "ぜんぶ終わり。おつかれさま";
+    else if(kitLeft > 0) label = "準備　<span>のこり " + kitLeft + " 個</span>";
+    else if(next.t && next.do) label = "つぎは　<span>" + next.t + "</span>";
+    else label = "片づけ　<span>" + next.nm + "</span>";
+    document.getElementById("now").innerHTML = label;
+    document.getElementById("count").textContent = doneCount + " / " + ALL.length;
+    document.getElementById("fill").style.width = (doneCount / ALL.length * 100) + "%";
+    STEPS.forEach(function(s){
+      document.getElementById("wrap-" + s.id).classList.toggle("on", !!next && next.id === s.id);
+    });
+  }
+
+  ALL.forEach(function(o){
+    document.getElementById(o.id).addEventListener("click", function(){
+      state[o.id] = !state[o.id]; save(); render();
+    });
+  });
+
+  // タイマー（音は鳴らさず、色と文字で知らせる）
+  var timers = {};
+  STEPS.forEach(function(s){
+    if(!s.timer) return;
+    var btn = document.getElementById("tb-" + s.id), num = document.getElementById("tn-" + s.id),
+        box = document.getElementById("tm-" + s.id), msg = document.getElementById("tg-" + s.id);
+    function stop(){ if(timers[s.id]){ clearInterval(timers[s.id]); timers[s.id] = null; } }
+    function reset(){ stop(); num.textContent = fmt(s.timer); box.classList.remove("end"); msg.textContent = ""; btn.textContent = "タイマー開始"; }
+    btn.addEventListener("click", function(){
+      if(timers[s.id] || box.classList.contains("end")){ reset(); return; }
+      var left = s.timer; btn.textContent = "やり直す"; msg.textContent = "";
+      timers[s.id] = setInterval(function(){
+        left--; num.textContent = fmt(Math.max(left, 0));
+        if(left <= 0){ stop(); box.classList.add("end"); msg.textContent = "時間です。ふるのをやめる"; btn.textContent = "もう一度"; }
+      }, 1000);
+    });
+    box._reset = reset;
+  });
+
+  document.getElementById("reset").addEventListener("click", function(){
+    state = {}; save(); render();
+    STEPS.forEach(function(s){ var b = document.getElementById("tm-" + s.id); if(b && b._reset) b._reset(); });
+    window.scrollTo({top:0, behavior:"smooth"});
+  });
+
+  render();
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,1187 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>台車グラフラボ</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=BIZ+UDPGothic:wght@400;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#f6f2e7;
+    --surface:#ffffff;
+    --surface-2:#eef3f6;
+    --ink:#22282f;
+    --ink-2:#5c6874;
+    --line:#ddd5c1;
+    --grid:#c7d7e2;
+    --grid-strong:#a9c0d1;
+    --accent:#cf5a2c;
+    --accent-soft:#f6e1d5;
+    --accent2:#2c6f6a;
+    --accent2-soft:#d9ebe7;
+    --tape:#fffdf6;
+    --pen:#2f5fb3;
+    --shadow: 0 1px 2px rgba(34,40,47,.07), 0 10px 28px -16px rgba(34,40,47,.20);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14181d; --surface:#1b212a; --surface-2:#172431;
+      --ink:#e9e7e0; --ink-2:#9aa6b2; --line:#2c333d;
+      --grid:#1f3b4a; --grid-strong:#2c5468;
+      --accent:#ef8353; --accent-soft:#3a2a22;
+      --accent2:#54b6ad; --accent2-soft:#173330;
+      --tape:#252c35; --pen:#8fb4ff;
+      --shadow: 0 1px 2px rgba(0,0,0,.5), 0 10px 28px -16px rgba(0,0,0,.6);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14181d; --surface:#1b212a; --surface-2:#172431;
+    --ink:#e9e7e0; --ink-2:#9aa6b2; --line:#2c333d;
+    --grid:#1f3b4a; --grid-strong:#2c5468;
+    --accent:#ef8353; --accent-soft:#3a2a22;
+    --accent2:#54b6ad; --accent2-soft:#173330;
+      --tape:#252c35; --pen:#8fb4ff;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 10px 28px -16px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'BIZ UDPGothic','Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;
+    line-height:1.7;
+  }
+  h1,h2,h3{ font-family:'Zen Kaku Gothic New','Hiragino Sans','Noto Sans JP',sans-serif; text-wrap:balance; }
+  .mono{ font-family:'JetBrains Mono', ui-monospace, monospace; font-variant-numeric:tabular-nums; }
+
+  .page{ max-width:880px; margin:0 auto; padding-inline:20px; padding-block:28px 56px; }
+
+  .hero{ padding-block:4px 20px; }
+  .eyebrow{ display:inline-flex; align-items:center; gap:8px; font-size:12.5px; letter-spacing:.06em; color:var(--accent); font-weight:700; margin:0 0 10px; }
+  .eyebrow::before{ content:""; width:7px; height:7px; border-radius:50%; background:var(--accent); }
+  h1{ font-size:clamp(24px,5vw,32px); font-weight:900; margin:0 0 12px; letter-spacing:-.01em; }
+  .lede{ color:var(--ink-2); font-size:15px; max-width:62ch; margin:0; }
+
+  .card{ background:var(--surface); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow); padding:22px 22px 24px; margin-top:22px; }
+  .card-eyebrow{ font-size:12px; font-weight:700; letter-spacing:.06em; color:var(--accent2); margin:0 0 6px; }
+  .card-title{ font-size:20px; font-weight:900; margin:0 0 8px; }
+  .card-desc{ font-size:14px; color:var(--ink-2); margin:0 0 14px; max-width:64ch; }
+
+  .segmented{ display:inline-flex; background:var(--surface-2); border-radius:10px; padding:3px; gap:2px; flex-wrap:wrap; margin-bottom:14px; }
+  .seg-btn{ appearance:none; border:0; background:transparent; color:var(--ink-2); font:inherit; font-size:13px; font-weight:700; padding:7px 12px; border-radius:8px; cursor:pointer; transition:background .15s ease, color .15s ease; }
+  .seg-btn:hover{ color:var(--ink); }
+  .seg-btn.is-active{ background:var(--surface); color:var(--accent); box-shadow:var(--shadow); }
+  .seg-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .table-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
+  table.datatbl{ border-collapse:collapse; width:100%; min-width:520px; }
+  table.datatbl th, table.datatbl td{ border-bottom:1px solid var(--line); border-right:1px solid var(--line); padding:8px 6px; text-align:center; font-size:13px; }
+  table.datatbl th:last-child, table.datatbl td:last-child{ border-right:none; }
+  table.datatbl thead th{ background:var(--surface-2); color:var(--ink-2); font-weight:700; font-size:12.5px; }
+  table.datatbl tbody th{ background:var(--surface-2); text-align:left; padding-left:12px; white-space:nowrap; font-size:13px; }
+  table.datatbl tr:last-child td, table.datatbl tr:last-child th{ border-bottom:none; }
+  .swatch{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; vertical-align:middle; }
+  .datatbl input{
+    width:4.4em; text-align:center; font:inherit; font-family:'JetBrains Mono',ui-monospace,monospace;
+    border:1px solid var(--line); border-radius:8px; padding:6px 4px; background:var(--surface); color:var(--ink);
+  }
+  .datatbl input:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
+
+  .btn-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+  .btn{ appearance:none; cursor:pointer; font:inherit; font-weight:700; font-size:13px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; border-radius:10px; padding:9px 14px; border:1px solid var(--line); background:var(--surface); color:var(--ink); transition:transform .1s ease, border-color .15s ease; }
+  .btn:hover{ border-color:var(--accent); }
+  .btn:active{ transform:translateY(1px); }
+  .btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .btn-primary{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .btn-primary:hover{ filter:brightness(1.05); }
+
+  .stage{ background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:10px; }
+  .stage canvas{ display:block; width:100%; height:auto; }
+
+  .note{ font-size:12.5px; color:var(--ink-2); margin:10px 0 0; }
+  .legend{ display:flex; gap:18px; flex-wrap:wrap; margin:2px 0 12px; font-size:13px; color:var(--ink-2); }
+  .legend b{ color:var(--ink); }
+
+  /* ---- step player (実験のやり方・テープの処理) ---- */
+  .steps{ list-style:none; padding:0; margin:0 0 12px; display:grid; grid-template-columns:repeat(auto-fit,minmax(80px,1fr)); gap:6px; }
+  @media (max-width:520px){ .steps{ grid-template-columns:repeat(2,1fr); } }
+  .step-chip{
+    width:100%; height:100%; text-align:left; appearance:none; cursor:pointer; font:inherit;
+    border:1px solid var(--line); background:var(--surface); color:var(--ink-2);
+    border-radius:10px; padding:8px 8px; font-size:12.5px; line-height:1.4; font-weight:700;
+    display:flex; gap:6px; align-items:flex-start; transition:border-color .15s ease, background .15s ease;
+  }
+  .step-chip:hover{ border-color:var(--accent); }
+  .step-chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .step-num{
+    flex:none; width:22px; height:22px; border-radius:50%; display:inline-grid; place-items:center;
+    background:var(--surface-2); color:var(--ink-2); font-size:12px;
+    font-family:'JetBrains Mono', ui-monospace, monospace;
+  }
+  .step-chip.is-done .step-num{ background:var(--accent2-soft); color:var(--accent2); }
+  .step-chip.is-current{ border-color:var(--accent); background:var(--accent-soft); color:var(--ink); }
+  .step-chip.is-current .step-num{ background:var(--accent); color:#fff; }
+  .step-caption{
+    border-left:4px solid var(--accent); background:var(--surface-2); border-radius:0 10px 10px 0;
+    padding:10px 14px; margin-bottom:12px; min-height:84px;
+  }
+  .step-caption-tag{ font-size:12px; font-weight:700; color:var(--accent); letter-spacing:.05em; margin:0; }
+  .step-caption-main{ font-family:'Zen Kaku Gothic New',sans-serif; font-size:clamp(17px,3vw,21px); font-weight:900; margin:0; line-height:1.45; }
+  .step-caption-sub{ font-size:13.5px; color:var(--ink-2); margin:2px 0 0; }
+  .stage.svg-stage{ overflow-x:auto; }
+  .stage svg{ display:block; width:100%; height:auto; min-width:300px; }
+  .controls{ display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; margin-top:14px; }
+
+  /* scene: 実験のやり方 */
+  .floor{ stroke:var(--line); stroke-width:2; }
+  .desk{ fill:var(--surface); stroke:var(--line); stroke-width:1.2; }
+  .mech-body{ fill:var(--surface); stroke:var(--ink); stroke-width:1.6; }
+  .mech-label{ fill:var(--ink); font-size:11px; font-weight:700; text-anchor:middle; }
+  .mech-sub{ fill:var(--ink-2); font-size:9.5px; }
+  .zigzag{ fill:none; stroke:var(--accent); stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; }
+  .needle{ fill:var(--ink); }
+  .lamp{ fill:var(--surface-2); stroke:var(--ink-2); stroke-width:1; }
+  .lamp.is-on{ fill:var(--accent); stroke:var(--accent); }
+  .tape-1{ fill:var(--tape); stroke:var(--ink-2); stroke-width:.9; transition:stroke .2s ease; }
+  .tape-1.is-hl{ stroke:var(--accent); stroke-width:2; }
+  .mech-dot{ fill:var(--ink-2); }
+  .mech-dot.is-newest{ fill:var(--accent); }
+  .cart-body{ fill:var(--surface); stroke:var(--ink); stroke-width:1.4; }
+  .cart-wheel{ fill:var(--ink); }
+  .cart-label{ fill:var(--ink-2); font-size:9.5px; text-anchor:middle; }
+  .hand{ fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.4; stroke-linejoin:round; }
+  .arm{ stroke:var(--accent); stroke-width:6; stroke-linecap:round; opacity:.55; }
+  .scene-note{ fill:var(--accent); font-size:11.5px; font-weight:700; text-anchor:middle; }
+  .scene-note.is-calm{ fill:var(--accent2); }
+  .cmp-label{ fill:var(--ink); font-size:11px; font-weight:700; }
+  .cmp-note{ fill:var(--ink-2); font-size:10px; }
+
+  /* scene: テープの処理 */
+  .tape-band{ fill:var(--tape); stroke:var(--ink-2); stroke-width:.9; }
+  .p-dot{ fill:var(--ink); }
+  .p-num{ fill:var(--ink-2); font-size:8.5px; text-anchor:middle; }
+  .cut-line{ stroke:var(--accent); stroke-width:2; }
+  .hand-num{ fill:var(--pen); font-size:10px; font-weight:700; }
+  .hand-name{ fill:var(--pen); font-size:8.5px; font-weight:700; }
+  .p-bracket{ stroke:var(--accent); stroke-width:1; fill:none; }
+  .p-bracket-text{ fill:var(--accent); font-size:9.5px; font-weight:700; text-anchor:middle; }
+  .base-mark{ fill:var(--accent); }
+  .base-text{ fill:var(--accent); font-size:11px; font-weight:700; text-anchor:middle; }
+  .cluster-box{ fill:none; stroke:var(--accent); stroke-width:1.5; stroke-dasharray:4 3; }
+  .cluster-text{ fill:var(--accent); font-size:10.5px; font-weight:700; }
+  .scissors line, .scissors path{ stroke:var(--ink); stroke-width:2.2; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .scissors circle{ stroke:var(--ink); stroke-width:2; fill:var(--surface); }
+  .grid-minor{ stroke:var(--grid); stroke-width:.6; }
+  .grid-major{ stroke:var(--grid-strong); stroke-width:.8; }
+  .axis{ stroke:var(--ink-2); stroke-width:1.2; }
+  .axis-text{ fill:var(--ink-2); font-size:9.5px; }
+  .axis-title{ fill:var(--ink); font-size:10.5px; font-weight:700; }
+  .placeholder-text{ fill:var(--ink-2); font-size:11px; text-anchor:middle; }
+  .stair{ fill:none; stroke:var(--accent2); stroke-width:1.6; stroke-dasharray:4 3; }
+  .stair-dot{ fill:var(--accent2); }
+  .val-text{ fill:var(--ink); font-size:10px; font-weight:700; text-anchor:middle; font-family:'JetBrains Mono',ui-monospace,monospace; }
+  .ph-bracket{ fill:none; stroke-width:1.4; }
+  .ph-bracket.is-acc{ stroke:var(--accent); }
+  .ph-bracket.is-const{ stroke:var(--accent2); }
+  .ph-text{ font-size:10px; font-weight:700; text-anchor:middle; }
+  .ph-text.is-acc{ fill:var(--accent); }
+  .ph-text.is-const{ fill:var(--accent2); }
+  @media (prefers-reduced-motion: reduce){ .tape-1{ transition:none; } }
+
+  /* ---- ナビの構成（だ液の実験ナビ型） ---- */
+  .sec{ font-size:19px; font-weight:900; margin:34px 0 10px; display:flex; align-items:center; gap:10px; }
+  .sec .no{ background:var(--accent2); color:#fff; border-radius:8px; font-size:14px; padding:2px 10px; font-family:'JetBrains Mono',ui-monospace,monospace; }
+  .lead{ margin:0 0 12px; font-size:14.5px; color:var(--ink-2); max-width:64ch; }
+  .aim p{ margin:0 0 8px; font-size:15.5px; }
+  .aim p b{ color:var(--accent); }
+  .pairs{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin-top:12px; }
+  .pair{ background:var(--surface-2); border-radius:12px; padding:10px 14px; font-size:14px; color:var(--ink-2); }
+  .pair b{ display:block; font-size:16px; color:var(--ink); font-family:'Zen Kaku Gothic New',sans-serif; }
+
+  .bar{ position:sticky; top:env(safe-area-inset-top,0px); z-index:20; background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); padding:10px 14px; margin:0 0 12px; }
+  .barrow{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:6px; }
+  .now{ font-weight:700; font-size:14.5px; }
+  .now span{ color:var(--accent); }
+  .count{ font-family:'JetBrains Mono',ui-monospace,monospace; font-size:13px; color:var(--ink-2); }
+  .track{ height:10px; border-radius:99px; background:var(--surface-2); overflow:hidden; }
+  .fill{ height:100%; width:0; background:var(--accent2); transition:width .3s ease; }
+
+  .kit{ list-style:none; margin:0; padding:0; display:grid; gap:10px; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); }
+  .kit li{ display:flex; }
+  .item{ display:flex; align-items:center; gap:10px; width:100%; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:10px 12px; cursor:pointer; font:inherit; font-size:14.5px; text-align:left; color:var(--ink); min-height:64px; }
+  .item svg{ width:44px; height:36px; flex:none; }
+  .item .nm{ font-weight:700; line-height:1.3; }
+  .item .qt{ display:block; font-size:12.5px; font-weight:400; color:var(--ink-2); }
+  .item .tick{ margin-left:auto; width:24px; height:24px; border-radius:7px; border:2px solid var(--line); flex:none; display:grid; place-items:center; color:#fff; font-size:14px; font-weight:700; }
+  .item[aria-pressed="true"]{ border-color:var(--accent2); background:var(--accent2-soft); }
+  .item[aria-pressed="true"] .tick{ background:var(--accent2); border-color:var(--accent2); }
+  .item[aria-pressed="true"] .tick::after{ content:"✓"; }
+
+  .flow{ list-style:none; margin:0; padding:0; display:grid; gap:12px; }
+  .fstep{ background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); overflow:hidden; }
+  .fstep.on{ border-color:var(--accent); border-width:2px; }
+  .fstep.fin{ background:var(--surface-2); box-shadow:none; }
+  .fhead{ display:flex; gap:12px; align-items:center; padding:14px 16px 8px; }
+  .fnum{ width:30px; height:30px; border-radius:50%; background:var(--accent); color:#fff; display:grid; place-items:center; flex:none; font-weight:700; font-family:'JetBrains Mono',ui-monospace,monospace; }
+  .fstep.fin .fnum{ background:var(--accent2); }
+  .fttl{ font-family:'Zen Kaku Gothic New',sans-serif; font-weight:900; font-size:18px; margin:0; line-height:1.4; }
+  .fbody{ padding:0 16px 16px 58px; }
+  @media (max-width:520px){ .fbody{ padding-left:16px; } }
+  .do{ margin:0 0 10px; font-size:15px; }
+  .do b{ color:var(--accent); }
+  .tips{ margin:0 0 10px; padding-left:1.1em; font-size:14px; color:var(--ink-2); }
+  .tips li{ margin:3px 0; }
+  .tips b{ color:var(--ink); }
+  .think{ background:var(--accent2-soft); border-radius:10px; padding:10px 14px; margin:0 0 10px; font-size:14px; }
+  .think .lb{ display:inline-block; background:var(--accent2); color:#fff; border-radius:6px; font-size:12.5px; padding:1px 9px; margin-right:8px; font-weight:700; }
+  .think b{ color:var(--ink); }
+  .ffig{ background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:8px; margin:0 0 12px; }
+  .ffig svg{ display:block; width:100%; height:auto; }
+  .ffig .btn{ margin-top:8px; }
+  .check{ display:flex; align-items:center; gap:10px; width:100%; border:2px solid var(--accent2); color:var(--accent2); background:var(--surface); border-radius:10px; padding:10px 16px; font:inherit; font-weight:700; font-size:15px; cursor:pointer; min-height:46px; }
+  .check .box{ width:22px; height:22px; border:2px solid currentColor; border-radius:6px; display:grid; place-items:center; flex:none; font-size:14px; }
+  .fin .check, .check[aria-pressed="true"]{ background:var(--accent2-soft); }
+  .fin .check .box::after, .check[aria-pressed="true"] .box::after{ content:"✓"; }
+  .check:focus-visible, .item:focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+  .reset{ font:inherit; font-size:13.5px; font-weight:700; color:var(--ink-2); background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:8px 14px; cursor:pointer; }
+  .reset.warn{ border-color:var(--accent); color:var(--accent); }
+  .pen{ fill:var(--pen); font-weight:700; }
+  @media (prefers-reduced-motion:reduce){ .fill{ transition:none; } }
+
+  .foot{ margin-top:28px; padding-top:16px; border-top:1px solid var(--line); font-size:12.5px; color:var(--ink-2); }
+</style>
+
+<div class="page">
+
+  <header class="hero">
+    <p class="eyebrow">単元3 運動とエネルギー ｜ ｂ｜台車 等速直線運動</p>
+    <h1>一度押した台車は、そのあとどう動く？</h1>
+    <p class="lede">道具の準備から、実験、テープの処理、グラフづくりまで、上から順に進む実験ナビ。終わったものはチェックして、次へ進もう。</p>
+  </header>
+
+  <h2 class="sec"><span class="no">０</span>この実験で調べること</h2>
+  <div class="card aim" style="margin-top:0">
+    <p><b>一度だけ押した台車は、手をはなしたあと、どんな運動をするのだろうか。</b></p>
+    <p>押す強さだけを変えて、2本のテープをくらべる。</p>
+    <div class="pairs">
+      <div class="pair"><b>弱く押し出す</b>テープに「弱く」と書く</div>
+      <div class="pair"><b>強く押し出す</b>テープに「強く」と書く</div>
+    </div>
+  </div>
+
+  <h2 class="sec"><span class="no">１</span>準備する</h2>
+  <div class="bar">
+    <div class="barrow">
+      <span class="now" id="now">準備</span>
+      <span class="count" id="count">0 / 0</span>
+    </div>
+    <div class="track"><div class="fill" id="fill"></div></div>
+  </div>
+  <p class="lead">班で分担して集めよう。そろったものからタップしてチェック。</p>
+  <ul class="kit" id="kit"></ul>
+
+  <h2 class="sec"><span class="no">２</span>実験する</h2>
+  <p class="lead">上から順に。終わった手順はチェックして、次へ進もう。</p>
+  <ol class="flow" id="flow"></ol>
+
+  <h2 class="sec"><span class="no">３</span>テープを処理する</h2>
+  <section class="card" id="procCard" style="margin-top:0">
+    <h3 class="card-title">テープを6打点ごとに切って、並べて、測る</h3>
+    <p class="card-desc">弱く・強くの2本とも、この順番で処理する。「▶ 通して再生」で通して、ステップのボタンで1つずつ確認できる。</p>
+
+    <ol class="steps" id="procChips"></ol>
+    <div class="step-caption" aria-live="polite">
+      <p class="step-caption-tag" id="procTag">STEP 0 / 8</p>
+      <p class="step-caption-main" id="procMain"></p>
+      <p class="step-caption-sub" id="procSub"></p>
+    </div>
+
+    <div class="stage svg-stage">
+      <svg id="procSvg" viewBox="0 0 640 350" role="img" aria-label="紙テープの処理手順のアニメーション。名前を書き、重なった点を除き、基準点から6打点ごとに区切り、番号をふって切り、並べてはり、長さを測る">
+        <g id="procChart"></g>
+        <g id="procPieces"></g>
+        <g id="procScissors" class="scissors" opacity="0">
+          <path d="M-3,4 L0,-12 L-7,-21"/>
+          <path d="M3,4 L0,-12 L7,-21"/>
+          <circle cx="-8.5" cy="-26" r="5.5"/>
+          <circle cx="8.5" cy="-26" r="5.5"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="controls">
+      <div class="btn-row" style="margin-top:0">
+        <button class="btn btn-primary" id="procPlay" type="button">▶ 通して再生</button>
+        <button class="btn" id="procPrev" type="button">◀ 前へ</button>
+        <button class="btn" id="procNext" type="button">次へ ▶</button>
+        <button class="btn" id="procReset" type="button">↺ はじめから</button>
+      </div>
+    </div>
+    <p class="note">※ アニメーションの点の位置や長さは説明用の例（西日本・60Hzなので6打点＝0.1秒）。</p>
+    <div style="margin-top:14px"><button class="check" type="button" data-id="p1" aria-pressed="false"><span class="box"></span>2本とも処理して、長さを測った</button></div>
+  </section>
+
+  <h2 class="sec"><span class="no">４</span>測定値を入力する</h2>
+  <section class="card" id="dataCard" style="margin-top:0">
+    <h3 class="card-title">区間ごとの長さ（cm）</h3>
+    <p class="card-desc">ワークシートに書いた数字を、そのまま入力しよう。テープの区間が多い／少ないときは、下のボタンで区間を増減できる。数字は今、サンプル値が入っている——自分の班の記録に書きかえよう。</p>
+    <div class="table-wrap">
+      <table class="datatbl" id="dataTable"></table>
+    </div>
+    <div class="btn-row">
+      <button id="addSeg" class="btn" type="button">＋ 区間を追加</button>
+      <button id="removeSeg" class="btn" type="button">－ 区間を減らす</button>
+      <button id="loadSample" class="btn" type="button">サンプル値にもどす</button>
+      <button id="clearAll" class="btn" type="button">クリア（自分の記録を入力）</button>
+    </div>
+  </section>
+
+  <h2 class="sec"><span class="no">５</span>グラフにする</h2>
+  <section class="card" id="graphCard" style="margin-top:0">
+    <h3 class="card-title" id="graphTitle">区間ごとの移動距離（0.1秒ごと）</h3>
+    <div class="segmented" id="viewToggle" role="group" aria-label="グラフの種類">
+      <button class="seg-btn is-active" type="button" data-view="interval">区間ごとの距離</button>
+      <button class="seg-btn" type="button" data-view="cumulative">基準点からの距離（累積）</button>
+    </div>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--accent2)"></span>弱く押したとき</span>
+      <span><span class="swatch" style="background:var(--accent)"></span>強く押したとき</span>
+    </div>
+    <div class="stage">
+      <canvas id="chartCanvas" width="1600" height="900" role="img" aria-label="測定値から作成した台車の運動グラフ"></canvas>
+    </div>
+    <p class="card-desc" id="graphNote"></p>
+    <div class="btn-row">
+      <a id="printLink" class="btn btn-primary" target="_blank" rel="noopener" href="#">🖶 グラフを新しいタブで開く（保存・印刷用）</a>
+    </div>
+    <p class="note">※ このページの中から直接「印刷」はできない。上のボタンで新しいタブに画像を開き、そのタブのブラウザの印刷機能（Cmd/Ctrl+P）を使うか、画像を右クリック（長押し）して保存しよう。</p>
+  </section>
+
+  <footer class="foot" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+    <button class="reset" id="navReset" type="button">チェックを全部消す</button>
+    <span>チェックはこの端末だけに残る。実験ナビ｜台車グラフラボ・単元3 運動とエネルギー</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SAMPLE = {
+    weak:   [1.2, 3.6, 6.0, 7.2, 7.2, 7.2],
+    strong: [2.0, 5.4, 8.4, 9.0, 9.0, 9.0]
+  };
+
+  var state = {
+    seg: 6,
+    weak: SAMPLE.weak.slice(),
+    strong: SAMPLE.strong.slice(),
+    view: "interval"
+  };
+
+  var tableEl = document.getElementById('dataTable');
+  var addBtn = document.getElementById('addSeg');
+  var removeBtn = document.getElementById('removeSeg');
+  var sampleBtn = document.getElementById('loadSample');
+  var clearBtn = document.getElementById('clearAll');
+  var toggleWrap = document.getElementById('viewToggle');
+  var graphTitle = document.getElementById('graphTitle');
+  var graphNote = document.getElementById('graphNote');
+  var printLink = document.getElementById('printLink');
+  var canvas = document.getElementById('chartCanvas');
+  var ctx = canvas.getContext('2d');
+
+  var CIRCLED = "①②③④⑤⑥⑦⑧⑨⑩".split("");
+
+  function clampSeg(n){ return Math.max(3, Math.min(10, n)); }
+
+  function buildTable(){
+    var n = state.seg;
+    var html = '<thead><tr><th>区間</th>';
+    for (var i = 0; i < n; i++) html += '<th>' + (CIRCLED[i] || (i+1)) + '</th>';
+    html += '</tr></thead><tbody>';
+    html += rowHtml('weak', '弱く押したとき', n);
+    html += rowHtml('strong', '強く押したとき', n);
+    html += '</tbody>';
+    tableEl.innerHTML = html;
+    for (var s = 0; s < 2; s++){
+      var key = s === 0 ? 'weak' : 'strong';
+      for (var j = 0; j < n; j++){
+        (function(key, j){
+          var inp = document.getElementById(key + '-' + j);
+          inp.addEventListener('input', function(){
+            var v = parseFloat(inp.value);
+            state[key][j] = isNaN(v) ? 0 : v;
+            render();
+          });
+        })(key, j);
+      }
+    }
+  }
+
+  function rowHtml(key, label, n){
+    var arr = state[key];
+    var html = '<tr><th>' + label + '</th>';
+    for (var i = 0; i < n; i++){
+      var v = (arr[i] === undefined || arr[i] === null) ? '' : arr[i];
+      html += '<td><input type="number" inputmode="decimal" step="0.1" min="0" id="' + key + '-' + i + '" value="' + v + '"></td>';
+    }
+    html += '</tr>';
+    return html;
+  }
+
+  addBtn.addEventListener('click', function(){
+    var n = clampSeg(state.seg + 1);
+    if (n === state.seg) return;
+    state.weak[n-1] = state.weak[n-1] || 0;
+    state.strong[n-1] = state.strong[n-1] || 0;
+    state.seg = n;
+    buildTable(); render();
+  });
+  removeBtn.addEventListener('click', function(){
+    var n = clampSeg(state.seg - 1);
+    if (n === state.seg) return;
+    state.seg = n;
+    state.weak.length = n; state.strong.length = n;
+    buildTable(); render();
+  });
+  sampleBtn.addEventListener('click', function(){
+    state.seg = SAMPLE.weak.length;
+    state.weak = SAMPLE.weak.slice();
+    state.strong = SAMPLE.strong.slice();
+    buildTable(); render();
+  });
+  clearBtn.addEventListener('click', function(){
+    state.weak = new Array(state.seg).fill(0);
+    state.strong = new Array(state.seg).fill(0);
+    buildTable(); render();
+  });
+  toggleWrap.addEventListener('click', function(e){
+    var btn = e.target.closest('.seg-btn');
+    if (!btn) return;
+    Array.prototype.forEach.call(toggleWrap.querySelectorAll('.seg-btn'), function(b){ b.classList.toggle('is-active', b === btn); });
+    state.view = btn.getAttribute('data-view');
+    render();
+  });
+
+  function cssVar(name){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function cumulative(arr){
+    var out = [0]; var t = 0;
+    for (var i = 0; i < arr.length; i++){ t += (arr[i] || 0); out.push(t); }
+    return out;
+  }
+
+  function drawChart(){
+    var W = canvas.width, H = canvas.height;
+    var ink = cssVar('--ink') || '#22282f';
+    var ink2 = cssVar('--ink-2') || '#5c6874';
+    var grid = cssVar('--grid') || '#c7d7e2';
+    var surface = cssVar('--surface') || '#ffffff';
+    var accent = cssVar('--accent') || '#cf5a2c';
+    var accent2 = cssVar('--accent2') || '#2c6f6a';
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = surface; ctx.fillRect(0, 0, W, H);
+
+    var padL = 120, padR = 60, padT = 60, padB = 110;
+    var plotW = W - padL - padR, plotH = H - padT - padB;
+
+    var isCum = state.view === 'cumulative';
+    var weak = isCum ? cumulative(state.weak) : state.weak.map(function(v){ return v || 0; });
+    var strong = isCum ? cumulative(state.strong) : state.strong.map(function(v){ return v || 0; });
+    // 原点を通る直線（最小二乗法：傾き = Σxy ÷ Σx²）
+    function slopeThroughOrigin(arr){
+      var sxy = 0, sxx = 0;
+      for (var i = 1; i < arr.length; i++){ sxy += i * arr[i]; sxx += i * i; }
+      return sxx ? sxy / sxx : 0;
+    }
+    var kW = isCum ? slopeThroughOrigin(weak) : 0, kS = isCum ? slopeThroughOrigin(strong) : 0;
+    var lastI = weak.length - 1;
+    var maxV = Math.max(1, weak.reduce(function(a,b){return Math.max(a,b);},0), strong.reduce(function(a,b){return Math.max(a,b);},0),
+                        isCum ? kW * lastI : 0, isCum ? kS * lastI : 0);
+    var niceMax = Math.ceil(maxV / 5) * 5 || 5;
+
+    // axes
+    ctx.strokeStyle = ink2; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(padL, padT); ctx.lineTo(padL, padT + plotH); ctx.lineTo(padL + plotW, padT + plotH);
+    ctx.stroke();
+
+    // gridlines + y ticks
+    ctx.font = '26px "JetBrains Mono", monospace';
+    ctx.fillStyle = ink2; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    var ySteps = 5;
+    for (var g = 0; g <= ySteps; g++){
+      var val = niceMax * g / ySteps;
+      var y = padT + plotH - (val / niceMax) * plotH;
+      ctx.strokeStyle = grid; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + plotW, y); ctx.stroke();
+      ctx.fillText(val.toFixed(1), padL - 14, y);
+    }
+
+    // y axis title
+    ctx.save();
+    ctx.translate(40, padT + plotH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center'; ctx.font = 'bold 28px "Zen Kaku Gothic New", sans-serif'; ctx.fillStyle = ink;
+    ctx.fillText('距離（cm）', 0, 0);
+    ctx.restore();
+
+    var n = isCum ? weak.length : state.seg;
+    var xLabels = [];
+    if (isCum){
+      xLabels.push('基準点');
+      for (var k = 1; k < n; k++) xLabels.push(CIRCLED[k-1] || k);
+    } else {
+      for (var k2 = 0; k2 < n; k2++) xLabels.push(CIRCLED[k2] || (k2+1));
+    }
+
+    ctx.textAlign = 'center'; ctx.font = '26px "BIZ UDPGothic", sans-serif'; ctx.fillStyle = ink2;
+
+    if (isCum){
+      // 測定点 ＋ 原点を通る直線
+      var stepX = plotW / (n - 1);
+      function drawLine(arr, color, k){
+        ctx.strokeStyle = color; ctx.lineWidth = 5; ctx.beginPath();
+        ctx.moveTo(padL, padT + plotH);
+        ctx.lineTo(padL + (n - 1) * stepX, padT + plotH - (k * (n - 1) / niceMax) * plotH);
+        ctx.stroke();
+        ctx.fillStyle = color;
+        for (var j = 0; j < arr.length; j++){
+          var x2 = padL + j * stepX;
+          var y2 = padT + plotH - (arr[j] / niceMax) * plotH;
+          ctx.beginPath(); ctx.arc(x2, y2, 8, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      drawLine(weak, accent2, kW);
+      drawLine(strong, accent, kS);
+      ctx.fillStyle = ink2;
+      for (var lx = 0; lx < xLabels.length; lx++){
+        ctx.fillText(String(xLabels[lx]), padL + lx * stepX, padT + plotH + 36);
+      }
+    } else {
+      // grouped bars
+      var groupW = plotW / n;
+      var barW = groupW * 0.32;
+      for (var b = 0; b < n; b++){
+        var gx = padL + b * groupW + groupW / 2;
+        var wv = weak[b] || 0, sv = strong[b] || 0;
+        var wh = (wv / niceMax) * plotH, sh = (sv / niceMax) * plotH;
+        ctx.fillStyle = accent2;
+        ctx.fillRect(gx - barW - 4, padT + plotH - wh, barW, wh);
+        ctx.fillStyle = accent;
+        ctx.fillRect(gx + 4, padT + plotH - sh, barW, sh);
+        ctx.fillStyle = ink2;
+        ctx.fillText(String(xLabels[b]), gx, padT + plotH + 36);
+      }
+    }
+
+    // x axis title
+    ctx.font = 'bold 28px "Zen Kaku Gothic New", sans-serif'; ctx.fillStyle = ink;
+    ctx.fillText(isCum ? '基準点からの区切り' : '区間（6打点＝0.1秒ごと）', padL + plotW / 2, padT + plotH + 80);
+
+    // title
+    ctx.textAlign = 'left'; ctx.font = 'bold 34px "Zen Kaku Gothic New", sans-serif'; ctx.fillStyle = ink;
+    ctx.fillText(isCum ? '基準点からの距離（累積）' : '区間ごとの移動距離（0.1秒ごと）', padL, 40);
+  }
+
+  function updateNotes(){
+    if (state.view === 'cumulative'){
+      graphTitle.textContent = '基準点からの距離（累積）';
+      graphNote.textContent = '点は測定値。線は、点の並びのまん中を通るように引いた、原点を通る直線。点がこの直線にほぼのっていれば、進んだ距離は時間に比例している。つまり台車は一定の速さ（等速）で動いていた。';
+    } else {
+      graphTitle.textContent = '区間ごとの移動距離（0.1秒ごと）';
+      graphNote.textContent = '棒の高さがそろってきたら、0.1秒あたりに進む距離が一定になった、つまり等速で動きはじめたということ。';
+    }
+  }
+
+  function updatePrintLink(){
+    try { printLink.href = canvas.toDataURL('image/png'); }
+    catch (e) { /* no-op */ }
+  }
+
+  function render(){
+    updateNotes();
+    drawChart();
+    updatePrintLink();
+  }
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', render);
+
+  // --- hot reload state ---
+  function snapshot(){ return { seg: state.seg, weak: state.weak, strong: state.strong, view: state.view }; }
+  function boot(initial){
+    if (initial && initial.weak && initial.strong){
+      state.seg = initial.seg || initial.weak.length;
+      state.weak = initial.weak;
+      state.strong = initial.strong;
+      state.view = initial.view || 'interval';
+      var activeBtn = toggleWrap.querySelector('[data-view="' + state.view + '"]');
+      if (activeBtn) Array.prototype.forEach.call(toggleWrap.querySelectorAll('.seg-btn'), function(b){ b.classList.toggle('is-active', b === activeBtn); });
+    }
+    buildTable();
+    render();
+  }
+  if (window.claude && window.claude.hot){
+    window.claude.hot.snapshot(snapshot);
+    if (window.claude.hot.ready) window.claude.hot.ready(boot); else boot(window.claude.hot.data || {});
+  } else {
+    boot({});
+  }
+})();
+</script>
+<script>
+(function(){
+  "use strict";
+  var NS = 'http://www.w3.org/2000/svg';
+  function svgEl(tag, attrs, text){
+    var el = document.createElementNS(NS, tag);
+    for (var k in attrs){ el.setAttribute(k, attrs[k]); }
+    if (text != null) el.textContent = text;
+    return el;
+  }
+  function $(id){ return document.getElementById(id); }
+  function clamp(v){ return v < 0 ? 0 : (v > 1 ? 1 : v); }
+  function lerp(a, b, t){ return a + (b - a) * t; }
+  function ease(t){ return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+  function reduced(){ return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+  var CIRCLED = ['①','②','③','④','⑤','⑥'];
+
+  // ---------- 1回ぶんのアニメーション（t: 0→1） ----------
+  function animate(dur, draw, done){
+    var start = null, raf = null;
+    if (reduced()){ draw(1); if (done) done(); return function(){}; }
+    function f(now){
+      if (start === null) start = now;
+      var t = Math.min(1, (now - start) / dur);
+      draw(t);
+      if (t < 1) raf = requestAnimationFrame(f); else if (done) done();
+    }
+    raf = requestAnimationFrame(f);
+    return function(){ if (raf) cancelAnimationFrame(raf); };
+  }
+
+  // =========================================================
+  // 図：テープを約1mに切る（アニメ）
+  // =========================================================
+  function cutFig(){
+    return '<svg id="cutSvg" viewBox="0 0 640 196" role="img" aria-label="記録テープを約1m引き出してハサミで切り、2本用意する">' +
+      '<g transform="translate(34,64)"><circle class="tape-1" cx="0" cy="0" r="24"/><circle class="mech-body" cx="0" cy="0" r="9"/></g>' +
+      '<rect class="tape-1" id="cutStrip" x="40" y="80" width="0" height="14"/>' +
+      '<g id="cutLen" opacity="0"><path class="p-bracket" d="M40,72 L40,66 L600,66 L600,72"/><text class="scene-note" x="320" y="58">約1m</text></g>' +
+      '<g id="cutSc" class="scissors" opacity="0" transform="translate(600,87)"><path d="M-3,4 L0,-12 L-7,-21"/><path d="M3,4 L0,-12 L7,-21"/><circle cx="-8.5" cy="-26" r="5.5"/><circle cx="8.5" cy="-26" r="5.5"/></g>' +
+      '<text class="mech-sub" id="cutHint" x="320" y="116" text-anchor="middle" opacity="0">目安：片方の腕を横にまっすぐのばしたときの、反対側の肩から指先まで</text>' +
+      '<g id="cutTwo" opacity="0"><rect class="tape-1" x="40" y="140" width="560" height="14"/><text class="scene-note" x="600" y="180" style="text-anchor:end">同じ長さで、もう1本（全部で2本）</text></g>' +
+      '</svg>';
+  }
+  function drawCut(t){
+    var roll = 0.5;
+    $('cutStrip').setAttribute('width', 560 * ease(clamp(t / roll)));
+    $('cutLen').setAttribute('opacity', clamp((t - 0.42) * 6));
+    $('cutHint').setAttribute('opacity', clamp((t - 0.42) * 6));
+    $('cutSc').setAttribute('opacity', clamp((t - 0.55) * 8) * (1 - clamp((t - 0.78) * 8)));
+    $('cutSc').setAttribute('transform', 'translate(600,' + (87 + Math.sin(clamp((t - 0.6) / 0.15) * Math.PI) * 10) + ')');
+    $('cutTwo').setAttribute('opacity', clamp((t - 0.8) * 5));
+  }
+
+  // =========================================================
+  // 図：テープに書く（静止画）
+  // =========================================================
+  function writeFig(){
+    function strip(y, kind){
+      return '<rect class="tape-1" x="30" y="' + y + '" width="520" height="18"/>' +
+        '<text class="pen" x="540" y="' + (y + 13) + '" text-anchor="end" style="font-size:12px">スタート　山田・' + kind + '</text>' +
+        '<g transform="translate(0,' + y + ')"><rect class="cart-body" x="556" y="-6" width="52" height="26" rx="5"/><circle class="cart-wheel" cx="568" cy="24" r="6"/><circle class="cart-wheel" cx="596" cy="24" r="6"/></g>';
+    }
+    return '<svg viewBox="0 0 640 196" role="img" aria-label="テープの台車につける側に、スタート・名前・弱く／強くを書く">' +
+      strip(40, '弱く') +
+      '<text class="scene-note" x="470" y="86" style="text-anchor:middle">↑ 台車につける側に書く（ここがスタート）</text>' +
+      '<text class="mech-sub" x="30" y="30">タイマー側</text>' +
+      '<text class="mech-sub" x="604" y="30" text-anchor="end">台車</text>' +
+      strip(124, '強く') +
+      '<text class="mech-sub" x="30" y="170">もう1本には「強く」と書く</text>' +
+      '</svg>';
+  }
+
+  // =========================================================
+  // 実験の場面（台車につける・押し出す）
+  // =========================================================
+  var N = 36, REL = 4, SC = 0.66, MT = 118, CO = 60, TY = 95;
+  function gapS(i){ return Math.min(16, 7 + 3 * i); }            // 一瞬の力ですぐ速くなり、あとは一定
+  var GS = (function(){ var xs = [0]; for (var i = 1; i <= N; i++) xs.push(xs[i - 1] + gapS(i)); return xs; })();
+  function XA(u){
+    var i = Math.floor(u), f = u - i, x = GS[Math.min(i, N)];
+    if (i < N) x += f * gapS(i + 1);
+    return x * SC;
+  }
+  function sceneFig(p, label){
+    return '<svg id="' + p + 'Svg" viewBox="0 0 640 140" role="img" aria-label="' + label + '">' +
+      '<line class="floor" x1="0" y1="113" x2="640" y2="113"/>' +
+      '<rect class="tape-1" id="' + p + 'Tape" x="-10" y="90" width="174" height="10"/>' +
+      '<g id="' + p + 'Dots"></g>' +
+      '<text class="hand-name" id="' + p + 'Name" x="0" y="98" text-anchor="end" style="font-size:7.5px" opacity="0">スタート 山田・弱く</text>' +
+      '<rect class="mech-body" x="15" y="35" width="90" height="60" rx="9"/>' +
+      '<path class="zigzag" d="M32,50 L44,68 L54,50 L64,68 L74,50"/>' +
+      '<circle class="lamp" id="' + p + 'Lamp" cx="90" cy="48" r="5"/>' +
+      '<text class="mech-sub" id="' + p + 'Sw" x="98" y="30" opacity="0">スイッチ ON</text>' +
+      '<rect class="mech-body" x="100" y="72" width="26" height="12" rx="3"/>' +
+      '<path class="needle" d="M113,84 L123,84 L118,90 Z"/>' +
+      '<text class="mech-label" x="60" y="24">記録タイマー</text>' +
+      '<g id="' + p + 'Hand" opacity="0"><line class="arm" x1="-38" y1="80" x2="-76" y2="54"/><rect class="hand" x="-40" y="74" width="22" height="14" rx="6"/></g>' +
+      '<g id="' + p + 'Cart" transform="translate(154,0)"><rect class="cart-body" x="-16" y="84" width="34" height="19" rx="4"/><circle class="cart-wheel" cx="-8" cy="107" r="5"/><circle class="cart-wheel" cx="10" cy="107" r="5"/><text class="cart-label" x="1" y="78">台車</text></g>' +
+      '<g id="' + p + 'Catch" opacity="0"><line class="arm" x1="38" y1="80" x2="76" y2="54"/><rect class="hand" x="18" y="74" width="22" height="14" rx="6"/></g>' +
+      '<text class="scene-note" id="' + p + 'Note" x="300" y="40" opacity="0"></text>' +
+      '<text class="mech-sub" id="' + p + 'Setup" x="136" y="132" opacity="0"></text>' +
+      '</svg>';
+  }
+  // o: { u, lamp, hand:{x,op}, catchOp, note:{t,op,calm}, sw:{t,op}, setup, hl, name }
+  function drawScene(p, o){
+    var X = XA(o.u), cartX = MT + CO + X;
+    var tape = $(p + 'Tape');
+    tape.setAttribute('width', cartX - 16 + 10);
+    tape.classList.toggle('is-hl', !!o.hl);
+    var g = $(p + 'Dots'); g.innerHTML = '';
+    if (o.started){
+      var cnt = Math.floor(o.u + 1e-9);
+      for (var i = 0; i <= cnt; i++){
+        var newest = i === cnt && o.moving;
+        g.appendChild(svgEl('circle', { cx: MT + X - XA(i), cy: TY, r: newest ? 3.6 : 2.6, 'class': 'mech-dot' + (newest ? ' is-newest' : '') }));
+      }
+    }
+    $(p + 'Name').setAttribute('x', cartX - 20);
+    $(p + 'Name').setAttribute('opacity', 0);
+    $(p + 'Cart').setAttribute('transform', 'translate(' + cartX + ',0)');
+    $(p + 'Lamp').classList.toggle('is-on', !!o.lamp);
+    $(p + 'Sw').textContent = o.sw ? o.sw.t : '';
+    $(p + 'Sw').setAttribute('opacity', o.sw ? o.sw.op : 0);
+    var hx = o.hand ? (o.hand.x == null ? cartX : o.hand.x) : cartX;
+    $(p + 'Hand').setAttribute('transform', 'translate(' + (hx + 2) + ',0)');
+    $(p + 'Hand').setAttribute('opacity', o.hand ? o.hand.op : 0);
+    $(p + 'Catch').setAttribute('transform', 'translate(' + cartX + ',0)');
+    $(p + 'Catch').setAttribute('opacity', o.catchOp || 0);
+    var n = $(p + 'Note');
+    n.textContent = o.note ? o.note.t : ''; n.setAttribute('opacity', o.note ? o.note.op : 0);
+    n.setAttribute('x', Math.min(Math.max(cartX, 210), 560));
+    n.classList.toggle('is-calm', !!(o.note && o.note.calm));
+    $(p + 'Setup').textContent = o.setup || '';
+    $(p + 'Setup').setAttribute('opacity', o.setup ? 1 : 0);
+  }
+
+  // 押し出す：t 0→1（スイッチON → 一瞬押す → はなす → 受け止める）
+  var T_ON = 0.08, T_PUSH = 0.12, T_REL = 0.12 + 0.72 * REL / N, T_END = 0.84;
+  function drawPush(t){
+    var u = t < T_PUSH ? 0 : (t < T_END ? N * (t - T_PUSH) / (T_END - T_PUSH) : N);
+    var relX = MT + CO + XA(REL);
+    var o = { u: u, started: t >= T_ON * 0.6, moving: t > T_PUSH && t < T_END, lamp: t >= T_ON * 0.6 && t < 0.93 };
+    if (t < T_ON) o.sw = { t: 'スイッチ ON', op: clamp(t / T_ON * 2) };
+    else if (t >= 0.93) o.sw = { t: 'スイッチ OFF', op: 1 };
+    if (t < T_REL) o.hand = { x: null, op: 1 };
+    else o.hand = { x: relX, op: lerp(1, 0.25, clamp((t - T_REL) / 0.1)) };
+    if (t >= T_PUSH - 0.03 && t < T_REL + 0.05) o.note = { t: 'ポンと一瞬だけ押す', op: 1 };
+    else if (t >= T_REL + 0.05 && t < T_END) o.note = { t: '手をはなす → 一定の速さで進む', op: clamp((t - T_REL - 0.05) * 10), calm: true };
+    else if (t >= T_END) o.note = { t: '受け止める', op: clamp((t - T_END) * 10) };
+    o.catchOp = clamp((t - T_END) * 10);
+    drawScene('push', o);
+  }
+
+  // =========================================================
+  // 図：弱く・強くのテープ（静止画）
+  // =========================================================
+  function compareFig(){
+    var s = '<svg viewBox="0 0 640 84" role="img" aria-label="弱く押したテープは点の間隔がせまく、強く押したテープは点の間隔が広い">';
+    [{ y: 22, label: '弱く', note: '間隔がせまい', vmax: 9 }, { y: 62, label: '強く', note: '間隔が広い', vmax: 15 }].forEach(function(r){
+      var xs = [70], x = 70;
+      for (var i = 1; i <= 26; i++){ x += Math.min(r.vmax, 5 + 3 * i); xs.push(x); }
+      var end = Math.min(x + 12, 540);
+      s += '<text class="cmp-label" x="20" y="' + (r.y + 4) + '">' + r.label + '</text>';
+      s += '<rect class="tape-1" x="60" y="' + (r.y - 6) + '" width="' + (end - 60) + '" height="12"/>';
+      xs.forEach(function(xi){ if (xi < end - 4) s += '<circle class="mech-dot" cx="' + xi + '" cy="' + r.y + '" r="2.4"/>'; });
+      s += '<text class="cmp-note" x="' + (end + 8) + '" y="' + (r.y + 4) + '">' + r.note + '</text>';
+    });
+    return s + '</svg>';
+  }
+
+  // =========================================================
+  // 準備・手順のデータ
+  // =========================================================
+  var IC = {
+    timer: '<svg viewBox="0 0 48 36"><rect class="mech-body" x="3" y="5" width="34" height="24" rx="5"/><path class="zigzag" d="M9,12 L14,22 L19,12 L24,22"/><rect class="mech-body" x="34" y="20" width="11" height="6" rx="2"/></svg>',
+    tape:  '<svg viewBox="0 0 48 36"><rect class="tape-1" x="18" y="26" width="28" height="6"/><circle class="tape-1" cx="18" cy="18" r="14"/><circle class="mech-body" cx="18" cy="18" r="5"/></svg>',
+    cart:  '<svg viewBox="0 0 48 36"><rect class="cart-body" x="6" y="8" width="36" height="18" rx="4"/><circle class="cart-wheel" cx="15" cy="29" r="4.5"/><circle class="cart-wheel" cx="33" cy="29" r="4.5"/></svg>',
+    sc:    '<svg viewBox="0 0 48 36" class="scissors"><g transform="translate(24,33)"><path d="M-3,0 L0,-14 L-7,-22"/><path d="M3,0 L0,-14 L7,-22"/><circle cx="-8" cy="-27" r="4.5"/><circle cx="8" cy="-27" r="4.5"/></g></svg>',
+    ruler: '<svg viewBox="0 0 48 36"><rect class="mech-body" x="2" y="12" width="44" height="12" rx="2"/><path class="axis" d="M7,12 v6 M13,12 v4 M19,12 v6 M25,12 v4 M31,12 v6 M37,12 v4 M43,12 v6"/></svg>',
+    glue:  '<svg viewBox="0 0 48 36"><rect class="hand" x="6" y="3" width="14" height="8" rx="3"/><rect class="mech-body" x="6" y="9" width="14" height="24" rx="3"/><circle class="tape-1" cx="34" cy="22" r="10"/><circle class="mech-body" cx="34" cy="22" r="4"/></svg>'
+  };
+  var KIT = [
+    { id: 'k1', ic: 'timer', nm: '記録タイマー', qt: '1台' },
+    { id: 'k2', ic: 'tape',  nm: '記録テープ', qt: '約1m × 2本分' },
+    { id: 'k3', ic: 'cart',  nm: '力学台車', qt: '1台' },
+    { id: 'k4', ic: 'sc',    nm: 'ハサミ', qt: 'テープを切る' },
+    { id: 'k5', ic: 'ruler', nm: 'ものさし', qt: 'テープの長さを測る' },
+    { id: 'k6', ic: 'glue',  nm: 'のり／セロハンテープ', qt: 'テープをワークシートにはる' }
+  ];
+
+  var STEPS = [
+    { id: 'e1', t: 'テープを約1mに切る', fig: 'cut',
+      do: '記録テープを<b>約1m</b>に切る。弱く押す用と強く押す用の<b>2本</b>を用意する。',
+      tips: ['長さの目安は、<b>片方の腕を横にまっすぐのばしたときの、反対側の肩から指先まで</b>', 'ワークシートにはれる分の長さがあればOK'] },
+    { id: 'e2', t: 'テープに「スタート」・名前・「弱く／強く」を書く', fig: 'write',
+      do: 'テープの<b>片方のはし</b>に、<b>「スタート」</b>、<b>名前</b>、<b>「弱く」か「強く」</b>を書く。',
+      tips: ['<b>「スタート」と書いた側を、台車につける</b>。台車につけた側が、運動の始まりになる', 'テープだけを見ても、どちらがスタートでどちらがゴールか分からない。書いておけば、処理のときに迷わない', '1本に「弱く」、もう1本に「強く」と書く'] },
+    { id: 'e3', t: 'テープをタイマーに通して、台車につける', fig: 'setup',
+      do: '記録タイマーを机の端に固定し、テープをタイマーに通して、<b>「スタート」と書いた側</b>を台車のうしろにつける。まずは<b>「弱く」</b>のテープから。',
+      tips: ['テープがねじれたり、たるんだりしないように、まっすぐにする', '台車はタイマーの近くに置く'] },
+    { id: 'e4', t: '記録タイマーのスイッチを入れる',
+      do: '台車を押す<b>前に</b>、記録タイマーのスイッチを入れる。',
+      tips: ['先に押してしまうと、動き始めが記録されない'] },
+    { id: 'e5', t: '台車を一瞬だけ押し出して、すぐ手をはなす', fig: 'push',
+      do: '台車を手で<b>ポンと一瞬だけ</b>押し出して、<b>すぐ手をはなす</b>。押し続けない。',
+      term: '<span class="lb">ことば</span>ボールをけったり、バットで打ったりするときのように、<b>ごく短い時間だけ</b>加わる力を<b>撃力</b>という。台車にも撃力を加えるつもりで、一瞬だけ押す。',
+      tips: ['テープと同じ、<b>まっすぐな向き</b>に押す', '手をはなしたあとは、台車を押す力ははたらいていない。そのあと台車がどう動くかを、テープに記録する'] },
+    { id: 'e6', t: '台車を受け止めて、スイッチを切る',
+      do: '台車が机から落ちる前に<b>手で受け止め</b>、記録タイマーのスイッチを切る。',
+      tips: ['受け止める人を先に決めておく'] },
+    { id: 'e7', t: '「強く」のテープで、もう1本とる', fig: 'compare',
+      do: '「強く」と書いたテープで、<b>強く</b>押し出して同じようにとる（<b>③〜⑥</b>をくり返す）。',
+      tips: ['押す強さ以外は、1本目と同じにする', '強く押したほうが、点の間隔が広い（速い）'] }
+  ];
+  var PROC = [{ id: 'p1', t: 'テープの処理' }];
+
+  function figHTML(s){
+    if (s.fig === 'cut') return '<div class="ffig">' + cutFig() + '<button class="btn" type="button" id="cutPlay">▶ 動きを見る</button></div>';
+    if (s.fig === 'write') return '<div class="ffig">' + writeFig() + '</div>';
+    if (s.fig === 'setup') return '<div class="ffig">' + sceneFig('setup', 'テープをタイマーに通し、スタート側を台車のうしろにつけたところ') + '</div>';
+    if (s.fig === 'push') return '<div class="ffig">' + sceneFig('push', '記録タイマーのスイッチを入れ、台車を一瞬だけ押して手をはなし、台車が一定の速さで進むあいだ点が打たれ、最後に受け止めるアニメーション') + '<button class="btn" type="button" id="pushPlay">▶ 動きを見る</button></div>';
+    if (s.fig === 'compare') return '<div class="ffig">' + compareFig() + '</div>';
+    return '';
+  }
+  function stepHTML(s, i){
+    var tips = (s.tips || []).map(function(t){ return '<li>' + t + '</li>'; }).join('');
+    return '<li class="fstep" id="wrap-' + s.id + '">' +
+      '<div class="fhead"><span class="fnum">' + (i + 1) + '</span><p class="fttl">' + s.t + '</p></div>' +
+      '<div class="fbody">' +
+        '<p class="do">' + s.do + '</p>' +
+        (s.term ? '<div class="think">' + s.term + '</div>' : '') +
+        figHTML(s) +
+        (tips ? '<ul class="tips">' + tips + '</ul>' : '') +
+        '<button class="check" type="button" data-id="' + s.id + '" aria-pressed="false"><span class="box"></span>この手順ができた</button>' +
+      '</div></li>';
+  }
+  function itemHTML(o){
+    return '<li><button class="item" type="button" id="' + o.id + '" data-id="' + o.id + '" aria-pressed="false">' +
+      IC[o.ic] + '<span class="nm">' + o.nm + '<span class="qt">' + o.qt + '</span></span><span class="tick" aria-hidden="true"></span></button></li>';
+  }
+
+  $('kit').innerHTML = KIT.map(itemHTML).join('');
+  $('flow').innerHTML = STEPS.map(stepHTML).join('');
+
+  // 図の初期状態（静止した完成形を見せておく）
+  drawCut(1);
+  drawScene('setup', { u: 0, started: false, lamp: false, hand: null, hl: true, setup: '↑「スタート」と書いた側を、台車のうしろにつける' });
+  drawPush(0);
+
+  var stopCut = null, stopPush = null;
+  $('cutPlay').addEventListener('click', function(){
+    if (stopCut) stopCut();
+    stopCut = animate(3200, drawCut, function(){ $('cutPlay').textContent = '▶ もう一度見る'; });
+  });
+  $('pushPlay').addEventListener('click', function(){
+    if (stopPush) stopPush();
+    stopPush = animate(5600, drawPush, function(){ $('pushPlay').textContent = '▶ もう一度見る'; });
+  });
+
+  // =========================================================
+  // チェックと進みぐあい（この端末だけに保存）
+  // =========================================================
+  var KEY = 'daisha-graph-navi-v1', state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { state = {}; }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  var ALL = KIT.concat(STEPS).concat(PROC);
+
+  function render(){
+    var done = 0;
+    ALL.forEach(function(o){
+      var on = !!state[o.id];
+      if (on) done++;
+      Array.prototype.forEach.call(document.querySelectorAll('[data-id="' + o.id + '"]'), function(b){ b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+      var w = $('wrap-' + o.id); if (w) w.classList.toggle('fin', on);
+    });
+    var next = null;
+    for (var i = 0; i < ALL.length; i++){ if (!state[ALL[i].id]){ next = ALL[i]; break; } }
+    var kitLeft = KIT.filter(function(o){ return !state[o.id]; }).length, label;
+    if (!next) label = 'ぜんぶ終わり。グラフを見て考察しよう';
+    else if (kitLeft > 0) label = '準備　<span>のこり ' + kitLeft + ' 個</span>';
+    else label = 'つぎは　<span>' + next.t + '</span>';
+    $('now').innerHTML = label;
+    $('count').textContent = done + ' / ' + ALL.length;
+    $('fill').style.width = (done / ALL.length * 100) + '%';
+    STEPS.forEach(function(s){ $('wrap-' + s.id).classList.toggle('on', !!next && next.id === s.id); });
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('[data-id]');
+    if (!b) return;
+    var id = b.getAttribute('data-id');
+    state[id] = !state[id]; save(); render();
+  });
+  var resetBtn = $('navReset'), armed = null;
+  resetBtn.addEventListener('click', function(){
+    if (!armed){
+      resetBtn.classList.add('warn'); resetBtn.textContent = 'もう一度押すと全部消える';
+      armed = setTimeout(function(){ armed = null; resetBtn.classList.remove('warn'); resetBtn.textContent = 'チェックを全部消す'; }, 4000);
+      return;
+    }
+    clearTimeout(armed); armed = null; state = {}; save(); render();
+    resetBtn.classList.remove('warn'); resetBtn.textContent = 'チェックを全部消す';
+  });
+  render();
+
+  // =========================================================
+  // テープの処理（8ステップ・アニメ）
+  // =========================================================
+  function Player(o){
+    var st = { step: 0, p: 1, raf: null, auto: false, timer: null };
+    var ol = $(o.chips);
+    o.steps.forEach(function(s, i){
+      var li = document.createElement('li');
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'step-chip'; b.dataset.step = String(i + 1);
+      b.innerHTML = '<span class="step-num">' + (i + 1) + '</span><span>' + s.chip + '</span>';
+      li.appendChild(b); ol.appendChild(li);
+    });
+    function caption(step){
+      Array.prototype.forEach.call(ol.querySelectorAll('.step-chip'), function(b){
+        var s = Number(b.dataset.step);
+        b.classList.toggle('is-current', s === step);
+        b.classList.toggle('is-done', s < step);
+      });
+      $(o.tag).textContent = 'STEP ' + step + ' / ' + o.steps.length;
+      var t = step === 0 ? o.intro : o.steps[step - 1];
+      $(o.main).textContent = t.main; $(o.sub).textContent = t.sub;
+    }
+    function draw(){ o.render(st.step, st.p); caption(st.step); }
+    function stop(){ st.auto = false; clearTimeout(st.timer); if (st.raf) cancelAnimationFrame(st.raf); st.raf = null; $(o.play).textContent = '▶ 通して再生'; }
+    function playStep(k, done){
+      if (st.raf) cancelAnimationFrame(st.raf);
+      st.step = k; st.p = 0;
+      var dur = reduced() ? 0 : o.dur[k], start = null;
+      function f(now){
+        if (start === null) start = now;
+        st.p = dur ? Math.min(1, (now - start) / dur) : 1;
+        draw();
+        if (st.p < 1) st.raf = requestAnimationFrame(f);
+        else { st.raf = null; if (done) done(); }
+      }
+      st.raf = requestAnimationFrame(f);
+    }
+    function playAll(){
+      stop(); st.auto = true; $(o.play).textContent = '⏸ 止める';
+      var first = (st.step >= o.steps.length || st.step === 0) ? 1 : st.step + (st.p >= 1 ? 1 : 0);
+      if (first === 1){ st.step = 0; st.p = 1; draw(); }
+      (function run(k){
+        playStep(k, function(){
+          if (!st.auto) return;
+          if (k < o.steps.length) st.timer = setTimeout(function(){ run(k + 1); }, 700);
+          else { st.auto = false; $(o.play).textContent = '▶ もう一度再生'; }
+        });
+      })(first);
+    }
+    $(o.play).addEventListener('click', function(){ st.auto ? stop() : playAll(); });
+    $(o.next).addEventListener('click', function(){
+      var animating = !!st.raf; stop();
+      if (animating){ st.p = 1; draw(); }
+      else if (st.step < o.steps.length) playStep(st.step + 1);
+    });
+    $(o.prev).addEventListener('click', function(){ stop(); st.step = Math.max(0, st.step - 1); st.p = 1; draw(); });
+    $(o.reset).addEventListener('click', function(){ stop(); st.step = 0; st.p = 1; draw(); });
+    ol.addEventListener('click', function(e){
+      var b = e.target.closest('.step-chip'); if (!b) return;
+      stop(); playStep(Number(b.dataset.step));
+    });
+    draw();
+  }
+
+  var P = { GAP: 7, TY: 70, TH: 28, BX: 16, BASE: 300, PPC: 14, SP: 30 };
+  var DPB = 6, NSEG = 6;
+  function gapP(i){ return Math.min(14, 9 + 1.3 * i); }   // 動き始めだけ少し短く、あとは一定
+  var CLUSTER = [10, 11.4, 12.5, 14.1, 15.6, 17.2, 19.3, 21.8];
+  var D = (function(){ var d = [36]; for (var i = 1; i <= N; i++) d.push(d[i - 1] + gapP(i)); return d; })();
+  var G = null;
+
+  function buildProc(){
+    var chart = $('procChart'), pieces = $('procPieces');
+    chart.innerHTML = ''; pieces.innerHTML = '';
+    var totalW = NSEG * P.SP - 2, cx0 = 330 - totalW / 2;
+    var axX = cx0 - 10, right = cx0 + totalW + 10, topY = P.BASE - 7 * P.PPC - 8;
+
+    var paper = svgEl('g', { opacity: '0.8' });
+    for (var gx = axX, n = 0; gx <= right + 0.1; gx += P.PPC / 2, n++){
+      paper.appendChild(svgEl('line', { 'class': n % 2 === 0 ? 'grid-major' : 'grid-minor', x1: gx, y1: topY, x2: gx, y2: P.BASE }));
+    }
+    for (var gy = P.BASE, m = 0; gy >= topY - 0.1; gy -= P.PPC / 2, m++){
+      paper.appendChild(svgEl('line', { 'class': m % 2 === 0 ? 'grid-major' : 'grid-minor', x1: axX, y1: gy, x2: right, y2: gy }));
+    }
+    chart.appendChild(paper);
+    var placeholder = svgEl('text', { 'class': 'placeholder-text', x: (axX + right) / 2, y: P.BASE - 55 }, 'ここに並べていく');
+    chart.appendChild(placeholder);
+
+    var axes = svgEl('g', { opacity: 0 });
+    axes.appendChild(svgEl('line', { 'class': 'axis', x1: axX, y1: P.BASE, x2: right, y2: P.BASE }));
+    axes.appendChild(svgEl('line', { 'class': 'axis', x1: axX, y1: P.BASE, x2: axX, y2: topY }));
+    for (var cm = 0; cm <= 7; cm++){
+      axes.appendChild(svgEl('text', { 'class': 'axis-text', x: axX - 5, y: P.BASE - cm * P.PPC + 3, 'text-anchor': 'end' }, String(cm)));
+    }
+    for (var t = 0; t <= NSEG; t++){
+      axes.appendChild(svgEl('text', { 'class': 'axis-text', x: cx0 + t * P.SP - 1, y: P.BASE + 13, 'text-anchor': 'middle' }, t === 0 ? '0' : (t / 10).toFixed(1)));
+    }
+    axes.appendChild(svgEl('text', { 'class': 'axis-title', x: (axX + right) / 2, y: P.BASE + 32, 'text-anchor': 'middle' }, '時間〔秒〕'));
+    axes.appendChild(svgEl('text', { 'class': 'axis-title', x: axX - 26, y: (P.BASE + topY) / 2, 'text-anchor': 'middle', transform: 'rotate(-90 ' + (axX - 26) + ' ' + ((P.BASE + topY) / 2) + ')' }, '距離〔cm〕'));
+    chart.appendChild(axes);
+
+    var segs = [];
+    for (var k = 0; k < NSEG; k++){
+      var s = k * DPB, e = s + DPB, L = D[e] - D[s];
+      var g = svgEl('g', {});
+      g.appendChild(svgEl('rect', { 'class': 'tape-band', x: 0, y: -P.TH / 2, width: L, height: P.TH }));
+      var deco = svgEl('g', {}), nums = [];
+      for (var j = s + 1; j <= e; j++){
+        var idx = j - s - 1;
+        var num = svgEl('text', { 'class': 'p-num', x: D[j] - D[s], y: 26 + (idx % 2) * 9, opacity: 0 }, CIRCLED[idx]);
+        deco.appendChild(num); nums.push(num);
+      }
+      var cut = svgEl('line', { 'class': 'cut-line', x1: L, x2: L, y1: 0, y2: 0 });
+      deco.appendChild(cut);
+      var secNo = svgEl('text', { 'class': 'hand-num', x: 5, y: -4, opacity: 0 }, String(k + 1));
+      var nameTag = k === 0 ? svgEl('text', { 'class': 'hand-name', x: 5, y: 11 }, '山田・弱く') : null;
+      var nameBox = k === 0 ? svgEl('rect', { 'class': 'cluster-box', x: 1, y: 2, width: 50, height: 12, rx: 3, opacity: 0 }) : null;
+      var br = svgEl('g', { opacity: 0 });
+      br.appendChild(svgEl('path', { 'class': 'p-bracket', d: 'M2,-18 L2,-22 L' + (L - 2) + ',-22 L' + (L - 2) + ',-18' }));
+      br.appendChild(svgEl('text', { 'class': 'p-bracket-text', x: L / 2, y: -26 }, '0.1秒'));
+      deco.appendChild(br);
+      var baseParts = null;
+      if (k === 0){
+        var bl = svgEl('line', { 'class': 'cut-line', x1: 0, x2: 0, y1: 0, y2: 0 });
+        var bm = svgEl('g', { opacity: 0 });
+        bm.appendChild(svgEl('path', { 'class': 'base-mark', d: 'M-5,-40 L5,-40 L0,-32 Z' }));
+        bm.appendChild(svgEl('text', { 'class': 'base-text', x: 0, y: -45 }, '基準点'));
+        deco.appendChild(bl); deco.appendChild(bm);
+        baseParts = { line: bl, mark: bm };
+      }
+      g.appendChild(deco);
+      for (var j2 = (k === 0 ? s : s + 1); j2 <= e; j2++){
+        g.appendChild(svgEl('circle', { 'class': 'p-dot', cx: D[j2] - D[s], cy: 0, r: 2.3 }));
+      }
+      g.appendChild(secNo); if (nameTag){ g.appendChild(nameTag); deco.appendChild(nameBox); }
+      pieces.appendChild(g);
+      var vx = cx0 + k * P.SP + P.TH / 2;
+      var val = svgEl('text', { 'class': 'val-text', x: vx, y: P.BASE - L - 5, opacity: 0 }, (L / P.PPC).toFixed(1));
+      chart.appendChild(val);
+      segs.push({ g: g, deco: deco, nums: nums, cut: cut, br: br, base: baseParts, L: L, s: s, secNo: secNo, nameTag: nameTag, nameBox: nameBox, vx: vx, val: val });
+    }
+
+    var cl = svgEl('g', {}), clBody = svgEl('g', {});
+    clBody.appendChild(svgEl('rect', { 'class': 'tape-band', x: 0, y: -P.TH / 2, width: D[0], height: P.TH }));
+    CLUSTER.forEach(function(x){ clBody.appendChild(svgEl('circle', { 'class': 'p-dot', cx: x, cy: 0, r: 2.3 })); });
+    cl.appendChild(clBody);
+    var clBox = svgEl('rect', { 'class': 'cluster-box', x: 5, y: -18, width: 22, height: 36, rx: 4, opacity: 0 });
+    var clText = svgEl('text', { 'class': 'cluster-text', x: -6, y: 50, opacity: 0 }, '×使わない');
+    cl.appendChild(clBox); cl.appendChild(clText);
+    pieces.insertBefore(cl, pieces.firstChild);
+
+    var tail = svgEl('g', {});
+    tail.appendChild(svgEl('path', { 'class': 'tape-band', d: 'M0,-14 L20,-14 L16,-6 L22,0 L16,6 L20,14 L0,14 Z' }));
+    pieces.appendChild(tail);
+
+    var stair = svgEl('g', { opacity: 0 });
+    stair.appendChild(svgEl('polyline', { 'class': 'stair', points: segs.map(function(sg){ return sg.vx + ',' + (P.BASE - sg.L); }).join(' ') }));
+    segs.forEach(function(sg){ stair.appendChild(svgEl('circle', { 'class': 'stair-dot', cx: sg.vx, cy: P.BASE - sg.L, r: 3 })); });
+    chart.appendChild(stair);
+
+    var phase = svgEl('g', { opacity: 0 }), by = topY - 6;
+    [[0, 0, 'is-acc', '動き始め'], [1, 5, 'is-const', 'ほぼ同じ長さ（一定の速さ）']].forEach(function(ph){
+      var x1 = cx0 + ph[0] * P.SP + 1, x2 = cx0 + ph[1] * P.SP + P.TH - 1;
+      phase.appendChild(svgEl('path', { 'class': 'ph-bracket ' + ph[2], d: 'M' + x1 + ',' + (by + 5) + ' L' + x1 + ',' + by + ' L' + x2 + ',' + by + ' L' + x2 + ',' + (by + 5) }));
+      phase.appendChild(svgEl('text', { 'class': 'ph-text ' + ph[2], x: (x1 + x2) / 2, y: by - 5 }, ph[3]));
+    });
+    chart.appendChild(phase);
+
+    G = { segs: segs, cl: cl, clBody: clBody, clBox: clBox, clText: clText, tail: tail, axes: axes, placeholder: placeholder, stair: stair, phase: phase };
+  }
+
+  function cutX(i){ return P.BX + D[i * DPB] + P.GAP * i; }
+
+  function renderProc(step, p){
+    function PS(s){ return s < step ? 1 : (s === step ? p : 0); }
+    var pName = PS(1), p1 = PS(2), p2 = PS(3), p3 = PS(4), pNo = PS(5), p4 = PS(6), p5 = PS(7), p6 = PS(8);
+    var nCuts = NSEG + 1, sep = [], sc = $('procScissors');
+    for (var i = 0; i < nCuts; i++) sep.push(p4 >= 1 ? 1 : 0);
+    if (p4 > 0 && p4 < 1){
+      var sPos = p4 * nCuts, ci = Math.min(Math.floor(sPos), nCuts - 1), q = sPos - ci;
+      for (var a = 0; a < nCuts; a++) sep[a] = a < ci ? 1 : (a === ci ? ease(clamp((q - 0.65) / 0.35)) : 0);
+      var prevX = ci === 0 ? cutX(0) - 36 : cutX(ci - 1);
+      var topY = P.TY - 38, lowY = P.TY + 10, x, y;
+      if (q < 0.3){ x = lerp(prevX, cutX(ci), ease(q / 0.3)); y = topY; }
+      else if (q < 0.65){ x = cutX(ci); y = lerp(topY, lowY, ease((q - 0.3) / 0.35)); }
+      else { x = cutX(ci); y = lerp(lowY, topY, ease((q - 0.65) / 0.35)); }
+      sc.setAttribute('transform', 'translate(' + x + ',' + y + ')');
+      sc.setAttribute('opacity', Math.min(1, p4 * 25, (1 - p4) * 25));
+    } else {
+      sc.setAttribute('opacity', 0);
+    }
+    function cum(k){ var t = 0; for (var z = 0; z <= k; z++) t += sep[z]; return t; }
+
+    G.clBody.setAttribute('opacity', 1 - 0.55 * p1);
+    G.cl.setAttribute('transform', 'translate(' + P.BX + ',' + (P.TY + 34 * sep[0]) + ')');
+    G.cl.setAttribute('opacity', (1 - 0.3 * sep[0]) * (1 - p5));
+    G.clBox.setAttribute('opacity', p1);
+    G.clText.setAttribute('opacity', p1);
+    G.tail.setAttribute('transform', 'translate(' + (P.BX + D[N] + P.GAP * cum(NSEG)) + ',' + (P.TY + 34 * sep[NSEG]) + ')');
+    G.tail.setAttribute('opacity', (1 - 0.5 * sep[NSEG]) * (1 - p5));
+
+    var shown = p3 * NSEG * DPB, stg = 0.1, span = 0.85 - stg * (NSEG - 1);
+    G.segs.forEach(function(sg, k){
+      sg.nums.forEach(function(nm, j){ nm.setAttribute('opacity', clamp(shown - (k * DPB + j))); });
+      var lp = clamp(shown - (k * DPB + DPB - 1));
+      sg.cut.setAttribute('y1', -19 * lp); sg.cut.setAttribute('y2', 19 * lp);
+      sg.br.setAttribute('opacity', lp);
+      sg.secNo.setAttribute('opacity', clamp(pNo * NSEG - k));
+      if (sg.nameBox) sg.nameBox.setAttribute('opacity', step === 1 ? clamp(pName * 3) : 0);
+      if (sg.base){
+        sg.base.line.setAttribute('y1', -19 * p2); sg.base.line.setAttribute('y2', 19 * p2);
+        sg.base.mark.setAttribute('opacity', p2);
+        sg.base.mark.setAttribute('transform', 'translate(0,' + (-12 * (1 - p2)) + ')');
+      }
+      var hx = P.BX + D[sg.s] + P.GAP * cum(k);
+      var u = ease(clamp((p5 - k * stg) / span));
+      sg.g.setAttribute('transform', 'translate(' + lerp(hx, sg.vx, u) + ',' + lerp(P.TY, P.BASE, u) + ') rotate(' + (-90 * u) + ')');
+      sg.deco.setAttribute('opacity', 1 - clamp(u * 2.5));
+      sg.val.setAttribute('opacity', clamp(p6 * 1.6 * NSEG - k * 1.2));
+    });
+    G.axes.setAttribute('opacity', p5);
+    G.placeholder.setAttribute('opacity', 1 - clamp(p5 * 3));
+    G.stair.setAttribute('opacity', clamp((p5 - 0.85) / 0.15) * (1 - clamp(p6 * 3)));
+    G.phase.setAttribute('opacity', clamp((p6 - 0.6) / 0.3));
+  }
+
+  buildProc();
+  Player({
+    chips: 'procChips', tag: 'procTag', main: 'procMain', sub: 'procSub',
+    play: 'procPlay', prev: 'procPrev', next: 'procNext', reset: 'procReset',
+    dur: [0, 1400, 1300, 1100, 2800, 1800, 3600, 2800, 2600],
+    intro: { main: 'とったテープを、8つのステップで処理する', sub: '「▶ 通して再生」を押すか、上のステップを選ぼう。「スタート」と書いた側から処理する。' },
+    steps: [
+      { chip: '名前と種類を確かめる', main: 'テープの「スタート」・名前・「弱く／強く」を確かめる', sub: '実験の前に書いた「スタート」の側から処理する。2本のテープが混ざっていないか、どちらが「弱く」か確かめる。' },
+      { chip: '重なった点は使わない', main: '点が重なった部分は使わない', sub: '「スタート」側の動き始めは、点が重なってはっきり分かれていない。この部分は使わない。' },
+      { chip: '基準点を決める', main: '基準点を決める', sub: '点がはっきり分かれた最初の点を「基準点」にする。ここが時間0。' },
+      { chip: '6打点ごとに線を引く', main: '基準点から6打点ごとに線を引く', sub: '①②③…と数えて、6つ目の点に線を引く。線と線のあいだが0.1秒。' },
+      { chip: '区間に番号を書く', main: '切る前に、区間に 1、2、3… と番号を書く', sub: '線と線のあいだに、スタート側から順に番号を書く。切ったあとにバラバラになっても、順番が分かる。' },
+      { chip: '線のところで切る', main: '線のところで、ハサミで切る', sub: '引いた線にそって切り分ける。1本1本が「0.1秒間に進んだ距離」。' },
+      { chip: '順番に並べてはる', main: '番号の順に、下をそろえて並べてはる', sub: '基準点側を下にして、左から順にはる。これが0.1秒ごとに進んだ距離のグラフになる。' },
+      { chip: '長さを測る', main: '1本ずつ長さを測って、表に書く', sub: 'ものさしで各テープの長さ（cm）を測る。手をはなしたあとは、どのテープもほぼ同じ長さになる。測った値を下の表に入力しよう。' }
+    ],
+    render: renderProc
+  });
+})();
+</script>
+
+</body></html>

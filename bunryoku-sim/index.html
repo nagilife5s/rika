@@ -1,0 +1,184 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>分力シミュレーター</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+/* Layout: 左に斜面の図、右に操作と数値。狭い画面では縦に積む。 */
+:root{
+  --bg:#f3f6f8; --panel:#ffffff; --fg:#1b2a33; --muted:#5b6d78; --line:#cfd9df;
+  --grav:#1b2a33; --slope:#d9480f; --perp:#1c6fb8; --norm:#2b8a3e; --ground:#8fa3ad; --cart:#e9eef1;
+  --font:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12191e; --panel:#1b252c; --fg:#e8eef1; --muted:#9aaab4; --line:#34444d;
+  --grav:#e8eef1; --slope:#ff8a4c; --perp:#6db3f2; --norm:#6fd18a; --ground:#6b7f89; --cart:#2a3740; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12191e; --panel:#1b252c; --fg:#e8eef1; --muted:#9aaab4; --line:#34444d;
+  --grav:#e8eef1; --slope:#ff8a4c; --perp:#6db3f2; --norm:#6fd18a; --ground:#6b7f89; --cart:#2a3740; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));font-size:16px;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;display:grid;gap:16px}
+h1{font-size:1.25rem;margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:.875rem;margin:0}
+.main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:760px){.main{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+svg{display:block;width:100%;height:auto}
+.ctl{display:grid;gap:14px}
+label.row{display:grid;gap:4px;font-weight:700}
+.val{font-variant-numeric:tabular-nums;color:var(--fg)}
+input[type=range]{width:100%;accent-color:var(--perp);height:32px}
+.presets{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:8px 14px;min-height:40px;cursor:pointer}
+button:hover{border-color:var(--perp)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--perp);outline-offset:2px}
+button[aria-pressed=true]{background:var(--perp);color:var(--panel);border-color:var(--perp)}
+.checks{display:grid;gap:8px}
+.checks label{display:flex;gap:8px;align-items:center;min-height:32px}
+.checks input{width:20px;height:20px;accent-color:var(--perp)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:6px 4px;text-align:left;border-bottom:1px solid var(--line)}
+td.n{text-align:right;font-weight:700;white-space:nowrap}
+.sw{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.hide{letter-spacing:.2em;color:var(--muted)}
+.note{font-size:.875rem;color:var(--muted);margin:0}
+svg text{font-family:var(--font)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>分力シミュレーター</h1>
+    <p class="sub">斜面の角度を変えて、台車にはたらく重力を「斜面に平行な力」と「斜面に垂直な力」に分けて見る。</p>
+  </header>
+  <div class="main">
+    <div class="card"><svg id="fig" viewBox="0 0 640 440" role="img" aria-label="斜面の台車にはたらく力の分解図"></svg></div>
+    <div class="ctl">
+      <div class="card ctl">
+        <label class="row" for="th">斜面の角度 <span class="val"><span id="thv">30</span>°</span></label>
+        <input id="th" type="range" min="0" max="80" step="1" value="30">
+        <div class="presets" id="pre"></div>
+        <label class="row" for="w">台車の重さ（重力の大きさ） <span class="val"><span id="wv">3.0</span> N</span></label>
+        <input id="w" type="range" min="1" max="6" step="0.5" value="3">
+        <div class="checks">
+          <label><input id="cDec" type="checkbox" checked>分力を表示する（平行四辺形）</label>
+          <label><input id="cN" type="checkbox">垂直抗力を表示する</label>
+          <label><input id="cHide" type="checkbox">分力の値を隠す（予想用）</label>
+        </div>
+      </div>
+      <div class="card">
+        <table>
+          <tr><th><span class="sw" style="background:var(--grav)"></span>重力 W</th><td class="n" id="tW"></td></tr>
+          <tr><th><span class="sw" style="background:var(--slope)"></span>斜面に平行な分力</th><td class="n" id="tS"></td></tr>
+          <tr><th><span class="sw" style="background:var(--perp)"></span>斜面に垂直な分力</th><td class="n" id="tP"></td></tr>
+          <tr><th><span class="sw" style="background:var(--norm)"></span>垂直抗力 N</th><td class="n" id="tN"></td></tr>
+        </table>
+        <p class="note" style="margin-top:8px">矢印の長さは 1 N = 1 目盛りで固定。角度が大きいほど、平行な分力は大きく、垂直な分力は小さくなる。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var NS='http://www.w3.org/2000/svg';
+  var fig=document.getElementById('fig');
+  var th=document.getElementById('th'), w=document.getElementById('w');
+  var cDec=document.getElementById('cDec'), cN=document.getElementById('cN'), cHide=document.getElementById('cHide');
+  var K=30; // px per N
+  var P={x:590,y:380}, L=360;
+
+  function el(n,a,p){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);(p||fig).appendChild(e);return e}
+  function arrow(x1,y1,x2,y2,color,width,dash){
+    var dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy); if(len<3) return;
+    var ux=dx/len,uy=dy/len,h=Math.min(12,len*0.4);
+    var bx=x2-ux*h,by=y2-uy*h;
+    el('line',{x1:x1,y1:y1,x2:bx,y2:by,stroke:color,'stroke-width':width,'stroke-linecap':'round'});
+    el('polygon',{points:[x2,y2,bx-uy*h*0.45,by+ux*h*0.45,bx+uy*h*0.45,by-ux*h*0.45].join(','),fill:color});
+  }
+  function label(x,y,t,color,anchor){
+    var e=el('text',{x:x,y:y,fill:color,'font-size':15,'font-weight':700,'text-anchor':anchor||'start'});
+    e.textContent=t;
+  }
+  function f(v){return v.toFixed(1)}
+
+  function draw(){
+    var a=+th.value, W=+w.value, r=a*Math.PI/180, c=Math.cos(r), s=Math.sin(r);
+    while(fig.firstChild) fig.removeChild(fig.firstChild);
+    var css=getComputedStyle(document.documentElement);
+    var V=function(n){return css.getPropertyValue(n).trim()||'#888'};
+    var cG=V('--grav'),cS=V('--slope'),cP=V('--perp'),cN2=V('--norm'),cGr=V('--ground'),cC=V('--cart'),cF=V('--fg'),cM=V('--muted');
+
+    // 斜面
+    var top={x:P.x-L*c,y:P.y-L*s}, left={x:P.x-L*c,y:P.y};
+    el('line',{x1:20,y1:P.y,x2:620,y2:P.y,stroke:cGr,'stroke-width':2});
+    if(a>0) el('polygon',{points:[P.x,P.y,top.x,top.y,left.x,left.y].join(','),fill:cGr,'fill-opacity':.22,stroke:cGr,'stroke-width':2.5,'stroke-linejoin':'round'});
+    // 角度の弧
+    if(a>0){
+      var ar=46,x0=P.x-ar,y0=P.y,x1=P.x-ar*c,y1=P.y-ar*s;
+      el('path',{d:'M '+x0+' '+y0+' A '+ar+' '+ar+' 0 0 1 '+x1+' '+y1,fill:'none',stroke:cM,'stroke-width':1.5});
+      label(P.x-ar-34,P.y-8,a+'°',cF,'middle');
+    }
+    // 台車（斜面上の長方形）
+    var d=L*0.52, S={x:P.x-d*c,y:P.y-d*s}, n={x:s,y:-c}, dn={x:c,y:s};
+    var cw=84,ch=34, C={x:S.x+n.x*ch/2,y:S.y+n.y*ch/2};
+    var hw=cw/2,hh=ch/2;
+    var cor=[[-hw,hh],[hw,hh],[hw,-hh],[-hw,-hh]].map(function(p){
+      return (S.x+dn.x*p[0]*1+n.x*(hh-p[1]))+','+(S.y+dn.y*p[0]*1+n.y*(hh-p[1]));
+    });
+    // 角: 斜面方向に ±hw、法線方向に 0..ch
+    var pts=[[-hw,0],[hw,0],[hw,ch],[-hw,ch]].map(function(p){return (S.x+dn.x*p[0]+n.x*p[1])+','+(S.y+dn.y*p[0]+n.y*p[1])}).join(' ');
+    el('polygon',{points:pts,fill:cC,stroke:cF,'stroke-width':2,'stroke-linejoin':'round'});
+    [-hw*0.55,hw*0.55].forEach(function(o){
+      var wx=S.x+dn.x*o+n.x*0,wy=S.y+dn.y*o+n.y*0;
+      el('circle',{cx:wx+n.x*(-1),cy:wy+n.y*(-1),r:7,fill:cF});
+    });
+
+    // ベクトル（C から）
+    var gx=C.x,gy=C.y;
+    var Gv={x:0,y:W*K}, Sv={x:dn.x*W*s*K,y:dn.y*W*s*K}, Pv={x:-n.x*W*c*K,y:-n.y*W*c*K};
+    var show=cDec.checked, hide=cHide.checked;
+    if(show && a>0){
+      var tipG={x:gx+Gv.x,y:gy+Gv.y};
+      var tipS={x:gx+Sv.x,y:gy+Sv.y}, tipP={x:gx+Pv.x,y:gy+Pv.y};
+      el('line',{x1:tipG.x,y1:tipG.y,x2:tipS.x,y2:tipS.y,stroke:cS,'stroke-width':2,'stroke-dasharray':'6 5'});
+      el('line',{x1:tipG.x,y1:tipG.y,x2:tipP.x,y2:tipP.y,stroke:cP,'stroke-width':2,'stroke-dasharray':'6 5'});
+      arrow(gx,gy,tipS.x,tipS.y,cS,5);
+      arrow(gx,gy,tipP.x,tipP.y,cP,5);
+      var sv=hide?'？':f(W*s)+' N', pv=hide?'？':f(W*c)+' N';
+      // ラベルは矢印の先端の外側へ
+      label(tipS.x+(dn.x>=0?10:-10),tipS.y+18,'斜面に平行 '+sv,cS,dn.x>=0?'start':'end');
+      label(tipP.x-14,tipP.y+6,'斜面に垂直 '+pv,cP,'end');
+    }
+    if(cN.checked){
+      var Nv={x:n.x*W*c*K,y:n.y*W*c*K};
+      var ox=gx+n.x*0, oy=gy;
+      arrow(S.x+dn.x*14,S.y+dn.y*14,S.x+dn.x*14+Nv.x,S.y+dn.y*14+Nv.y,cN2,5);
+      var nx=S.x+dn.x*14+Nv.x, ny=S.y+dn.y*14+Nv.y;
+      label(nx+8,ny-6,'垂直抗力 '+(hide?'？':f(W*c)+' N'),cN2,'start');
+    }
+    arrow(gx,gy,gx+Gv.x,gy+Gv.y,cG,5);
+    label(gx+10,gy+Gv.y+18,'重力 '+f(W)+' N',cG,'start');
+
+    // 表
+    document.getElementById('thv').textContent=a;
+    document.getElementById('wv').textContent=f(W);
+    document.getElementById('tW').textContent=f(W)+' N';
+    function cell(id,v){var e=document.getElementById(id);e.textContent=hide?'？ N':f(v)+' N';e.className='n'+(hide?' hide':'')}
+    cell('tS',W*s); cell('tP',W*c); cell('tN',W*c);
+  }
+
+  // プリセット
+  var pre=document.getElementById('pre');
+  [0,15,30,45,60].forEach(function(v){
+    var b=document.createElement('button');b.type='button';b.textContent=v+'°';b.dataset.v=v;
+    b.addEventListener('click',function(){th.value=v;draw();sync()});
+    pre.appendChild(b);
+  });
+  function sync(){Array.prototype.forEach.call(pre.children,function(b){b.setAttribute('aria-pressed',String(+b.dataset.v===+th.value))})}
+  [th,w,cDec,cN,cHide].forEach(function(e){e.addEventListener('input',function(){draw();sync()})});
+  if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+  new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  draw();sync();
+})();
+</script>
+
+</body></html>

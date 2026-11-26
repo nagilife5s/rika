@@ -1,0 +1,278 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>光の屈折 実験ナビ</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: 1画面1ステップ。上にタブ、中央に図、下に「もどる／つぎへ」を固定。教室の電子黒板スライドと同じ配色。 */
+:root{
+  --bg:#FAF8F3; --card:#FFFFFF; --ink:#1A2B4C; --sub:#5A6577; --blue:#2E6FB7; --blue-soft:#E6EEF7;
+  --line:#C9D3E0; --mark:#FF9900; --alert:#C2410C; --glass:#BFD7EE; --glass-line:#2E6FB7;
+  --beam:#F59E0B; --pencil:#1A2B4C; --ok:#1F7A4D;
+  --font:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0A1929; --card:#12263B; --ink:#EDEDED; --sub:#A9B7C8; --blue:#4DC4FF; --blue-soft:#15314D;
+  --line:#2C4766; --mark:#FFB84D; --alert:#FF9A5C; --glass:#1F4A73; --glass-line:#4DC4FF;
+  --beam:#FFC24D; --pencil:#EDEDED; --ok:#5FD39A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1929; --card:#12263B; --ink:#EDEDED; --sub:#A9B7C8; --blue:#4DC4FF; --blue-soft:#15314D;
+  --line:#2C4766; --mark:#FFB84D; --alert:#FF9A5C; --glass:#1F4A73; --glass-line:#4DC4FF;
+  --beam:#FFC24D; --pencil:#EDEDED; --ok:#5FD39A; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:18px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 110px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;flex-direction:column;gap:2px}
+header small{color:var(--sub);font-size:14px}
+h1{margin:0;font-size:26px;line-height:1.25;text-wrap:balance}
+nav{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+nav button{font:inherit;font-size:16px;font-weight:700;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:10px;padding:10px 6px;cursor:pointer;min-height:56px;text-wrap:balance}
+nav button small{display:block;font-weight:400;font-size:13px;color:var(--sub)}
+nav button[aria-selected="true"]{border-color:var(--blue);background:var(--blue-soft)}
+nav button:focus-visible,.btn:focus-visible,.chk:focus-visible,summary:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+.stepline{display:flex;align-items:center;gap:10px;color:var(--sub);font-size:15px}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--line);border:0;padding:0;cursor:pointer}
+.dot[aria-current="step"]{background:var(--blue);transform:scale(1.25)}
+.dot.done{background:var(--blue);opacity:.45}
+.panel{display:grid;grid-template-columns:1fr;gap:14px;align-items:start}
+@media (min-width:700px){.panel{grid-template-columns:1.05fr 1fr}}
+.say{display:flex;flex-direction:column;gap:10px;min-width:0}
+h2{margin:0;font-size:24px;line-height:1.3;color:var(--blue);text-wrap:balance}
+.say p{margin:0}
+.big{font-size:20px;font-weight:700}
+.key{background:var(--blue-soft);border-radius:10px;padding:10px 12px}
+.warn{border:2px solid var(--alert);border-radius:10px;padding:10px 12px;color:var(--ink)}
+.warn b{color:var(--alert)}
+.fig{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;min-width:0}
+.fig svg{display:block;width:100%;height:auto}
+.checks{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.chk{display:flex;align-items:center;gap:12px;width:100%;font:inherit;font-size:19px;text-align:left;background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:12px;min-height:56px;cursor:pointer}
+.chk .box{flex:none;width:28px;height:28px;border:2px solid var(--blue);border-radius:6px;display:grid;place-items:center;font-weight:700;color:#fff}
+.chk[aria-checked="true"]{border-color:var(--ok)}
+.chk[aria-checked="true"] .box{background:var(--ok);border-color:var(--ok)}
+details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+summary{cursor:pointer;font-weight:700;min-height:40px;display:flex;align-items:center}
+details ul{margin:6px 0 4px;padding-left:1.2em}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);
+  padding:10px max(16px,env(safe-area-inset-left,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-right,0px))}
+.bar .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:1fr 2fr;gap:10px}
+.btn{font:inherit;font-size:20px;font-weight:700;min-height:60px;border-radius:12px;border:2px solid var(--blue);cursor:pointer}
+.btn.back{background:var(--card);color:var(--blue)}
+.btn.next{background:var(--blue);color:var(--bg)}
+.btn[disabled]{opacity:.35;cursor:default}
+.spot{animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.spot{animation:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <small>1年　身のまわりの現象　光の屈折</small>
+    <h1>実験ナビ</h1>
+  </header>
+  <nav id="tabs" role="tablist" aria-label="実験をえらぶ"></nav>
+  <div class="stepline"><span id="count"></span><div class="dots" id="dots"></div></div>
+  <main class="panel" aria-live="polite">
+    <div class="say" id="say"></div>
+    <div class="fig" id="fig"></div>
+  </main>
+  <details>
+    <summary>こまったときは</summary>
+    <ul>
+      <li>光が見えにくい：へやを少し暗くする。光のはばをせまくする。</li>
+      <li>光が○を通らない：光源装置を少しずらして、○に当たるようにする。</li>
+      <li>レンズが動く：机の上で、手でそっと押さえる。</li>
+      <li>わからない：まわりの班の人や、先生に聞く。</li>
+    </ul>
+  </details>
+</div>
+<div class="bar"><div class="in">
+  <button class="btn back" id="back" type="button">もどる</button>
+  <button class="btn next" id="next" type="button">つぎへ</button>
+</div></div>
+
+<script>
+(function(){
+var CX=180, CY=168, R=104;
+var rad=function(d){return d*Math.PI/180};
+var N=1.5;
+
+/* ---- 場面の図（実験用紙を上から見たところ） ---- */
+function scene(o){
+  var th=o.theta||40, up=(o.exp===1), s=up?-1:1;     // up: 光は空気側（上）から入る
+  var sx=Math.sin(rad(th)), cy=Math.cos(rad(th));
+  var h=[];
+  h.push('<svg viewBox="0 0 360 340" role="img" aria-label="'+(o.alt||'実験用紙の図')+'">');
+  h.push('<rect x="6" y="6" width="348" height="328" rx="10" fill="none" stroke="var(--sub)" stroke-width="1.2" stroke-dasharray="5 4"/>');
+  // 10度ごとの線
+  for(var a=10;a<90;a+=10){ [-1,1].forEach(function(ix){ [-1,1].forEach(function(iy){
+    h.push('<line x1="'+CX+'" y1="'+CY+'" x2="'+(CX+ix*R*Math.sin(rad(a)))+'" y2="'+(CY+iy*R*Math.cos(rad(a)))+'" stroke="var(--line)" stroke-width="1"/>');});});}
+  h.push('<circle cx="'+CX+'" cy="'+CY+'" r="'+R+'" fill="none" stroke="var(--ink)" stroke-width="2"/>');
+  h.push('<line x1="'+CX+'" y1="'+(CY-R-12)+'" x2="'+CX+'" y2="'+(CY+R+12)+'" stroke="var(--sub)" stroke-width="1.4" stroke-dasharray="6 4"/>');
+  h.push('<line x1="'+(CX-R)+'" y1="'+CY+'" x2="'+(CX+R)+'" y2="'+CY+'" stroke="var(--ink)" stroke-width="4"/>');
+  h.push('<text x="22" y="34" font-size="15" fill="var(--sub)">空気</text>');
+  h.push('<text x="22" y="322" font-size="15" fill="var(--sub)">ガラスがわ（レンズをのせる）</text>');
+  h.push('<text x="'+(CX+6)+'" y="'+(CY-R-16)+'" font-size="12" fill="var(--sub)">法線</text>');
+  // レンズ
+  var lensPath='M'+(CX-R)+' '+CY+' A'+R+' '+R+' 0 0 0 '+(CX+R)+' '+CY+' Z';
+  if(o.lensGhost) h.push('<path d="'+lensPath+'" fill="none" stroke="var(--glass-line)" stroke-width="2.5" stroke-dasharray="7 5"/>');
+  if(o.lens) h.push('<path d="'+lensPath+'" fill="var(--glass)" fill-opacity="'+(o.lensFade?0.25:0.6)+'" stroke="var(--glass-line)" stroke-width="2.5"/>');
+  if(o.lensNote){
+    h.push('<circle class="spot" cx="'+CX+'" cy="'+CY+'" r="12" fill="none" stroke="var(--mark)" stroke-width="3.5"/>');
+    h.push('<text x="'+(CX+18)+'" y="'+(CY+30)+'" font-size="14" font-weight="700" fill="var(--alert)">まん中を○に</text>');
+    h.push('<text x="'+(CX-R)+'" y="'+(CY+22)+'" font-size="14" font-weight="700" fill="var(--alert)">平らな面を太い線に</text>');
+  }
+  // 矢印（光を当てる線）
+  var ax=CX-(R+8)*sx, ay=CY+s*(R+8)*cy, bx=CX-(R+34)*sx, by=CY+s*(R+34)*cy;
+  if(o.arrow!==false){
+    (o.angles||[th]).forEach(function(t){
+      var sxx=Math.sin(rad(t)), cyy=Math.cos(rad(t));
+      var x1=CX-(R+36)*sxx, y1=CY+s*(R+36)*cyy, x2=CX-(R+6)*sxx, y2=CY+s*(R+6)*cyy;
+      h.push('<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="var(--ink)" stroke-width="3" marker-end="url(#ah)"/>');
+      if(o.angles) h.push('<text x="'+(x1-6)+'" y="'+(y1+(up?-6:16))+'" text-anchor="end" font-size="14" font-weight="700" fill="var(--ink)">'+t+'°</text>');
+    });
+  }
+  h.push('<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--ink)"/></marker></defs>');
+  if(o.arrowNote) h.push('<text x="'+(bx-4)+'" y="'+(by+(up?-12:26))+'" text-anchor="end" font-size="14" font-weight="700" fill="var(--alert)">矢印の線</text>');
+  // 光源装置
+  var d=R+62, px=CX-d*sx, py=CY+s*d*cy, ang=Math.atan2(CY-py,CX-px)*180/Math.PI;
+  if(o.source){
+    h.push('<g transform="rotate('+ang+' '+px+' '+py+')"><rect x="'+(px-34)+'" y="'+(py-20)+'" width="68" height="40" rx="7" fill="var(--ink)"/>'
+      +'<rect x="'+(px+26)+'" y="'+(py-6)+'" width="9" height="12" fill="var(--beam)"/>'
+      +'<text x="'+(px-2)+'" y="'+(py+5)+'" text-anchor="middle" font-size="11" fill="var(--bg)" transform="rotate('+(-ang)+' '+(px-2)+' '+(py+1)+')">光源</text></g>');
+  }
+  // 光
+  var fx=px+34*Math.cos(rad(ang)), fy=py+34*Math.sin(rad(ang));
+  if(o.beam) h.push('<line x1="'+fx+'" y1="'+fy+'" x2="'+CX+'" y2="'+CY+'" stroke="var(--beam)" stroke-width="4" stroke-linecap="round"/>');
+  var tr=Math.asin(Math.min(1,(up?Math.sin(rad(th))/N:N*Math.sin(rad(th)))))*180/Math.PI, tir=(!up&&N*Math.sin(rad(th))>=1);
+  var ox=CX+R*Math.sin(rad(tr)), oy=CY+(up?1:-1)*R*Math.cos(rad(tr));
+  if(o.out){
+    if(tir){ h.push('<line x1="'+CX+'" y1="'+CY+'" x2="'+(CX+R*sx)+'" y2="'+(CY+R*cy)+'" stroke="var(--beam)" stroke-width="4" stroke-linecap="round"/>'); }
+    else h.push('<line x1="'+CX+'" y1="'+CY+'" x2="'+ox+'" y2="'+oy+'" stroke="var(--beam)" stroke-width="4" stroke-linecap="round"/>');
+  }
+  // なぞった線（えんぴつ）
+  if(o.trace){
+    var ix=CX-R*sx, iy=CY+s*R*cy;
+    h.push('<line x1="'+ix+'" y1="'+iy+'" x2="'+CX+'" y2="'+CY+'" stroke="var(--pencil)" stroke-width="2.4"/>');
+    if(!tir) h.push('<line x1="'+CX+'" y1="'+CY+'" x2="'+ox+'" y2="'+oy+'" stroke="var(--pencil)" stroke-width="2.4"/>');
+    if(o.dot&&!tir) h.push('<circle cx="'+ox+'" cy="'+oy+'" r="6" fill="var(--alert)"/><text x="'+(ox+10)+'" y="'+(oy+(up?18:-8))+'" font-size="14" font-weight="700" fill="var(--alert)">点</text>');
+  }
+  // 角度
+  if(o.angle){
+    var rr=46;
+    function arc(a0,a1,sy,col,lab,lx,ly){ // 法線(上=-y)から測った角
+      var p0=[CX+rr*Math.sin(rad(a0)),CY+sy*rr*Math.cos(rad(a0))], p1=[CX+rr*Math.sin(rad(a1)),CY+sy*rr*Math.cos(rad(a1))];
+      var sweep=(a1>a0)?(sy<0?1:0):(sy<0?0:1);
+      h.push('<path d="M'+p0[0]+' '+p0[1]+' A'+rr+' '+rr+' 0 0 '+sweep+' '+p1[0]+' '+p1[1]+'" fill="none" stroke="'+col+'" stroke-width="3"/>');
+      h.push('<text x="'+lx+'" y="'+ly+'" font-size="14" font-weight="700" fill="'+col+'">'+lab+'</text>');
+    }
+    if(!tir){
+      // 屈折角：出ていく光と法線の間
+      var sy2=up?1:-1;
+      var q0=[CX,CY+sy2*rr], q1=[CX+rr*Math.sin(rad(tr)),CY+sy2*rr*Math.cos(rad(tr))];
+      h.push('<path d="M'+q0[0]+' '+q0[1]+' A'+rr+' '+rr+' 0 0 '+(up?0:1)+' '+q1[0]+' '+q1[1]+'" fill="none" stroke="var(--alert)" stroke-width="3.5"/>');
+      h.push('<text x="'+(CX+rr*0.55*Math.sin(rad(tr))+10)+'" y="'+(CY+sy2*(rr+22))+'" font-size="15" font-weight="700" fill="var(--alert)">屈折角</text>');
+    }
+  }
+  if(o.reflect){ // 光がいつもの向きに出てこないとき
+    h.push('<text x="'+(CX-40)+'" y="'+(CY-26)+'" font-size="14" font-weight="700" fill="var(--alert)">空気に出る光が見えない</text>');
+  }
+  h.push('</svg>');
+  return h.join('');
+}
+
+/* ---- ステップ ---- */
+var TABS=[
+ {id:'ready', label:'じゅんび', sub:'道具と約束'},
+ {id:'e1', label:'実験①', sub:'空気 → ガラス'},
+ {id:'e2', label:'実験②', sub:'ガラス → 空気'}
+];
+var STEPS={
+ ready:[{kind:'ready'}],
+ e1:[
+  {t:'実験用紙を見よう', p:['太い線の上が「空気」、下が「ガラス」。','矢印の線は、光を当てる線。'], key:'今日は、矢印の線にそって光を当てる。', sc:{exp:1,theta:40,arrowNote:true,alt:'実験用紙。矢印の線が上の左側にある'}},
+  {t:'レンズをのせよう', p:['レンズの平らな面を、太い線にぴったりそろえる。','レンズのまん中を、中心の○に合わせる。'], key:'レンズは下半分（ガラスがわ）に置く。', sc:{exp:1,theta:40,lens:true,lensNote:true,alt:'レンズが用紙の下半分に置かれている'}},
+  {t:'光源装置を置こう', p:['矢印の線の外がわに置く。','光が○に向かうように、向きを合わせる。'], warn:'光を人の目に向けない。', sc:{exp:1,theta:40,lens:true,source:true,alt:'光源装置が矢印の線の外がわにある'}},
+  {t:'光を当てよう', p:['スイッチを入れて、光を○に当てる。','光がレンズの中で、どう進むか見る。'], key:'光は、矢印の線にそって○に入る。', sc:{exp:1,theta:40,lens:true,source:true,beam:true,out:true,alt:'光が○に入り、レンズの中で曲がって進む'}},
+  {t:'道すじをなぞろう', p:['光が通った道を、えんぴつでなぞる。','レンズから出る所に点（●）を打つ。','レンズをどけて、○と点を線でつなぐ。'], sc:{exp:1,theta:40,lens:true,lensFade:true,trace:true,dot:true,alt:'光の道すじをえんぴつでなぞった図'}},
+  {t:'屈折角を読もう', p:['屈折角は、法線（点線）と、曲がった光の間の角。','円のまわりの数字で読む。','ワークシート ３ の表に書く。'], key:'入射角と、屈折角を比べてみよう。', sc:{exp:1,theta:40,trace:true,dot:true,angle:true,alt:'屈折角を示した図'}},
+  {t:'ほかの角度でもやろう', p:['入射角 20°・40°・60° の用紙で、同じようにくりかえす。','4まい目は、自分で角度を決める。','気づいたことを、ワークシートにメモ。'], sc:{exp:1,theta:40,angles:[20,40,60],alt:'20度、40度、60度の矢印の線'}}
+ ],
+ e2:[
+  {t:'実験用紙②を見よう', p:['用紙は実験①と同じ形。','今度は、矢印の線が下がわにある。'], key:'光は、ガラスの中から空気に向かう。', sc:{exp:2,theta:30,arrowNote:true,alt:'実験用紙。矢印の線が下の左側にある'}},
+  {t:'レンズをのせよう', p:['実験①と同じ。平らな面を太い線にそろえる。','丸い面が下になる。まん中を○に合わせる。'], sc:{exp:2,theta:30,lens:true,lensNote:true,alt:'レンズが用紙の下半分に置かれている'}},
+  {t:'光源装置を置こう', p:['矢印の線の外がわ（下がわ）に置く。','丸い面に向けて、○をねらう。'], warn:'光を人の目に向けない。', sc:{exp:2,theta:30,lens:true,source:true,alt:'光源装置が下がわの矢印の線の外にある'}},
+  {t:'光を当てよう', p:['丸い面からは、光はまっすぐ○に進む。','○から出る光（空気中）の向きを見る。'], key:'丸い面では曲がらない。曲がるのは、平らな面。', sc:{exp:2,theta:30,lens:true,source:true,beam:true,out:true,alt:'光が丸い面から入り、○で曲がって空気に出る'}},
+  {t:'道すじをなぞろう', p:['光の道を、えんぴつでなぞる。','空気に出た光の先に、点（●）を打つ。','レンズをどけて、○と点を線でつなぐ。'], sc:{exp:2,theta:30,lens:true,lensFade:true,trace:true,dot:true,alt:'光の道すじをえんぴつでなぞった図'}},
+  {t:'屈折角を読もう', p:['屈折角は、法線（点線）と、空気中の光の間の角。','円のまわりの数字で読む。','ワークシート ３ の表に書く。'], key:'入射角と、屈折角を比べてみよう。', sc:{exp:2,theta:30,trace:true,dot:true,angle:true,alt:'屈折角を示した図'}},
+  {t:'入射角を大きくしていこう', p:['入射角 20°・30°・40°・60° の用紙で、くりかえす。','角度を大きくしていくと、空気に出る光はどうなる？','よく見て、気づいたことをメモしよう。'], warn:'見えにくいときは、へやを少し暗くする。', sc:{exp:2,theta:60,lens:true,source:true,beam:true,out:true,reflect:true,alt:'入射角60度。空気に出る光が見えない'}}
+ ]
+};
+
+/* ---- 画面 ---- */
+var state={tab:'ready',i:0,done:{}};
+var elTabs=document.getElementById('tabs'), elSay=document.getElementById('say'), elFig=document.getElementById('fig'),
+    elCount=document.getElementById('count'), elDots=document.getElementById('dots'), bBack=document.getElementById('back'), bNext=document.getElementById('next');
+var ITEMS=['実験用紙（①と②）','半円形レンズ','光源装置','えんぴつ・定規'];
+var checked={};
+try{var saved=JSON.parse(localStorage.getItem('navi-checked')||'{}'); if(saved&&typeof saved==='object') checked=saved;}catch(e){}
+function save(){try{localStorage.setItem('navi-checked',JSON.stringify(checked));}catch(e){}}
+
+function renderTabs(){
+  elTabs.innerHTML='';
+  TABS.forEach(function(t){
+    var b=document.createElement('button'); b.type='button'; b.setAttribute('role','tab');
+    b.setAttribute('aria-selected',t.id===state.tab?'true':'false');
+    b.innerHTML=t.label+'<small>'+t.sub+'</small>';
+    b.onclick=function(){go(t.id,0)}; elTabs.appendChild(b);
+  });
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function render(){
+  renderTabs();
+  var list=STEPS[state.tab], st=list[state.i];
+  elCount.textContent=(state.tab==='ready')?'じゅんび':('ステップ '+(state.i+1)+' / '+list.length);
+  elDots.innerHTML='';
+  if(state.tab!=='ready'){ list.forEach(function(_,k){
+    var d=document.createElement('button'); d.type='button'; d.className='dot'+(k<state.i?' done':'');
+    d.setAttribute('aria-label','ステップ'+(k+1)); if(k===state.i) d.setAttribute('aria-current','step');
+    d.onclick=function(){state.i=k;render()}; elDots.appendChild(d); }); }
+  if(st.kind==='ready'){
+    var h='<h2>はじめる前に</h2><p class="big">道具がそろっているか、タップして確認しよう。</p><ul class="checks">';
+    ITEMS.forEach(function(n,k){ var on=!!checked[k];
+      h+='<li><button type="button" class="chk" role="checkbox" aria-checked="'+on+'" data-k="'+k+'"><span class="box">'+(on?'✓':'')+'</span>'+esc(n)+'</button></li>'; });
+    h+='</ul><div class="warn"><b>安全の約束</b><br>光を、人の目に向けない。<br>レンズは机の上で、そっと動かす。</div>';
+    elSay.innerHTML=h;
+    elSay.querySelectorAll('.chk').forEach(function(b){ b.onclick=function(){ var k=b.dataset.k; checked[k]=!checked[k]; save(); render(); }; });
+    elFig.innerHTML=scene({exp:1,theta:40,arrow:false,alt:'実験用紙の例'});
+  }else{
+    var h2='<h2>'+esc(st.t)+'</h2>';
+    st.p.forEach(function(x){h2+='<p class="big">'+esc(x)+'</p>';});
+    if(st.key) h2+='<div class="key">'+esc(st.key)+'</div>';
+    if(st.warn) h2+='<div class="warn"><b>気をつけよう</b>　'+esc(st.warn)+'</div>';
+    elSay.innerHTML=h2; elFig.innerHTML=scene(st.sc);
+  }
+  var last=(state.tab==='e2'&&state.i===STEPS.e2.length-1);
+  bBack.disabled=(state.tab==='ready');
+  bNext.disabled=last;
+  bNext.textContent=last?'おわり':(state.tab==='ready'?'実験①へ':((state.tab==='e1'&&state.i===STEPS.e1.length-1)?'実験②へ':'つぎへ'));
+}
+function go(tab,i){state.tab=tab;state.i=i;render();window.scrollTo(0,0);}
+function next(){
+  var list=STEPS[state.tab];
+  if(state.i<list.length-1) go(state.tab,state.i+1);
+  else if(state.tab==='ready') go('e1',0);
+  else if(state.tab==='e1') go('e2',0);
+}
+function back(){
+  if(state.i>0) go(state.tab,state.i-1);
+  else if(state.tab==='e1') go('ready',0);
+  else if(state.tab==='e2') go('e1',STEPS.e1.length-1);
+}
+bNext.onclick=next; bBack.onclick=back;
+document.addEventListener('keydown',function(e){ if(e.key==='ArrowRight') next(); if(e.key==='ArrowLeft') back(); });
+render();
+})();
+</script>
+
+</body></html>

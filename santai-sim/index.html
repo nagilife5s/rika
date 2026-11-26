@@ -1,0 +1,336 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>水の三態シミュレーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+/* 配置: 左に容器（粒子）、右に温度と状態、下に操作。電子黒板で遠くから読める大きさ */
+:root {
+  --bg: #F3F6F9;
+  --panel: #FFFFFF;
+  --ink: #1A2B4C;
+  --muted: #5A6577;
+  --line: #CBD5E1;
+  --particle: #5FB0E3;
+  --particle-edge: #2A79B0;
+  --heat: #D8322B;
+  --cool: #1F7FC4;
+  --box: #EEF3F8;
+  --chip-bg: #E3EDF7;
+  --ice: #D6ECF8; --ice-edge: #4E93BF; --vapor: #ECEFF3; --vapor-edge: #8E9AAA;
+  --font: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic", "Noto Sans CJK JP", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101A2B; --panel: #17243A; --ink: #E6EDF7; --muted: #9FB0C7; --line: #2F4263;
+    --particle: #6BBBEE; --particle-edge: #A9DAF8; --heat: #FF6B5F; --cool: #5FB2F0;
+    --box: #1B2A44; --chip-bg: #233654; --ice: #2E5573; --ice-edge: #8EC6E8; --vapor: #33435E; --vapor-edge: #9FB0C7; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101A2B; --panel: #17243A; --ink: #E6EDF7; --muted: #9FB0C7; --line: #2F4263;
+  --particle: #6BBBEE; --particle-edge: #A9DAF8; --heat: #FF6B5F; --cool: #5FB2F0;
+  --box: #1B2A44; --chip-bg: #233654; --ice: #2E5573; --ice-edge: #8EC6E8; --vapor: #33435E; --vapor-edge: #9FB0C7; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); padding-inline: 16px; padding-block: 16px 28px; }
+.wrap { max-width: 1100px; margin-inline: auto; display: grid; gap: 16px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
+h1 { font-size: clamp(1.4rem, 3vw, 2rem); margin: 0; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); font-size: 1rem; }
+.stage { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 760px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+.stage > .card:first-child { align-self: start; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
+.looks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.look { border: 2px solid var(--line); border-radius: 8px; padding: 8px 6px 10px; text-align: center; opacity: 0.3; transition: opacity .25s, border-color .25s; }
+.look.on { opacity: 1; border-color: var(--particle-edge); border-width: 3px; background: var(--chip-bg); }
+.look em { display: block; font-style: normal; font-weight: 700; font-size: 1.1rem; min-height: 1.4em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.look svg { width: 64px; height: 56px; margin-inline: auto; }
+.look b { display: block; font-size: 1.3rem; }
+.look span { display: block; font-size: 0.9rem; color: var(--muted); }
+.look-note { margin: 8px 0 0; font-size: 0.95rem; color: var(--muted); }
+canvas { width: 100%; height: auto; display: block; border-radius: 8px; background: var(--box); aspect-ratio: 480 / 380; }
+.side { display: grid; gap: 16px; align-content: start; }
+.read { display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; align-items: center; }
+.temp { font-size: clamp(3rem, 8vw, 4.6rem); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+.temp small { font-size: 0.45em; font-weight: 400; margin-left: 2px; }
+.state { font-size: clamp(1.4rem, 3.4vw, 2rem); font-weight: 700; }
+.proc { font-size: 1.15rem; color: var(--muted); min-height: 1.6em; }
+.proc b { color: var(--ink); font-size: 1.6em; }
+.counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.counts div { background: var(--chip-bg); border-radius: 8px; padding: 8px 6px; text-align: center; font-size: 0.95rem; }
+.counts b { display: block; font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.note { margin: 10px 0 0; color: var(--muted); font-size: 0.95rem; }
+svg { width: 100%; height: auto; display: block; }
+svg text { fill: var(--muted); font-family: var(--font); font-size: 11px; }
+svg .ax { stroke: var(--muted); stroke-width: 1.2; fill: none; }
+svg .grid { stroke: var(--line); stroke-width: 1; stroke-dasharray: 4 4; }
+svg .curve { stroke: var(--ink); stroke-width: 2.4; fill: none; stroke-linejoin: round; }
+svg .done { stroke: var(--heat); stroke-width: 3.2; fill: none; stroke-linejoin: round; }
+svg .dot { fill: var(--heat); stroke: var(--panel); stroke-width: 2; }
+svg text.em { fill: var(--ink); font-weight: 700; font-size: 12px; }
+.ctl { display: grid; gap: 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button { font: inherit; font-size: 1.15rem; font-weight: 700; padding: 10px 20px; border-radius: 8px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; min-height: 48px; }
+button:hover { border-color: var(--muted); }
+button:focus-visible, input[type=range]:focus-visible { outline: 3px solid var(--cool); outline-offset: 2px; }
+button.heat { border-color: var(--heat); color: var(--heat); }
+button.cool { border-color: var(--cool); color: var(--cool); }
+button.on.heat { background: var(--heat); color: var(--panel); }
+button.on.cool { background: var(--cool); color: var(--panel); }
+.slider { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+.slider label { font-size: 1rem; color: var(--muted); }
+input[type=range] { width: 100%; accent-color: var(--heat); height: 28px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>水の三態シミュレーター</h1>
+    <p>熱を加えたり冷やしたりして、粒子のならび方と動きを見よう。粒子は24個で、数は変わらない。</p>
+  </header>
+
+  <div class="stage">
+    <div class="card">
+      <canvas id="cv" width="480" height="380" role="img" aria-label="容器の中の水の粒子。温度によってならび方と動きが変わる"></canvas>
+      <div class="looks" aria-label="目で見た姿">
+        <div class="look" id="k-s"><svg viewBox="0 0 64 56" aria-hidden="true"><polygon points="32,4 56,16 56,40 32,52 8,40 8,16" fill="var(--ice)" stroke="var(--ice-edge)" stroke-width="3" stroke-linejoin="round"/><path d="M32,28 L32,52 M32,28 L8,16 M32,28 L56,16" stroke="var(--ice-edge)" stroke-width="1.6" fill="none"/></svg><b>氷</b><span>固体</span><em></em></div>
+        <div class="look" id="k-l"><svg viewBox="0 0 64 56" aria-hidden="true"><path d="M32,4 C40,18 50,26 50,36 A18,18 0 0 1 14,36 C14,26 24,18 32,4 Z" fill="var(--particle)" stroke="var(--particle-edge)" stroke-width="3" stroke-linejoin="round"/><circle cx="26" cy="36" r="4" fill="#fff" opacity=".8"/></svg><b>水</b><span>液体</span><em></em></div>
+        <div class="look" id="k-g"><svg viewBox="0 0 64 56" aria-hidden="true"><g fill="none" stroke="var(--ink)" stroke-width="3" stroke-dasharray="5 4"><circle cx="20" cy="34" r="12"/><circle cx="34" cy="26" r="15"/><circle cx="47" cy="35" r="11"/></g></svg><b>水蒸気</b><span>気体（目に見えない）</span><em></em></div>
+      </div>
+      <p class="look-note">白い湯気は、水蒸気が冷えてできた小さな水のつぶ（液体）。水蒸気そのものは見えない。</p>
+    </div>
+    <div class="side">
+      <div class="card">
+        <div class="read">
+          <div class="temp"><span id="temp">-20</span><small>℃</small></div>
+          <div>
+            <div class="state" id="state">固体（氷）</div>
+            <div class="proc" id="proc">　</div>
+          </div>
+        </div>
+        <div class="counts" aria-live="polite">
+          <div>固体<b id="n-s">24</b></div>
+          <div>液体<b id="n-l">0</b></div>
+          <div>気体<b id="n-g">0</b></div>
+        </div>
+      </div>
+      <div class="card">
+        <svg id="graph" viewBox="0 0 360 210" role="img" aria-label="加えた熱と温度のグラフ。0℃と100℃で温度が止まる"></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="card ctl">
+    <div class="row">
+      <button id="b-heat" class="heat" type="button">加熱 ▶</button>
+      <button id="b-cool" class="cool" type="button">◀ 冷却</button>
+      <button id="b-stop" type="button">止める</button>
+      <button id="b-reset" type="button">氷にもどす</button>
+    </div>
+    <div class="slider">
+      <label for="q">冷やす</label>
+      <input id="q" type="range" min="0" max="145" step="0.5" value="8" aria-label="加えた熱">
+      <label for="q">加熱</label>
+    </div>
+    <p class="note" style="margin:0">スライダーを動かすと、手で熱を出し入れできる。温度が止まっている間（0℃・100℃）も、熱は加わり続けている。</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var N = 24, W = 480, H = 380, R = 13;
+  var cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var qEl = document.getElementById('q');
+
+  // 加えた熱 Q と温度 T（氷 -20℃ から水蒸気 120℃ まで）
+  var SEG = { iceEnd: 20, meltEnd: 35, waterEnd: 85, boilEnd: 125, max: 145 };
+  function tempOf(q) {
+    if (q <= SEG.iceEnd) return -20 + q;
+    if (q <= SEG.meltEnd) return 0;
+    if (q <= SEG.waterEnd) return (q - SEG.meltEnd) * 2;
+    if (q <= SEG.boilEnd) return 100;
+    return 100 + (q - SEG.boilEnd);
+  }
+
+  var Q = 8, dir = 1, mode = 0; // mode: 1=加熱中, -1=冷却中, 0=停止
+  var ps = [];
+  var order = [];
+  (function init() {
+    for (var i = 0; i < N; i++) order.push(i);
+    var seed = 7;
+    function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    for (var j = N - 1; j > 0; j--) { var k = Math.floor(rnd() * (j + 1)); var t = order[j]; order[j] = order[k]; order[k] = t; }
+    var sp = R * 2 + 3, cols = 6, rows = 4;
+    var x0 = W / 2 - (cols - 1) * sp / 2, y0 = H - 22 - R;
+    for (var i2 = 0; i2 < N; i2++) {
+      var c = i2 % cols, r = Math.floor(i2 / cols);
+      var hx = x0 + c * sp, hy = y0 - r * (sp * 0.92);
+      ps.push({ x: hx, y: hy, vx: 0, vy: 0, hx: hx, hy: hy, rank: order[i2] });
+    }
+  })();
+
+  function modeOf(p) {
+    var m = Math.min(1, Math.max(0, (Q - SEG.iceEnd) / (SEG.meltEnd - SEG.iceEnd)));
+    var g = Math.min(1, Math.max(0, (Q - SEG.waterEnd) / (SEG.boilEnd - SEG.waterEnd)));
+    if (p.rank < g * N - 1e-9) return 2;
+    if (p.rank < m * N - 1e-9) return 1;
+    return 0;
+  }
+
+  function step() {
+    var T = tempOf(Q);
+    var cx = 0, cy = 0, nl = 0, i, j, p;
+    for (i = 0; i < N; i++) { p = ps[i]; p.m = modeOf(p); if (p.m === 1) { cx += p.x; cy += p.y; nl++; } }
+    if (nl) { cx /= nl; cy /= nl; }
+    for (i = 0; i < N; i++) {
+      p = ps[i];
+      if (p.m === 0) {
+        var amp = 0.10 + Math.max(0, (T + 20)) / 20 * 0.14;
+        p.vx += (p.hx - p.x) * 0.10 + (Math.random() - 0.5) * amp * 2;
+        p.vy += (p.hy - p.y) * 0.10 + (Math.random() - 0.5) * amp * 2;
+        p.vx *= 0.82; p.vy *= 0.82;
+      } else if (p.m === 1) {
+        var kick = 0.22 + Math.min(100, Math.max(0, T)) / 100 * 0.5;
+        p.vx += (Math.random() - 0.5) * kick * 2.4; p.vy += (Math.random() - 0.5) * kick + 0.16;
+        p.vx += (W / 2 - p.x) * 0.0006;
+        p.vx *= 0.95; p.vy *= 0.93;
+      } else {
+        var sp = 3.0 + Math.max(0, T - 100) * 0.05;
+        var s = Math.hypot(p.vx, p.vy);
+        if (s < 0.3) { var a = Math.random() * 6.283; p.vx = Math.cos(a); p.vy = Math.sin(a); s = 1; }
+        var k2 = 1 + (sp - s) * 0.08;
+        p.vx *= k2; p.vy *= k2;
+      }
+    }
+    // 粒子どうしの反発
+    for (i = 0; i < N; i++) for (j = i + 1; j < N; j++) {
+      var a1 = ps[i], b1 = ps[j];
+      var dx = b1.x - a1.x, dy = b1.y - a1.y, d = Math.hypot(dx, dy), min = R * 2;
+      if (d < min && d > 0.001) {
+        var f = (min - d) / d * 0.5;
+        var both = (a1.m === 2 && b1.m === 2);
+        var w = both ? 0.5 : 0.35;
+        a1.x -= dx * f * 0.5; a1.y -= dy * f * 0.5; b1.x += dx * f * 0.5; b1.y += dy * f * 0.5;
+        if (both) { var tx = a1.vx; a1.vx = b1.vx; b1.vx = tx; var ty = a1.vy; a1.vy = b1.vy; b1.vy = ty; }
+        else { a1.vx -= dx * f * w * 0.1; a1.vy -= dy * f * w * 0.1; b1.vx += dx * f * w * 0.1; b1.vy += dy * f * w * 0.1; }
+      }
+    }
+    for (i = 0; i < N; i++) {
+      p = ps[i];
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < R) { p.x = R; p.vx = Math.abs(p.vx); }
+      if (p.x > W - R) { p.x = W - R; p.vx = -Math.abs(p.vx); }
+      if (p.y < R) { p.y = R; p.vy = Math.abs(p.vy); }
+      if (p.y > H - R) { p.y = H - R; p.vy = -Math.abs(p.vy) * (p.m === 2 ? 1 : 0.4); }
+    }
+  }
+
+  function css(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    var fill = css('--particle'), edge = css('--particle-edge'), ink = css('--ink');
+    var line = css('--line');
+    ctx.strokeStyle = line; ctx.lineWidth = 3; ctx.strokeRect(1.5, 1.5, W - 3, H - 3);
+    for (var i = 0; i < N; i++) {
+      var p = ps[i];
+      ctx.beginPath(); ctx.arc(p.x, p.y, R, 0, 6.2832);
+      ctx.fillStyle = fill; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = edge; ctx.stroke();
+      var s = Math.hypot(p.vx, p.vy);
+      if (s > 0.25) {
+        var L = Math.min(26, 6 + s * 7), ux = p.vx / s, uy = p.vy / s;
+        var ex = p.x + ux * L, ey = p.y + uy * L;
+        ctx.strokeStyle = ink; ctx.fillStyle = ink; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(ex, ey); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(ex, ey);
+        ctx.lineTo(ex - ux * 6 - uy * 3.5, ey - uy * 6 + ux * 3.5);
+        ctx.lineTo(ex - ux * 6 + uy * 3.5, ey - uy * 6 - ux * 3.5);
+        ctx.closePath(); ctx.fill();
+      }
+    }
+  }
+
+  // グラフ
+  var svg = document.getElementById('graph'), NS = 'http://www.w3.org/2000/svg';
+  var GX0 = 52, GX1 = 340, GY0 = 188, GY1 = 18;
+  function gx(q) { return GX0 + q / SEG.max * (GX1 - GX0); }
+  function gy(t) { return GY0 - (t + 20) / 140 * (GY0 - GY1); }
+  function el(n, a, txt) { var e = document.createElementNS(NS, n); for (var k in a) e.setAttribute(k, a[k]); if (txt != null) e.textContent = txt; svg.appendChild(e); return e; }
+  var pts = [[0, -20], [SEG.iceEnd, 0], [SEG.meltEnd, 0], [SEG.waterEnd, 100], [SEG.boilEnd, 100], [SEG.max, 120]];
+  function pstr(arr) { return arr.map(function (a) { return gx(a[0]).toFixed(1) + ',' + gy(a[1]).toFixed(1); }).join(' '); }
+  el('line', { class: 'grid', x1: GX0, x2: GX1, y1: gy(0), y2: gy(0) });
+  el('line', { class: 'grid', x1: GX0, x2: GX1, y1: gy(100), y2: gy(100) });
+  el('path', { class: 'ax', d: 'M' + GX0 + ',' + GY1 + ' V' + GY0 + ' H' + GX1 });
+  el('text', { x: GX0 - 8, y: gy(0) + 4, 'text-anchor': 'end', class: 'em' }, '0');
+  el('text', { x: GX0 - 8, y: gy(100) + 4, 'text-anchor': 'end', class: 'em' }, '100');
+  el('text', { x: GX0 - 8, y: GY1 - 6, 'text-anchor': 'end' }, '温度(℃)');
+  el('text', { x: GX1, y: GY0 + 18, 'text-anchor': 'end' }, '加えた熱 →');
+  el('text', { x: gx(27.5), y: gy(0) - 8, 'text-anchor': 'middle' }, '融解');
+  el('text', { x: gx(105), y: gy(100) - 8, 'text-anchor': 'middle' }, '蒸発（沸騰）');
+  el('polyline', { class: 'curve', points: pstr(pts) });
+  var done = el('polyline', { class: 'done', points: '' });
+  var dot = el('circle', { class: 'dot', r: 6, cx: 0, cy: 0 });
+
+  function updateGraph() {
+    var arr = [[0, -20]];
+    [SEG.iceEnd, SEG.meltEnd, SEG.waterEnd, SEG.boilEnd, SEG.max].forEach(function (b) { if (Q > b) arr.push([b, tempOf(b)]); });
+    arr.push([Q, tempOf(Q)]);
+    done.setAttribute('points', pstr(arr));
+    dot.setAttribute('cx', gx(Q)); dot.setAttribute('cy', gy(tempOf(Q)));
+  }
+
+  var tEl = document.getElementById('temp'), sEl = document.getElementById('state'), pEl = document.getElementById('proc');
+  var kS = document.getElementById('k-s'), kL = document.getElementById('k-l'), kG = document.getElementById('k-g');
+  var nS = document.getElementById('n-s'), nL = document.getElementById('n-l'), nG = document.getElementById('n-g');
+  function updateReadout() {
+    var T = tempOf(Q);
+    tEl.textContent = Math.round(T);
+    var s, pr = '　';
+    if (Q < SEG.iceEnd) s = '固体（氷）';
+    else if (Q <= SEG.meltEnd && Q > SEG.iceEnd) { s = '固体と液体'; pr = dir >= 0 ? '<b>融解</b>しているところ' : '<b>凝固</b>しているところ'; }
+    else if (Q < SEG.waterEnd) s = '液体（水）';
+    else if (Q <= SEG.boilEnd) { s = '液体と気体'; pr = dir >= 0 ? '<b>蒸発</b>しているところ（沸騰）' : '<b>凝縮</b>しているところ'; }
+    else s = '気体（水蒸気）';
+    if (Q === SEG.iceEnd) s = '固体（氷）';
+    if (Q === SEG.waterEnd) s = '液体（水）';
+    if (Q >= SEG.boilEnd) s = '気体（水蒸気）';
+    sEl.textContent = s; pEl.innerHTML = pr;
+    var c = [0, 0, 0]; ps.forEach(function (p) { c[p.m]++; });
+    nS.textContent = c[0]; nL.textContent = c[1]; nG.textContent = c[2];
+    [kS, kL, kG].forEach(function (k, i) { k.classList.toggle('on', c[i] > 0); k.querySelector('em').textContent = c[i] > 0 ? c[i] + '個' : ''; });
+  }
+
+  function setQ(v, d) {
+    var nq = Math.min(SEG.max, Math.max(0, v));
+    if (d) dir = d; else if (nq !== Q) dir = nq > Q ? 1 : -1;
+    Q = nq; qEl.value = Q;
+  }
+
+  var bH = document.getElementById('b-heat'), bC = document.getElementById('b-cool');
+  function setMode(m) { mode = m; bH.classList.toggle('on', m === 1); bC.classList.toggle('on', m === -1); }
+  bH.addEventListener('click', function () { setMode(mode === 1 ? 0 : 1); if (mode) dir = mode; });
+  bC.addEventListener('click', function () { setMode(mode === -1 ? 0 : -1); if (mode) dir = mode; });
+  document.getElementById('b-stop').addEventListener('click', function () { setMode(0); });
+  document.getElementById('b-reset').addEventListener('click', function () { setMode(0); setQ(8, 1); });
+  qEl.addEventListener('input', function () { setMode(0); setQ(parseFloat(qEl.value)); });
+
+  var last = performance.now();
+  function frame(now) {
+    var dt = Math.min(0.05, (now - last) / 1000); last = now;
+    if (mode) {
+      // 平らな部分（0℃・100℃）はゆっくり進めて、動きを見せる
+      var T = tempOf(Q), flat = (Q > SEG.iceEnd && Q < SEG.meltEnd) || (Q > SEG.waterEnd && Q < SEG.boilEnd);
+      var rate = flat ? 6 : 16;
+      var nq = Q + mode * rate * dt;
+      if (nq >= SEG.max || nq <= 0) setMode(0);
+      setQ(nq, mode || dir);
+    }
+    step(); draw(); updateGraph(); updateReadout();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>

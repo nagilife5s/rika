@@ -1,0 +1,620 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>手羽先解剖ナビ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+:root{
+  --bg:#FAF8F3; --surface:#FFFFFF; --surface-2:#E6EEF7; --ink:#1A2B4C; --muted:#5A6577; --rule:#D5DCE6;
+  --accent:#2E6FB7; --marker:#FF9900; --warn:#E55A00; --good:#35A16B;
+  --muscle:#D9707A; --muscle-d:#B24F5C; --fiber:#F3B3B9; --bone:#F4ECD6; --line:#1A2B4C;
+  --tendon:#FFFFFF; --tendon-s:#8C96A6; --skin:#EFC3B1; --skin-d:#D9A08C;
+  --seg1:#DCE8F6; --seg2:#E3F0E6; --seg3:#FCE6D6; --hl:#FF9900;
+  --radius:14px;
+  font-family:"BIZ UDPGothic","Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0A1929; --surface:#10243A; --surface-2:#16304D; --ink:#EDEDED; --muted:#A9B6C8; --rule:#27405E;
+    --accent:#4DC4FF; --marker:#FFB347; --warn:#FF8A4C; --good:#5BD49A;
+    --muscle:#D77883; --muscle-d:#F0A3AB; --fiber:#F6C4C9; --bone:#EDE3C8; --line:#9FB3CC;
+    --tendon:#F5F7FA; --tendon-s:#7F8FA6; --skin:#B98676; --skin-d:#D7A796;
+    --seg1:#1B3654; --seg2:#1A3A33; --seg3:#40291C; --hl:#FFB347;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0A1929; --surface:#10243A; --surface-2:#16304D; --ink:#EDEDED; --muted:#A9B6C8; --rule:#27405E;
+  --accent:#4DC4FF; --marker:#FFB347; --warn:#FF8A4C; --good:#5BD49A;
+  --muscle:#D77883; --muscle-d:#F0A3AB; --fiber:#F6C4C9; --bone:#EDE3C8; --line:#9FB3CC;
+  --tendon:#F5F7FA; --tendon-s:#7F8FA6; --skin:#B98676; --skin-d:#D7A796;
+  --seg1:#1B3654; --seg2:#1A3A33; --seg3:#40291C; --hl:#FFB347;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:inherit;font-size:16px;line-height:1.7;padding-inline:16px;padding-block:0 40px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 24px;padding-block:20px 4px}
+.eyebrow{font-size:13px;color:var(--muted);letter-spacing:.06em}
+h1{font-size:clamp(26px,4vw,36px);line-height:1.25;margin:2px 0 0;color:var(--accent);text-wrap:balance}
+.safety{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;background:var(--surface);border:2px solid var(--warn);border-radius:var(--radius);padding:10px 14px;font-size:14px;line-height:1.5}
+.safety b{color:var(--warn);font-size:15px}
+.pill{display:inline-block;background:var(--warn);color:#fff;font-weight:700;font-size:13px;border-radius:999px;padding:2px 12px;letter-spacing:.08em}
+:root[data-theme="dark"] .pill{color:#0A1929}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .pill{color:#0A1929}}
+
+/* ステップ一覧 */
+.stepper{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.stepper button{flex:0 0 auto;display:flex;align-items:center;gap:6px;border:1.5px solid var(--rule);background:var(--surface);color:var(--muted);border-radius:999px;padding:6px 12px 6px 6px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.stepper button .n{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--surface-2);color:var(--ink);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+.stepper button[aria-current="step"]{border-color:var(--accent);color:var(--ink);font-weight:700}
+.stepper button[aria-current="step"] .n{background:var(--accent);color:var(--surface)}
+.stepper button.done .n{background:var(--good);color:var(--surface)}
+.stepper button:focus-visible,button:focus-visible,label:focus-within{outline:3px solid var(--marker);outline-offset:2px}
+
+.main{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.main{grid-template-columns:1fr}}
+
+/* 図のパネル */
+.stage{background:var(--surface);border:1.5px solid var(--rule);border-radius:var(--radius);padding:12px;display:grid;gap:10px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 8px)}
+@media (max-width:900px){.stage{position:static}}
+.stage-head{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between}
+.stage-title{font-weight:700;font-size:15px}
+.layers{display:flex;flex-wrap:wrap;gap:6px}
+.layers label{display:flex;align-items:center;gap:5px;font-size:13px;border:1.5px solid var(--rule);border-radius:999px;padding:3px 10px;cursor:pointer;user-select:none}
+.layers input{accent-color:var(--accent);margin:0}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid var(--line)}
+.fig-box{overflow-x:auto}
+svg{display:block;width:100%;height:auto;touch-action:none}
+svg text{font-family:"BIZ UDPGothic","Hiragino Sans","Noto Sans JP",sans-serif}
+
+/* つばさの図 */
+#wing .bone-o{stroke:var(--line);fill:none;stroke-linecap:round}
+#wing .bone-f{stroke:var(--bone);fill:none;stroke-linecap:round;transition:stroke .3s}
+#wing .knob{fill:var(--bone);stroke:var(--line);stroke-width:3}
+#wing .muscle-b{fill:var(--muscle);stroke:var(--muscle-d);stroke-width:4;transition:fill .3s}
+#wing .fiber{fill:none;stroke:var(--fiber);stroke-width:3;stroke-linecap:round;opacity:.85}
+#wing .ten-o{fill:none;stroke:var(--tendon-s);stroke-linecap:round;stroke-linejoin:round}
+#wing .ten-f{fill:none;stroke:var(--tendon);stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
+#wing .skin{fill:var(--skin);stroke:var(--skin-d);stroke-width:3;transition:opacity .9s ease}
+#wing .pore{fill:var(--skin-d);opacity:.55;transition:opacity .9s ease}
+#wing .cut{stroke:var(--muted);stroke-width:3;stroke-dasharray:10 8}
+#wing .gray{fill:var(--muted);font-size:26px}
+#wing .jring{fill:none;stroke:var(--accent);stroke-width:3;stroke-dasharray:8 7;opacity:0;transition:opacity .3s}
+#wing .hit{fill:none;stroke:transparent;stroke-linecap:round;pointer-events:stroke;cursor:pointer}
+#wing .hitfill{fill:transparent;cursor:pointer}
+#wing [data-part]{transition:opacity .35s}
+#wing.dim [data-part]:not(.hl){opacity:.28}
+#wing [data-part].hl .bone-f{stroke:var(--hl)}
+#wing [data-part].hl .muscle-b{fill:var(--hl)}
+#wing [data-part].hl .ten-f{stroke:var(--hl)}
+#wing [data-part].hl.knob, #wing .hl .knob{fill:var(--hl)}
+#wing.show-joint .jring{opacity:1}
+#wing.no-skin .skin,#wing.no-skin .pore{opacity:0;pointer-events:none}
+#wing.no-muscle #muscles{display:none}
+#wing.no-tendon #tendons{display:none}
+#wing.no-bone #bones,#wing.no-bone #hand{opacity:.08}
+#wing .grab{cursor:grab}
+#wing .grab:active{cursor:grabbing}
+#wing .pullhint{fill:var(--warn);font-size:28px;font-weight:700;opacity:0;transition:opacity .3s}
+#wing.pullmode .pullhint{opacity:1}
+#wing .pullarrow{stroke:var(--warn);stroke-width:5;fill:none;opacity:0;transition:opacity .3s}
+#wing.pullmode .pullarrow{opacity:1}
+#wing .active-t .ten-f{stroke:var(--marker)}
+
+/* くらべ図（Pythonで作った図の色をテーマに合わせる） */
+.fig-compare [fill="#1A2B4C"]{fill:var(--ink)}
+.fig-compare [stroke="#1A2B4C"]{stroke:var(--line)}
+.fig-compare [stroke="#F4ECD6"]{stroke:var(--bone)}
+.fig-compare rect[fill="#F4ECD6"]{fill:var(--bone)}
+.fig-compare [fill="#DCE8F6"]{fill:var(--seg1)}
+.fig-compare [fill="#E3F0E6"]{fill:var(--seg2)}
+.fig-compare [fill="#FCE6D6"]{fill:var(--seg3)}
+.fig-compare [fill="#2E6FB7"]{fill:var(--accent)}
+.fig-compare [fill="#E55A00"]{fill:var(--warn)}
+.fig-compare [stroke="#E55A00"]{stroke:var(--warn)}
+.fig-compare [fill="#5A6577"]{fill:var(--muted)}
+.fig-compare [stroke="#5A6577"]{stroke:var(--muted)}
+
+/* ヒトのうで */
+#arm .bone-o{stroke:var(--line);fill:none;stroke-linecap:round}
+#arm .bone-f{stroke:var(--bone);fill:none;stroke-linecap:round}
+#arm .muscle-b{fill:var(--muscle);stroke:var(--muscle-d);stroke-width:4;transition:fill .3s}
+#arm .on .muscle-b{fill:var(--hl)}
+#arm .ten-o{fill:none;stroke:var(--tendon-s);stroke-linecap:round}
+#arm .ten-f{fill:none;stroke:var(--tendon);stroke-linecap:round}
+#arm .lab{fill:var(--ink);font-size:26px;font-weight:700}
+#arm .sub{fill:var(--muted);font-size:22px}
+#arm .body{fill:var(--surface-2)}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1.5px solid var(--rule);background:var(--bg);color:var(--ink);border-radius:999px;padding:4px 12px;font:inherit;font-size:13px;cursor:pointer;display:flex;gap:6px;align-items:center}
+.chip i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.chip[aria-pressed="true"]{border-color:var(--hl);background:var(--surface-2);font-weight:700}
+.info{background:var(--surface-2);border-radius:10px;padding:10px 14px;min-height:64px;font-size:14.5px;line-height:1.65}
+.info b{color:var(--accent)}
+.figure-note{font-size:12px;color:var(--muted);line-height:1.5}
+
+.ctrl{display:flex;flex-wrap:wrap;gap:8px}
+.btn{font:inherit;font-size:15px;font-weight:700;border-radius:10px;padding:9px 16px;cursor:pointer;border:2px solid var(--accent);background:var(--surface);color:var(--accent);display:inline-flex;gap:8px;align-items:center}
+.btn.primary{background:var(--accent);color:var(--surface)}
+.btn.warn{border-color:var(--warn);color:var(--warn)}
+.btn.flx{border-color:var(--muscle-d);color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn .dot{width:12px;height:12px;border-radius:50%;background:var(--muscle)}
+
+/* ステップのパネル */
+.panel{background:var(--surface);border:1.5px solid var(--rule);border-radius:var(--radius);padding:18px 18px 14px;display:grid;gap:14px}
+.panel .kicker{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.panel .kicker .big{font-size:30px;font-weight:700;color:var(--accent);line-height:1;font-variant-numeric:tabular-nums}
+.panel h2{font-size:24px;line-height:1.35;margin:0;text-wrap:balance}
+.panel h3{font-size:15px;margin:0 0 4px;color:var(--accent)}
+.panel p{margin:0}
+.panel ol,.panel ul{margin:0;padding-left:1.4em;display:grid;gap:4px}
+.q{border-left:5px solid var(--marker);background:var(--bg);padding:10px 14px;border-radius:0 10px 10px 0}
+.q b{display:block;font-size:13px;color:var(--warn);letter-spacing:.06em}
+.ws{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:baseline}
+.ws{flex-wrap:wrap}
+.ws span{background:var(--ink);color:var(--surface);border-radius:4px;padding:1px 8px;font-weight:700;font-size:12px}
+.nav{display:flex;justify-content:space-between;gap:8px;padding-top:6px;border-top:1.5px solid var(--rule)}
+rt{font-size:.55em}
+
+/* 予想 */
+.pred{display:grid;gap:10px}
+.pred-row{display:grid;gap:6px;background:var(--bg);border-radius:10px;padding:10px 12px}
+.pred-row .who{font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px}
+.pred-row .who i{width:12px;height:12px;border-radius:50%;background:var(--muscle)}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{font:inherit;font-size:13.5px;border:1.5px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 12px;cursor:pointer}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--surface);font-weight:700}
+.result{font-size:14px;min-height:1.6em}
+.result .ok{color:var(--good);font-weight:700}
+.result .ng{color:var(--warn);font-weight:700}
+
+/* まとめの穴埋め */
+.sum{background:var(--bg);border:2px solid var(--accent);border-radius:12px;padding:14px 16px;display:grid;gap:8px;font-size:16px;line-height:2}
+.blank{font:inherit;font-weight:700;border:none;border-bottom:2.5px solid var(--accent);background:var(--surface-2);color:transparent;border-radius:6px 6px 0 0;padding:0 10px;min-width:4.5em;cursor:pointer}
+.blank.open{color:var(--warn);background:transparent}
+.check li{list-style:none;display:flex;gap:8px;align-items:flex-start}
+.check input{width:18px;height:18px;margin-top:4px;accent-color:var(--good)}
+.check{padding-left:0 !important}
+@media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">２年 理科　人のからだ　⑱</div>
+      <h1>手羽先解剖ナビ</h1>
+    </div>
+    <div class="eyebrow">骨・筋肉・けんは、どうつながって動くのか</div>
+  </header>
+
+  <div class="safety" role="note">
+    <span class="pill">安全</span>
+    <span>手ぶくろをつける</span>
+    <span>脂肪ですべる。刃物を自分の手に向けない</span>
+    <span>生肉を口にふれない</span>
+    <span><b>終わったら せっけんで手を洗う</b></span>
+  </div>
+
+  <nav class="stepper" id="stepper" aria-label="ステップ"></nav>
+
+  <div class="main">
+    <section class="stage" aria-label="図">
+      <div class="stage-head">
+        <div class="stage-title" id="stageTitle">手羽先の中のようす</div>
+        <div class="layers" id="layers">
+          <label><input type="checkbox" id="ly-skin" checked><span class="sw" style="background:var(--skin)"></span>皮</label>
+          <label><input type="checkbox" id="ly-muscle" checked><span class="sw" style="background:var(--muscle)"></span>筋肉</label>
+          <label><input type="checkbox" id="ly-tendon" checked><span class="sw" style="background:var(--tendon)"></span>けん</label>
+          <label><input type="checkbox" id="ly-bone" checked><span class="sw" style="background:var(--bone)"></span>骨</label>
+        </div>
+      </div>
+
+      <div class="fig-box" id="figWing"><svg id="wing" viewBox="80 150 1480 720" role="img" aria-label="手羽先の骨・筋肉・けんの図"></svg></div>
+      <div class="fig-box" id="figCompare" hidden><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" class="fig-compare" role="img" aria-label="ニワトリのつばさとヒトのうでの骨のくらべ" font-family="'BIZ UDPGothic','Noto Sans CJK JP','Hiragino Sans',sans-serif">
+
+<rect x="250" y="90" width="310" height="550" rx="18" fill="#DCE8F6"/>
+<text x="405.0" y="68" font-size="42" font-weight="700" fill="#2E6FB7" text-anchor="middle">上腕</text>
+<rect x="580" y="90" width="400" height="550" rx="18" fill="#E3F0E6"/>
+<text x="780.0" y="68" font-size="42" font-weight="700" fill="#1A2B4C" text-anchor="middle">前腕</text>
+<rect x="1000" y="90" width="460" height="550" rx="18" fill="#FCE6D6"/>
+<text x="1230.0" y="68" font-size="42" font-weight="700" fill="#E55A00" text-anchor="middle">手</text>
+<text x="120" y="250" font-size="36" font-weight="700" fill="#1A2B4C" text-anchor="middle">ニワトリ</text>
+<text x="120" y="294" font-size="36" font-weight="700" fill="#1A2B4C" text-anchor="middle">のつばさ</text>
+<text x="120" y="500" font-size="36" font-weight="700" fill="#1A2B4C" text-anchor="middle">ヒト</text>
+<text x="120" y="544" font-size="36" font-weight="700" fill="#1A2B4C" text-anchor="middle">のうで</text>
+<path d="M280,262 L540,262" fill="none" stroke="#1A2B4C" stroke-width="32" stroke-linecap="round"/><path d="M280,262 L540,262" fill="none" stroke="#F4ECD6" stroke-width="26" stroke-linecap="round"/>
+<path d="M600,244 L960,248" fill="none" stroke="#1A2B4C" stroke-width="20" stroke-linecap="round"/><path d="M600,244 L960,248" fill="none" stroke="#F4ECD6" stroke-width="14" stroke-linecap="round"/>
+<path d="M600,280 Q780,300 960,276" fill="none" stroke="#1A2B4C" stroke-width="30" stroke-linecap="round"/><path d="M600,280 Q780,300 960,276" fill="none" stroke="#F4ECD6" stroke-width="24" stroke-linecap="round"/>
+<path d="M1020,256 L1250,262" fill="none" stroke="#1A2B4C" stroke-width="28" stroke-linecap="round"/><path d="M1020,256 L1250,262" fill="none" stroke="#F4ECD6" stroke-width="22" stroke-linecap="round"/>
+<path d="M1026,280 Q1140,298 1250,272" fill="none" stroke="#1A2B4C" stroke-width="16" stroke-linecap="round"/><path d="M1026,280 Q1140,298 1250,272" fill="none" stroke="#F4ECD6" stroke-width="10" stroke-linecap="round"/>
+<path d="M1028,244 L1080,222" fill="none" stroke="#1A2B4C" stroke-width="15" stroke-linecap="round"/><path d="M1028,244 L1080,222" fill="none" stroke="#F4ECD6" stroke-width="9" stroke-linecap="round"/>
+<path d="M1270,266 L1380,270" fill="none" stroke="#1A2B4C" stroke-width="20" stroke-linecap="round"/><path d="M1270,266 L1380,270" fill="none" stroke="#F4ECD6" stroke-width="14" stroke-linecap="round"/>
+<path d="M1392,270 L1440,272" fill="none" stroke="#1A2B4C" stroke-width="14" stroke-linecap="round"/><path d="M1392,270 L1440,272" fill="none" stroke="#F4ECD6" stroke-width="8" stroke-linecap="round"/>
+<path d="M280,340 L280,356 L540,356 L540,340" fill="none" stroke="#5A6577" stroke-width="3"/>
+<text x="410" y="398" font-size="36" font-weight="700" fill="#5A6577" text-anchor="middle">手羽元</text>
+<path d="M600,340 L600,356 L1440,356 L1440,340" fill="none" stroke="#E55A00" stroke-width="4"/>
+<text x="1020" y="402" font-size="38" font-weight="700" fill="#E55A00" text-anchor="middle">手羽先（今日使う部分）</text>
+<path d="M280,520 L540,520" fill="none" stroke="#1A2B4C" stroke-width="36" stroke-linecap="round"/><path d="M280,520 L540,520" fill="none" stroke="#F4ECD6" stroke-width="30" stroke-linecap="round"/>
+<path d="M600,500 L960,504" fill="none" stroke="#1A2B4C" stroke-width="22" stroke-linecap="round"/><path d="M600,500 L960,504" fill="none" stroke="#F4ECD6" stroke-width="16" stroke-linecap="round"/>
+<path d="M600,540 Q780,556 960,532" fill="none" stroke="#1A2B4C" stroke-width="26" stroke-linecap="round"/><path d="M600,540 Q780,556 960,532" fill="none" stroke="#F4ECD6" stroke-width="20" stroke-linecap="round"/>
+<rect x="1000" y="490" width="70" height="60" rx="14" fill="#F4ECD6" stroke="#1A2B4C" stroke-width="3"/>
+<path d="M1082,498 L1232,476" fill="none" stroke="#1A2B4C" stroke-width="17" stroke-linecap="round"/><path d="M1082,498 L1232,476" fill="none" stroke="#F4ECD6" stroke-width="11" stroke-linecap="round"/>
+<path d="M1082,510 L1332,500" fill="none" stroke="#1A2B4C" stroke-width="17" stroke-linecap="round"/><path d="M1082,510 L1332,500" fill="none" stroke="#F4ECD6" stroke-width="11" stroke-linecap="round"/>
+<path d="M1082,520 L1352,520" fill="none" stroke="#1A2B4C" stroke-width="17" stroke-linecap="round"/><path d="M1082,520 L1352,520" fill="none" stroke="#F4ECD6" stroke-width="11" stroke-linecap="round"/>
+<path d="M1082,530 L1332,540" fill="none" stroke="#1A2B4C" stroke-width="17" stroke-linecap="round"/><path d="M1082,530 L1332,540" fill="none" stroke="#F4ECD6" stroke-width="11" stroke-linecap="round"/>
+<path d="M1082,540 L1292,560" fill="none" stroke="#1A2B4C" stroke-width="17" stroke-linecap="round"/><path d="M1082,540 L1292,560" fill="none" stroke="#F4ECD6" stroke-width="11" stroke-linecap="round"/>
+<text x="410" y="628" font-size="38" font-weight="700" fill="#1A2B4C" text-anchor="middle">上腕骨</text>
+<text x="780" y="628" font-size="38" font-weight="700" fill="#1A2B4C" text-anchor="middle">橈骨・尺骨</text>
+<text x="1230" y="628" font-size="38" font-weight="700" fill="#1A2B4C" text-anchor="middle">手の骨</text>
+</svg></div>
+      <div class="fig-box" id="figArm" hidden><svg id="arm" viewBox="0 -170 1000 740" role="img" aria-label="ヒトのうでの骨と筋肉"></svg></div>
+
+      <div class="ctrl" id="pullCtrl" hidden>
+        <button class="btn" id="btnExt" type="button"><span class="dot"></span>上側の筋肉を引く</button>
+        <button class="btn flx" id="btnFlx" type="button"><span class="dot"></span>下側の筋肉を引く</button>
+        <button class="btn warn" id="btnReset" type="button">もとにもどす</button>
+      </div>
+      <div class="ctrl" id="armCtrl" hidden>
+        <button class="btn" id="btnBend" type="button">うでを曲げる</button>
+        <button class="btn" id="btnStraight" type="button">うでをのばす</button>
+      </div>
+      <div class="ctrl" id="skinCtrl" hidden>
+        <button class="btn primary" id="btnPeel" type="button">皮をはぐ</button>
+      </div>
+
+      <div class="chips" id="chips" aria-label="部分の名前"></div>
+      <div class="info" id="info" aria-live="polite">図の部分や、下の名前をタップすると説明が出ます。</div>
+      <p class="figure-note" id="figNote">図はわかりやすくするため、代表的な筋肉2つと けんだけを描いています。実物には、もっとたくさんの細い筋肉とけんがあります。</p>
+    </section>
+
+    <section class="panel" id="panel" aria-live="polite"></section>
+  </div>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg";
+const P=[930,352];
+const REST=25, EXT_MAX=0, FLX_MAX=60;
+const state={angle:REST, ext:0, flx:0, step:0, peeled:false, pred:{ext:null,flx:null}, tested:{ext:false,flx:false}, arm:0};
+try{const s=JSON.parse(localStorage.getItem("teba-navi")||"{}"); if(typeof s.step==="number") state.step=s.step;}catch(e){}
+
+/* ---------- 図のデータ ---------- */
+const PARTS={
+  radius:{name:"橈骨",ruby:"とうこつ",kind:"骨",text:"<b>橈骨（とうこつ）</b>　細いほうの骨。つばさの前のふち（上側）にある。ヒトの前腕にも同じ名前の骨がある。"},
+  ulna:{name:"尺骨",ruby:"しゃっこつ",kind:"骨",text:"<b>尺骨（しゃっこつ）</b>　太いほうの骨。後ろのふち（下側）にある。ならんだ小さなこぶは、大きな羽（風切羽）がついていたあと。"},
+  joint:{name:"手首の関節",kind:"関節",text:"<b>手首の関節</b>　前腕の骨（橈骨・尺骨）と、手の骨のつなぎ目。ここで先たんが曲がったり、のびたりする。"},
+  hand:{name:"手の骨",kind:"骨",text:"<b>手の骨</b>　ヒトの手のひらの骨にあたる。何本かの骨がくっついて、輪のような形になっている。"},
+  thumb:{name:"親指の骨",kind:"骨",text:"<b>親指の骨</b>　手の骨の前のふちにある小さな骨。ヒトの親指にあたる。"},
+  digit:{name:"指の骨",kind:"骨",text:"<b>指の骨</b>　いちばん先の骨。ヒトの指にあたる。"},
+  ext:{name:"のばす筋肉",kind:"筋肉",text:"<b>のばす筋肉</b>（上側）　ちぢむと、けんが手の骨の前のふちを引いて、先たんが<b>のびる</b>。"},
+  flx:{name:"曲げる筋肉",kind:"筋肉",text:"<b>曲げる筋肉</b>（下側）　ちぢむと、けんが手の骨の後ろ側を引いて、先たんが<b>曲がる</b>（たたまれる）。"},
+  tendon:{name:"けん",kind:"けん",text:"<b>けん</b>　筋肉のはしの、白く光るかたい筋。<b>関節をまたいで</b>、となりの骨についている。筋肉がちぢむと、けんが骨を引っぱる。"},
+  dtendon:{name:"指へのけん",kind:"けん",text:"<b>指へ続く細いけん</b>　前腕から手首をこえて、手の骨や指の骨まで続く。ヒトの手首の内側にも、指を動かすけんがたくさん通っている。"}
+};
+const KIND_COLOR={"骨":"var(--bone)","筋肉":"var(--muscle)","けん":"var(--tendon-s)","関節":"var(--accent)"};
+
+function rot(p,th){const a=th*Math.PI/180,dx=p[0]-P[0],dy=p[1]-P[1];return [P[0]+dx*Math.cos(a)-dy*Math.sin(a),P[1]+dx*Math.sin(a)+dy*Math.cos(a)];}
+function spindle(x0,x1,yc,h){const xm=(x0+x1)/2;return `M${x0},${yc} C${x0+60},${yc-h} ${xm},${yc-h*1.05} ${x1-40},${yc-h*.35} L${x1},${yc} L${x1-40},${yc+h*.35} C${xm},${yc+h*1.05} ${x0+60},${yc+h} ${x0},${yc} Z`;}
+function bone(d,w,part){return `<g data-part="${part}"><path class="bone-o" d="${d}" stroke-width="${w+6}"/><path class="bone-f" d="${d}" stroke-width="${w}"/><path class="hit" d="${d}" stroke-width="${Math.max(w+30,44)}"/></g>`;}
+function fibers(b){let s="";for(const k of[-.45,0,.45]){const y=b.yc+k*b.h;s+=`<path class="fiber" d="M${b.x0+50},${y} Q${(b.x0+b.x1)/2},${y+k*6} ${b.x1-50},${y}"/>`;}return s;}
+const EXT={x0:196,x1:650,yc:284,h:30}, FLX={x0:206,x1:650,yc:452,h:32};
+const EXT_TO=[962,314], FLX_TO=[968,398], EXT_PUL=[900,312], FLX_PUL=[898,400];
+const DIG=[{a:[560,350],p:[916,352],b:[1236,352]},{a:[560,362],p:[916,362],b:[1244,364]}];
+
+function buildWing(){
+  const svg=document.getElementById("wing");
+  const pores=[];for(let i=0;i<34;i++){const x=200+(i%17)*42+((i/17|0)?21:0),y=(i/17|0)?455:260;pores.push(`<circle class="pore" cx="${x}" cy="${y+(i%3)*9}" r="4"/>`);}
+  const hpores=[];for(let i=0;i<12;i++){hpores.push(`<circle class="pore" cx="${990+i*44}" cy="${360+(i%2)*14}" r="4"/>`);}
+  svg.innerHTML=`
+  <path class="cut" d="M150,240 L150,500"/>
+  <text class="gray" x="150" y="540" text-anchor="middle">ひじ側（切り口）</text>
+  <g id="bones">
+    ${bone("M178,392 Q540,430 900,378",32,"ulna")}
+    ${bone("M178,326 Q540,300 902,326",16,"radius")}
+    <g data-part="joint"><circle class="knob" cx="918" cy="336" r="12"/><circle class="knob" cx="914" cy="378" r="13"/><circle class="hitfill" cx="925" cy="356" r="46"/></g>
+  </g>
+  <g id="hand">
+    ${bone("M952,346 L1240,360",26,"hand")}
+    <g data-part="hand">${""}<path class="bone-o" d="M962,374 Q1100,404 1238,368" stroke-width="18"/><path class="bone-f" d="M962,374 Q1100,404 1238,368" stroke-width="12"/><circle class="knob" cx="960" cy="318" r="11"/><path class="hit" d="M962,374 Q1100,404 1238,368" stroke-width="40"/></g>
+    ${bone("M962,332 L1034,300",10,"thumb")}
+    <g data-part="digit"><path class="bone-o" d="M1258,362 L1398,368" stroke-width="24"/><path class="bone-f" d="M1258,362 L1398,368" stroke-width="18"/><path class="bone-o" d="M1412,369 L1500,374" stroke-width="16"/><path class="bone-f" d="M1412,369 L1500,374" stroke-width="10"/><path class="hit" d="M1258,362 L1500,374" stroke-width="44"/></g>
+    <text class="gray" x="1500" y="420" text-anchor="middle">先たん</text>
+  </g>
+  <circle class="jring" cx="${P[0]}" cy="${P[1]}" r="62"/>
+  <g id="muscles">
+    <g data-part="ext" class="grab" id="m-ext"><g id="m-ext-s"><path class="muscle-b" d="${spindle(EXT.x0,EXT.x1,EXT.yc,EXT.h)}"/>${fibers(EXT)}</g></g>
+    <g data-part="flx" class="grab" id="m-flx"><g id="m-flx-s"><path class="muscle-b" d="${spindle(FLX.x0,FLX.x1,FLX.yc,FLX.h)}"/>${fibers(FLX)}</g></g>
+  </g>
+  <g id="tendons">
+    <g data-part="dtendon" id="t-d0"><path class="ten-o" stroke-width="7"/><path class="ten-f" stroke-width="4"/><path class="hit" stroke-width="30"/></g>
+    <g data-part="dtendon" id="t-d1"><path class="ten-o" stroke-width="7"/><path class="ten-f" stroke-width="4"/><path class="hit" stroke-width="30"/></g>
+    <g data-part="tendon" id="t-ext"><path class="ten-o" stroke-width="11"/><path class="ten-f" stroke-width="8"/><path class="hit" stroke-width="34"/></g>
+    <g data-part="tendon" id="t-flx"><path class="ten-o" stroke-width="11"/><path class="ten-f" stroke-width="8"/><path class="hit" stroke-width="34"/></g>
+  </g>
+  <g id="skinF"><path class="skin" d="M150,238 C420,196 780,226 948,286 L948,428 C780,490 420,512 150,488 Z"/>${pores.join("")}</g>
+  <g id="skinH"><path class="skin" d="M920,282 C1080,292 1300,322 1530,352 C1536,380 1520,398 1500,402 C1300,420 1090,440 920,430 Z"/>${hpores.join("")}</g>
+  <g id="pullHint">
+    <path class="pullarrow" d="M470,215 L250,215 M270,200 L248,215 L270,230"/>
+    <text class="pullhint" x="480" y="225">ひじの方へ引く</text>
+    <path class="pullarrow" d="M470,525 L250,525 M270,510 L248,525 L270,540"/>
+    <text class="pullhint" x="480" y="535">ひじの方へ引く</text>
+  </g>`;
+}
+
+function setD(g,d){g.querySelectorAll("path").forEach(p=>p.setAttribute("d",d));}
+function drawWing(){
+  const th=state.angle;
+  const t=`rotate(${th} ${P[0]} ${P[1]})`;
+  document.getElementById("hand").setAttribute("transform",t);
+  document.getElementById("skinH").setAttribute("transform",t);
+  // 筋肉のちぢみ: 長さが短く、少し太く
+  const mus=[["ext",EXT,state.ext],["flx",FLX,state.flx]];
+  const ends={};
+  for(const[k,b,pull] of mus){
+    const s=1-0.14*pull, sy=1+0.22*pull;
+    document.getElementById(`m-${k}-s`).setAttribute("transform",`translate(${b.x0} ${b.yc}) scale(${s} ${sy}) translate(${-b.x0} ${-b.yc})`);
+    ends[k]=[b.x0+(b.x1-b.x0)*s,b.yc];
+  }
+  const e=rot(EXT_TO,th), f=rot(FLX_TO,th);
+  setD(document.getElementById("t-ext"),`M${ends.ext[0]},${ends.ext[1]} L${EXT_PUL[0]},${EXT_PUL[1]} L${e[0]},${e[1]}`);
+  setD(document.getElementById("t-flx"),`M${ends.flx[0]},${ends.flx[1]} L${FLX_PUL[0]},${FLX_PUL[1]} L${f[0]},${f[1]}`);
+  DIG.forEach((g,i)=>{const b=rot(g.b,th);setD(document.getElementById(`t-d${i}`),`M${g.a[0]},${g.a[1]} L${g.p[0]},${g.p[1]} L${b[0]},${b[1]}`);});
+  document.getElementById("t-ext").classList.toggle("active-t",state.ext>0.05);
+  document.getElementById("t-flx").classList.toggle("active-t",state.flx>0.05);
+}
+
+/* ---------- 引っぱる ---------- */
+let anim=null;
+function pull(which,amount,base){
+  base = base ?? state.angle;
+  if(which==="ext"){state.ext=amount;state.flx=0;state.angle=base-(base-EXT_MAX)*amount;}
+  else{state.flx=amount;state.ext=0;state.angle=base+(FLX_MAX-base)*amount;}
+  drawWing();
+  if(amount>0.6) markTested(which);
+}
+function animatePull(which){
+  if(anim) cancelAnimationFrame(anim);
+  const base=state.angle, t0=performance.now(), dur=900;
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function frame(now){
+    const k=reduce?1:Math.min(1,(now-t0)/dur);
+    const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+    pull(which,e,base);
+    if(k<1) anim=requestAnimationFrame(frame);
+    else setTimeout(()=>relax(),350);
+  }
+  anim=requestAnimationFrame(frame);
+}
+function relax(){
+  const s0={ext:state.ext,flx:state.flx},t0=performance.now();
+  function frame(now){const k=Math.min(1,(now-t0)/400);state.ext=s0.ext*(1-k);state.flx=s0.flx*(1-k);drawWing();if(k<1)requestAnimationFrame(frame);}
+  requestAnimationFrame(frame);
+}
+function resetWing(){state.angle=REST;state.ext=0;state.flx=0;drawWing();}
+function svgPoint(svg,evt){const pt=svg.createSVGPoint();pt.x=evt.clientX;pt.y=evt.clientY;return pt.matrixTransform(svg.getScreenCTM().inverse());}
+function setupDrag(){
+  const svg=document.getElementById("wing");
+  let drag=null;
+  svg.addEventListener("pointerdown",ev=>{
+    const g=ev.target.closest("[data-part]");
+    if(!g) return;
+    const part=g.dataset.part;
+    showInfo(part);
+    if((part==="ext"||part==="flx") && STEPS[state.step].pull){
+      drag={which:part,x:svgPoint(svg,ev).x,base:state.angle};
+      svg.setPointerCapture(ev.pointerId);
+      ev.preventDefault();
+    }
+  });
+  svg.addEventListener("pointermove",ev=>{
+    if(!drag) return;
+    const dx=drag.x-svgPoint(svg,ev).x;
+    pull(drag.which,Math.max(0,Math.min(1,dx/160)),drag.base);
+  });
+  const end=()=>{if(drag){drag=null;relax();}};
+  svg.addEventListener("pointerup",end);svg.addEventListener("pointercancel",end);
+}
+
+/* ---------- ヒトのうで ---------- */
+const E=[430,300]; // ひじ
+function buildArm(){
+  const svg=document.getElementById("arm");
+  svg.innerHTML=`
+  <rect class="body" x="20" y="120" width="90" height="360" rx="30"/>
+  <text class="sub" x="65" y="520" text-anchor="middle">かた</text>
+  <g>${bone2("M110,300 L420,300",30)}</g>
+  <g id="fore">${bone2("M444,288 L790,280",14)}${bone2("M444,314 L790,306",20)}
+    <rect x="800" y="262" width="90" height="60" rx="16" fill="var(--bone)" stroke="var(--line)" stroke-width="3"/>
+    <text class="sub" x="845" y="360" text-anchor="middle">手</text></g>
+  <g id="bi"><g id="bi-s"><path class="muscle-b" d="${spindle(150,390,250,34)}"/></g></g>
+  <g id="tri"><g id="tri-s"><path class="muscle-b" d="${spindle(140,380,352,34)}"/></g></g>
+  <g id="t-bi"><path class="ten-o" stroke-width="11"/><path class="ten-f" stroke-width="8"/></g>
+  <g id="t-tri"><path class="ten-o" stroke-width="11"/><path class="ten-f" stroke-width="8"/></g>
+  <text class="lab" x="270" y="196" text-anchor="middle" id="lb-bi">上腕二頭筋（曲げる）</text>
+  <text class="lab" x="250" y="440" text-anchor="middle" id="lb-tri">上腕三頭筋（のばす）</text>
+  <text class="sub" x="${E[0]+40}" y="${E[1]+75}">← ひじの関節</text>`;
+}
+function bone2(d,w){return `<path class="bone-o" d="${d}" stroke-width="${w+6}"/><path class="bone-f" d="${d}" stroke-width="${w}"/>`;}
+function rotA(p,th){const a=th*Math.PI/180,dx=p[0]-E[0],dy=p[1]-E[1];return [E[0]+dx*Math.cos(a)-dy*Math.sin(a),E[1]+dx*Math.sin(a)+dy*Math.cos(a)];}
+function drawArm(bend){ // bend 0..1
+  const th=-95*bend;
+  document.getElementById("fore").setAttribute("transform",`rotate(${th} ${E[0]} ${E[1]})`);
+  const sb=1-0.2*bend, yb=1+0.35*bend, st=1-0.12*(1-bend)*0, yt=1;
+  document.getElementById("bi-s").setAttribute("transform",`translate(150 250) scale(${sb} ${yb}) translate(-150 -250)`);
+  document.getElementById("tri-s").setAttribute("transform",`translate(140 352) scale(${1-0.12*(1-bend)} ${1+0.18*(1-bend)}) translate(-140 -352)`);
+  const bEnd=[150+240*sb,250], tEnd=[140+240*(1-0.12*(1-bend)),352];
+  const bTo=rotA([500,288],th), tTo=rotA([410,322],th);
+  setD(document.getElementById("t-bi"),`M${bEnd[0]},${bEnd[1]} L${bTo[0]},${bTo[1]}`);
+  setD(document.getElementById("t-tri"),`M${tEnd[0]},${tEnd[1]} Q${E[0]-10},${E[1]+48} ${tTo[0]},${tTo[1]}`);
+  document.getElementById("bi").classList.toggle("on",bend>.5);
+  document.getElementById("tri").classList.toggle("on",bend<=.5);
+}
+function animateArm(to){
+  const from=state.arm,t0=performance.now();
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function f(now){const k=reduce?1:Math.min(1,(now-t0)/800);const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;state.arm=from+(to-from)*e;drawArm(state.arm);if(k<1)requestAnimationFrame(f);}
+  requestAnimationFrame(f);
+}
+
+/* ---------- ステップ ---------- */
+const STEPS=[
+ {t:"準備と安全",fig:"wing",skin:true,hl:[],chips:[],title:"手羽先（皮つき）",
+  html:`<div><h3>用意するもの（1班）</h3><ul><li>手羽先 1本（とかしたもの）</li><li>手ぶくろ・トレー・キッチンペーパー</li><li>解剖ばさみ または カッター、ピンセット 2本</li><li>ワークシート</li></ul></div>
+  <div><h3>やくそく</h3><ol><li>刃物は、自分や友だちの手の方へ向けない。脂肪ですべりやすい。</li><li>生の肉をさわった手で、顔や口にさわらない。</li><li>終わったら、道具を洗い、机をふき、せっけんで手を洗う。</li></ol></div>
+  <div class="ws"><span>ワークシート</span>めあてと安全を読んでから始めよう</div>`},
+ {t:"手羽先はどこ？",fig:"compare",title:"ニワトリのつばさ と ヒトのうで",chips:[],
+  html:`<p>ニワトリのつばさと、ヒトのうでは、同じ並び方の骨でできている。</p>
+  <div class="q"><b>くらべてみよう</b>骨が2本ならんでいる部分は、ヒトのうでのどこ？</div>
+  <ul><li><b>手羽元</b> ＝ 上腕（上腕骨）</li><li><b>手羽先</b> ＝ 前腕（橈骨・尺骨）＋ 手</li></ul>
+  <p>今日の手羽先は、ヒトでいうと<b>ひじから先</b>。切り口がひじの関節だったところ。</p>
+  <div class="ws"><span>写真ボード</span>撮った写真は Canva の自分の班の行に貼る</div>`},
+ {t:"皮をはぐ",fig:"wing",skin:true,peel:true,hl:[],chips:[],title:"皮をはぐ",
+  html:`<ol><li>切り口（ひじ側）で、皮と肉のあいだに はさみの先を少し入れる。</li><li>皮だけを、先たんに向かって浅く切り開く。<b>肉は切らない。</b></li><li>皮をつまんで、うすい膜をはがすように引く。</li></ol>
+  <div class="q"><b>コツ</b>先たんの皮は はがしにくいので、手首のあたりまでで OK。黄色いつぶは脂肪。</div>
+  <p>図の「皮をはぐ」を押すと、皮の下が見えるよ。</p>
+  <div class="ws"><span>写真ボード</span>① 皮をはいだところを撮る</div>`},
+ {t:"骨をさがす",fig:"wing",hl:["radius","ulna","joint","hand","thumb","digit"],chips:["radius","ulna","joint","hand","thumb","digit"],title:"骨をさがす",
+  html:`<p>指でおして、かたいところをさがそう。</p>
+  <ul><li>前腕には骨が <b>2本</b>。細い<ruby>橈骨<rt>とうこつ</rt></ruby>と、太い<ruby>尺骨<rt>しゃっこつ</rt></ruby>。</li><li>2本の骨の先に <b>手首の関節</b>。そこから先が手の骨と指の骨。</li><li>太い骨に小さなこぶが並んでいたら、そこに羽がついていた。</li></ul>
+  <div class="q"><b>問い</b>関節はどこにある？ 先たんを動かすと、どこで曲がる？</div>
+  <div class="ws"><span>ワークシート</span>１ 図の①〜⑤</div>`},
+ {t:"筋肉をさがす",fig:"wing",hl:["ext","flx"],chips:["ext","flx"],title:"筋肉をさがす",
+  html:`<p>赤い肉のかたまりが <b>筋肉</b>。骨の上側と下側にある。</p>
+  <ul><li>ピンセットで、筋肉と筋肉のすき間を <b>そっと分ける</b>（切らない）。</li><li>1つの筋肉は細長いふくらみで、はしに行くほど細くなる。</li></ul>
+  <div class="q"><b>問い</b>筋肉のはしは、どんな色・かたさになっている？</div>
+  <div class="ws"><span>ワークシート</span>１ 図の⑥⑦</div>`},
+ {t:"けんをさがす",fig:"wing",hl:["tendon","dtendon","joint"],joint:true,chips:["tendon","dtendon","joint"],title:"けんをさがす",
+  html:`<p>筋肉のはしは、白く光るかたい筋になっている。これが <b>けん</b>。</p>
+  <ul><li>けんを指でたどると、<b>手首の関節をこえて</b>、となりの骨（手の骨）までつづいている。</li><li>細いけんは、指の骨の方まで続いている。</li></ul>
+  <div class="q"><b>教科書の問い</b>関節をまたいで、白い筋がたくさんある。この筋は何だろうか。</div>
+  <div class="ws"><span>ワークシート</span>１ 図の⑧　<span>写真ボード</span>② 見つけたものに矢印</div>`},
+ {t:"引っぱって確かめる",fig:"wing",pull:true,hl:[],chips:["ext","flx","tendon"],title:"筋肉を引っぱる",
+  html:`<p>ひじ側をピンセットでおさえ、筋肉を1つずつ <b>ひじの方へ</b> 引く。筋肉が「ちぢむ」のと同じことになる。</p>
+  <div class="pred" id="pred"></div>
+  <p style="font-size:14px;color:var(--muted)">図の筋肉を左へドラッグするか、ボタンを押そう。</p>
+  <div class="ws"><span>ワークシート</span>２ 予想・結果　<span>写真ボード</span>③④ 引いたところを撮る</div>`},
+ {t:"ヒトのうでとくらべる",fig:"arm",title:"ヒトのうで（前の時間）",chips:[],
+  html:`<p>ヒトのうでも、<b>曲げる筋肉</b>（上腕二頭筋）と<b>のばす筋肉</b>（上腕三頭筋）が <b>対</b> になっている。どちらも、けんで関節の先の骨を引く。</p>
+  <div class="q"><b>くらべよう</b>手羽先の「上側の筋肉」と「下側の筋肉」は、それぞれヒトのどちらの筋肉と はたらきが似ている？</div>
+  <p style="font-size:14px">※動かす関節はちがう（手羽先は手首、上腕二頭筋はひじ）。でも「筋肉がちぢむ → けんが骨を引く → 関節で曲がる」しくみは同じ。</p>
+  <div class="q"><b>やってみよう</b>自分の手首の内側に指をあてて、指を曲げのばししてみよう。何が動く？</div>
+  `},
+ {t:"まとめ・片づけ",fig:"wing",hl:["tendon","joint"],joint:true,chips:["tendon","joint","ext","flx"],title:"まとめ",
+  html:`<div class="sum" id="sum">
+   <div>筋肉の両はしは <button class="blank" type="button">けん</button> になっていて、</div>
+   <div><button class="blank" type="button">関節</button> をまたいで、となりの <button class="blank" type="button">骨</button> についている。</div>
+   <div>筋肉が <button class="blank" type="button">ちぢむ</button> と、けんが骨を引き、関節で骨が動く。</div>
+   <div>曲げる筋肉と のばす筋肉は、はたらきが反対で <button class="blank" type="button">対</button> になっている。</div>
+  </div>
+  <p style="font-size:13px;color:var(--muted)">空欄をタップすると答えが出ます。先にワークシートに書いてから。</p>
+  <div><h3>片づけ</h3><ul class="check" id="clean">
+   <li><input type="checkbox" id="c1"><label for="c1">手羽先と皮は、ビニール袋に入れて捨てる</label></li>
+   <li><input type="checkbox" id="c2"><label for="c2">はさみ・ピンセット・トレーを洗う</label></li>
+   <li><input type="checkbox" id="c3"><label for="c3">机をふく</label></li>
+   <li><input type="checkbox" id="c4"><label for="c4">せっけんで手を洗う</label></li></ul></div>
+  <div class="ws"><span>ワークシート</span>★まとめ・３ 振り返り</div>`}
+];
+
+function renderStepper(){
+  const nav=document.getElementById("stepper");
+  nav.innerHTML=STEPS.map((s,i)=>`<button type="button" data-i="${i}" ${i===state.step?'aria-current="step"':''} class="${i<state.step?'done':''}"><span class="n">${i+1}</span>${s.t}</button>`).join("");
+  nav.querySelectorAll("button").forEach(b=>b.onclick=()=>go(+b.dataset.i));
+  const cur=nav.querySelector('[aria-current="step"]'); if(cur) cur.scrollIntoView({block:"nearest",inline:"center"});
+}
+function renderPanel(){
+  const s=STEPS[state.step];
+  const p=document.getElementById("panel");
+  p.innerHTML=`<div class="kicker"><span class="big">${state.step+1}</span><span>ステップ ${state.step+1} / ${STEPS.length}</span></div>
+   <h2>${s.t}</h2>${s.html}
+   <div class="nav"><button class="btn" type="button" id="prev" ${state.step===0?"disabled":""}>前へ</button><button class="btn primary" type="button" id="next" ${state.step===STEPS.length-1?"disabled":""}>次へ</button></div>`;
+  p.querySelector("#prev").onclick=()=>go(state.step-1);
+  p.querySelector("#next").onclick=()=>go(state.step+1);
+  if(s.pull) renderPred();
+  p.querySelectorAll(".blank").forEach(b=>b.onclick=()=>b.classList.toggle("open"));
+}
+const PRED_OPTS=["のびる","曲がる","動かない"];
+const ANSWER={ext:"のびる",flx:"曲がる"};
+function renderPred(){
+  const box=document.getElementById("pred"); if(!box) return;
+  box.innerHTML=["ext","flx"].map(k=>`<div class="pred-row"><div class="who"><i></i>${k==="ext"?"上側の筋肉":"下側の筋肉"}を引くと、先たんは…</div>
+   <div class="opts">${PRED_OPTS.map(o=>`<button class="opt" type="button" data-k="${k}" data-o="${o}" aria-pressed="${state.pred[k]===o}">${o}</button>`).join("")}</div>
+   <div class="result" id="res-${k}">${resultText(k)}</div></div>`).join("");
+  box.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{state.pred[b.dataset.k]=b.dataset.o;renderPred();});
+}
+function resultText(k){
+  if(!state.tested[k]) return state.pred[k]?"予想したら、引っぱって確かめよう。":"まず予想を選ぼう。";
+  const ans=ANSWER[k], mine=state.pred[k];
+  const judge=mine?(mine===ans?'<span class="ok">予想どおり</span>':'<span class="ng">予想とちがった</span>'):"";
+  return `結果：先たんが<b>${ans==="のびる"?"のびた（まっすぐになった）":"曲がった（たたまれた）"}</b>。${judge}`;
+}
+function markTested(k){ if(state.tested[k]) return; state.tested[k]=true; const r=document.getElementById("res-"+k); if(r) r.innerHTML=resultText(k); }
+
+function renderChips(){
+  const s=STEPS[state.step], box=document.getElementById("chips");
+  box.innerHTML=s.chips.map(k=>`<button class="chip" type="button" data-k="${k}" aria-pressed="false"><i style="background:${KIND_COLOR[PARTS[k].kind]}"></i>${PARTS[k].name}</button>`).join("");
+  box.querySelectorAll(".chip").forEach(c=>c.onclick=()=>showInfo(c.dataset.k));
+}
+function showInfo(k){
+  const part=PARTS[k]; if(!part) return;
+  document.getElementById("info").innerHTML=part.text;
+  document.querySelectorAll("#chips .chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.k===k));
+  const svg=document.getElementById("wing");
+  svg.classList.add("dim");
+  svg.querySelectorAll("[data-part]").forEach(g=>g.classList.toggle("hl",g.dataset.part===k));
+}
+function applyHighlight(list){
+  const svg=document.getElementById("wing");
+  svg.classList.toggle("dim",list.length>0);
+  svg.querySelectorAll("[data-part]").forEach(g=>g.classList.toggle("hl",list.includes(g.dataset.part)));
+}
+function setLayer(name,on){document.getElementById("ly-"+name).checked=on;document.getElementById("wing").classList.toggle("no-"+name,!on);}
+
+function go(i){
+  if(i<0||i>=STEPS.length) return;
+  state.step=i;
+  try{localStorage.setItem("teba-navi",JSON.stringify({step:i}));}catch(e){}
+  const s=STEPS[i];
+  document.getElementById("figWing").hidden=s.fig!=="wing";
+  document.getElementById("figCompare").hidden=s.fig!=="compare";
+  document.getElementById("figArm").hidden=s.fig!=="arm";
+  document.getElementById("layers").hidden=s.fig!=="wing";
+  document.getElementById("figNote").hidden=s.fig!=="wing";
+  document.getElementById("pullCtrl").hidden=!s.pull;
+  document.getElementById("armCtrl").hidden=s.fig!=="arm";
+  document.getElementById("skinCtrl").hidden=!s.peel;
+  document.getElementById("stageTitle").textContent=s.title;
+  const svg=document.getElementById("wing");
+  if(s.fig==="wing"){
+    setLayer("skin", !!s.skin && !(s.peel && state.peeled));
+    setLayer("muscle",true);setLayer("tendon",true);setLayer("bone",true);
+    svg.classList.toggle("show-joint",!!s.joint);
+    svg.classList.toggle("pullmode",!!s.pull);
+    applyHighlight(s.hl||[]);
+    if(!s.pull) resetWing();
+  }
+  if(s.fig==="arm"){state.arm=0.6;drawArm(state.arm);}
+  document.getElementById("btnPeel").textContent=state.peeled?"皮をもどす":"皮をはぐ";
+  document.getElementById("info").innerHTML= s.fig==="compare"?"手羽先（オレンジの線）は、ヒトのうでの ひじから先 にあたる。":s.fig==="arm"?"ボタンを押すと、うでが動く。ちぢんでいる筋肉がオレンジになる。":"図の部分や、下の名前をタップすると説明が出ます。";
+  renderStepper();renderPanel();renderChips();
+}
+
+/* ---------- 起動 ---------- */
+buildWing();buildArm();drawWing();setupDrag();
+["skin","muscle","tendon","bone"].forEach(n=>document.getElementById("ly-"+n).addEventListener("change",e=>document.getElementById("wing").classList.toggle("no-"+n,!e.target.checked)));
+document.getElementById("btnExt").onclick=()=>animatePull("ext");
+document.getElementById("btnFlx").onclick=()=>animatePull("flx");
+document.getElementById("btnReset").onclick=resetWing;
+document.getElementById("btnBend").onclick=()=>animateArm(1);
+document.getElementById("btnStraight").onclick=()=>animateArm(0);
+document.getElementById("btnPeel").onclick=()=>{state.peeled=!state.peeled;setLayer("skin",!state.peeled);document.getElementById("btnPeel").textContent=state.peeled?"皮をもどす":"皮をはぐ";};
+if(state.step<0||state.step>=STEPS.length) state.step=0;
+go(state.step);
+})();
+</script>
+
+</body></html>

@@ -1,0 +1,340 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>肺呼吸と細胞の呼吸</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+  :root{
+    --paper:#FAF8F3; --ink:#1A2B4C; --blue:#2E6FB7; --card:#E6EEF7; --marker:#FF9900;
+    --burnt:#E55A00; --sub:#5A6577; --line:#DAD5C9; --white:#FFFFFF;
+    --art:#D64541; --vein:#3F6FB5; --o2:#FFFFFF; --co2:#8C96A5; --food:#F2B705;
+    color-scheme:light;
+  }
+  html,body{background:var(--paper);color:var(--ink)}
+  body{font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;font-size:17px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+  .wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
+  h1{font-size:30px;margin:0;color:var(--blue);text-wrap:balance}
+  .lead{margin:4px 0 0}
+  .lead b{color:var(--burnt)}
+  h2{font-size:22px;margin:0 0 12px;color:var(--blue)}
+
+  .stage{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:8px}
+  .stage svg{display:block;width:100%;height:auto}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .step{font:inherit;font-size:16px;font-weight:700;padding:9px 14px;border-radius:9px;border:2px solid var(--blue);background:var(--white);color:var(--blue);cursor:pointer}
+  .step[aria-pressed="true"]{background:var(--blue);color:var(--white)}
+  .btn{font:inherit;font-weight:700;font-size:16px;padding:9px 14px;border-radius:9px;border:1px solid var(--line);background:var(--white);color:var(--ink);cursor:pointer}
+  .btn:hover{border-color:var(--ink)}
+  .speed{display:flex;align-items:center;gap:6px;font-size:15px;color:var(--sub);margin-left:auto}
+  .speed input{accent-color:var(--blue)}
+  button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--marker);outline-offset:2px}
+
+  .explain{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;background:var(--white);border:2px solid var(--marker);border-radius:12px;padding:14px 16px;min-height:92px}
+  .explain .tag{font-weight:700;color:var(--white);background:var(--ink);border-radius:8px;padding:4px 10px;white-space:nowrap}
+  .explain p{margin:0;font-size:20px;font-weight:700;line-height:1.55}
+  .explain p small{display:block;font-size:16px;font-weight:400;color:var(--sub);margin-top:4px}
+
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+  .panel{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .formula{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:21px;font-weight:700;margin:6px 0 10px}
+  .chip{border-radius:999px;padding:4px 14px;border:2px solid var(--ink);background:var(--white)}
+  .chip.food{background:#FFF1C2}
+  .chip.o2{background:#fff;border-color:var(--blue)}
+  .chip.en{background:var(--marker);border-color:var(--marker);color:var(--ink)}
+  .chip.co2{background:#E3E6EB}
+  table{width:100%;border-collapse:collapse;font-size:17px}
+  th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+  thead th{background:var(--card)}
+  tbody th{background:#F4F2EC;width:26%}
+  .tw{overflow-x:auto}
+  .ask{background:var(--card);border-radius:12px;padding:14px 16px}
+  .ask b{font-size:20px}
+  .kw{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .kw span{background:var(--white);border:1px solid var(--blue);color:var(--blue);border-radius:6px;padding:2px 10px;font-weight:700}
+  details{border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:var(--white)}
+  details+details{margin-top:10px}
+  summary{cursor:pointer;font-weight:700;font-size:18px}
+  details p{margin:8px 0 0}
+  details p b{color:var(--burnt)}
+  .note{font-size:14px;color:var(--sub)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>肺呼吸と細胞の呼吸</h1>
+    <p class="lead">吸いこんだ酸素は、どうやって全身の細胞まで届き、何に使われるのだろう？　<b>酸素（白）・二酸化炭素（灰）・養分（黄）</b>の動きを追ってみよう。</p>
+  </header>
+
+  <div class="stage">
+    <svg id="svg" viewBox="0 0 1000 640" role="img" aria-label="肺胞で酸素が血液にとりこまれ、動脈血で全身の細胞に運ばれ、細胞の呼吸で二酸化炭素ができ、静脈血で肺にもどって体の外に出される流れ">
+      <defs>
+        <linearGradient id="gLung" gradientUnits="userSpaceOnUse" x1="150" y1="0" x2="320" y2="0"><stop offset="0" stop-color="#3F6FB5"/><stop offset="1" stop-color="#D64541"/></linearGradient>
+        <linearGradient id="gCell" gradientUnits="userSpaceOnUse" x1="840" y1="0" x2="580" y2="0"><stop offset="0" stop-color="#D64541"/><stop offset="1" stop-color="#3F6FB5"/></linearGradient>
+        <radialGradient id="gAlv" cx=".45" cy=".4" r=".7"><stop offset="0" stop-color="#FFF4F0"/><stop offset="1" stop-color="#F6C9BC"/></radialGradient>
+      </defs>
+
+      <!-- 強調枠（ステップ表示） -->
+      <rect id="halo" rx="18" fill="#FF9900" fill-opacity=".14" stroke="#FF9900" stroke-width="3" stroke-dasharray="10 7" opacity="0"/>
+
+      <!-- 気道 -->
+      <path d="M230,0 L230,118" stroke="#B8C2CF" stroke-width="34" stroke-linecap="round" fill="none"/>
+      <path d="M230,0 L230,118" stroke="#E4E9EF" stroke-width="22" fill="none"/>
+      <text x="252" y="30" font-size="18" font-weight="700" fill="#1A2B4C">鼻・口 → 気管 → 気管支</text>
+
+      <!-- 肺胞 -->
+      <circle id="alv" cx="230" cy="196" r="82" fill="url(#gAlv)" stroke="#C98572" stroke-width="3"/>
+      <text x="318" y="150" font-size="20" font-weight="700" fill="#1A2B4C">肺胞</text>
+
+      <!-- 血管のループ -->
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M330,300 L860,300 L860,470" stroke="#D64541" stroke-width="30"/>
+        <path d="M560,470 L130,470 L130,300" stroke="#3F6FB5" stroke-width="30"/>
+        <path d="M130,300 L330,300" stroke="url(#gLung)" stroke-width="30"/>
+        <path d="M860,470 L560,470" stroke="url(#gCell)" stroke-width="30"/>
+      </g>
+      <g fill="#FFFFFF" opacity=".5">
+        <path d="M600,290 l18,10 l-18,10z"/><path d="M780,290 l18,10 l-18,10z"/>
+        <path d="M850,380 l10,18 l10,-18z"/>
+        <path d="M430,460 l-18,10 l18,10z"/><path d="M260,460 l-18,10 l18,10z"/>
+        <path d="M120,400 l10,-18 l10,18z"/>
+      </g>
+      <text x="152" y="345" font-size="16" fill="#5A6577">肺胞のまわりの毛細血管</text>
+      <text x="640" y="444" font-size="16" fill="#5A6577" id="capLbl">全身の毛細血管</text>
+
+      <!-- 血液のラベル -->
+      <g font-size="19" font-weight="700">
+        <rect x="470" y="252" width="236" height="32" rx="16" fill="#FFFFFF" stroke="#D64541" stroke-width="2.5"/>
+        <text x="588" y="274" text-anchor="middle" fill="#B3332F">動脈血（酸素が多い）</text>
+        <rect x="236" y="494" width="282" height="32" rx="16" fill="#FFFFFF" stroke="#3F6FB5" stroke-width="2.5"/>
+        <text x="377" y="516" text-anchor="middle" fill="#2F5A99">静脈血（二酸化炭素が多い）</text>
+      </g>
+
+      <!-- 小腸からの養分 -->
+      <rect x="640" y="176" width="200" height="48" rx="10" fill="#FFF1C2" stroke="#B8860B" stroke-width="2"/>
+      <text x="740" y="206" text-anchor="middle" font-size="17" font-weight="700" fill="#1A2B4C">小腸で吸収した養分</text>
+      <path d="M740,224 L740,284" stroke="#B8860B" stroke-width="2" stroke-dasharray="5 5"/>
+
+      <!-- 細胞 -->
+      <g id="cells"></g>
+
+      <!-- 見出しバッジ -->
+      <g font-size="20" font-weight="700">
+        <rect x="36" y="150" width="96" height="36" rx="18" fill="#1A2B4C"/><text x="84" y="175" text-anchor="middle" fill="#FFFFFF">肺呼吸</text>
+        <rect x="870" y="584" width="118" height="36" rx="18" fill="#1A2B4C"/><text x="929" y="609" text-anchor="middle" fill="#FFFFFF">細胞の呼吸</text>
+      </g>
+
+      <!-- 粒 -->
+      <g id="tokens"></g>
+      <g id="fx"></g>
+
+      <!-- 凡例 -->
+      <g font-size="16" fill="#1A2B4C" transform="translate(40,590)">
+        <circle cx="10" cy="0" r="9" fill="#FFFFFF" stroke="#2E6FB7" stroke-width="3"/><text x="26" y="6">酸素</text>
+        <circle cx="96" cy="0" r="9" fill="#8C96A5" stroke="#5A6577" stroke-width="2"/><text x="112" y="6">二酸化炭素</text>
+        <circle cx="228" cy="0" r="9" fill="#F2B705" stroke="#B8860B" stroke-width="2"/><text x="244" y="6">養分</text>
+        <path d="M312,-10 l5,7 8,0 -6,5 2,8 -9,-5 -9,5 2,-8 -6,-5 8,0z" fill="#FF9900"/><text x="332" y="6">エネルギー</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="bar" role="group" aria-label="見る場面">
+    <button type="button" class="step" data-s="0" aria-pressed="true">全体</button>
+    <button type="button" class="step" data-s="1" aria-pressed="false">① 肺でとり入れる</button>
+    <button type="button" class="step" data-s="2" aria-pressed="false">② 動脈血で運ぶ</button>
+    <button type="button" class="step" data-s="3" aria-pressed="false">③ 細胞の呼吸</button>
+    <button type="button" class="step" data-s="4" aria-pressed="false">④ 静脈血でもどる</button>
+    <button type="button" class="step" data-s="5" aria-pressed="false">⑤ 肺から出す</button>
+    <button type="button" class="btn" id="play">⏸ 止める</button>
+    <label class="speed" for="spd">速さ <input type="range" id="spd" min="0.4" max="2" step="0.1" value="1"></label>
+  </div>
+
+  <div class="explain" aria-live="polite">
+    <span class="tag" id="exTag">全体</span>
+    <p id="exText"></p>
+  </div>
+
+  <div class="ask">
+    <b>問い　細胞の呼吸に使う酸素は、どうやって体にとり入れられ、全身の細胞に届けられるのだろう？</b>
+    <div class="kw">使うことば：<span>肺呼吸</span><span>動脈血</span><span>静脈血</span></div>
+  </div>
+
+  <section class="grid2">
+    <div class="panel">
+      <h2>細胞の呼吸</h2>
+      <div class="formula">
+        <span class="chip food">養分</span>＋<span class="chip o2">酸素</span>→<span class="chip en">エネルギー</span>＋<span class="chip co2">二酸化炭素</span>＋<span class="chip">水</span>
+      </div>
+      <p style="margin:0">走る、考える、体温を保つ。こうした活動に使うエネルギーは、全身の細胞が養分と酸素からとり出している。</p>
+      <p class="note">車のエンジンが、燃料を酸素で燃やして動く力をとり出し、二酸化炭素などを出すのと似ている。</p>
+    </div>
+    <div class="panel">
+      <h2>肺呼吸と細胞の呼吸をくらべよう</h2>
+      <div class="tw">
+        <table>
+          <thead><tr><th></th><th>肺呼吸</th><th>細胞の呼吸</th></tr></thead>
+          <tbody>
+            <tr><th>場所</th><td>肺の肺胞</td><td>全身の細胞</td></tr>
+            <tr><th>酸素</th><td>肺胞から血液へ、とりこまれる</td><td>血液から細胞へ、届いて使われる</td></tr>
+            <tr><th>二酸化炭素</th><td>血液から肺胞へわたされ、体の外へ</td><td>細胞でできて、血液へ出される</td></tr>
+            <tr><th>共通点</th><td colspan="2">どちらも、酸素をとり入れて二酸化炭素を出している</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>たしかめ問題（タップで答え）</h2>
+    <details><summary>Q1　動脈血と静脈血は、それぞれどんな血液？</summary>
+      <p>動脈血は<b>酸素を多くふくみ、二酸化炭素が少ない</b>血液。静脈血は<b>酸素が少なく、二酸化炭素を多くふくむ</b>血液。</p></details>
+    <details><summary>Q2　肺を通ると、静脈血はどう変わる？　それはなぜ？</summary>
+      <p><b>動脈血に変わる。</b>肺胞で酸素を受けとり、二酸化炭素を肺胞にわたすから。</p></details>
+    <details><summary>Q3　はく息で二酸化炭素がふえているのは、どこでできた二酸化炭素？</summary>
+      <p><b>全身の細胞</b>で、細胞の呼吸によってできた二酸化炭素。静脈血で肺まで運ばれ、はく息で出される。</p></details>
+    <details><summary>Q4　細胞の呼吸で、細胞は何から何をとり出している？</summary>
+      <p><b>養分と酸素から、エネルギー</b>をとり出している。このとき二酸化炭素と水ができる。</p></details>
+    <details><summary>Q5　肺呼吸と細胞の呼吸の共通点は？</summary>
+      <p>どちらも<b>酸素をとり入れ、二酸化炭素を出す</b>はたらきであること。</p></details>
+  </section>
+</div>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const $ = id => document.getElementById(id);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const CELLS = [800, 690, 580];
+
+  // 細胞を描く
+  let cg = "";
+  CELLS.forEach((x, i) => {
+    cg += `<rect x="${x - 46}" y="516" width="92" height="74" rx="18" fill="#FCE7E2" stroke="#C98572" stroke-width="2.5"/>` +
+          `<circle cx="${x - 18}" cy="560" r="12" fill="#B78C86"/>` +
+          `<g id="burst${i}" opacity="0" transform="translate(${x + 14},548)">` +
+          `<path d="M0,-22 L6,-7 22,-7 9,3 14,19 0,9 -14,19 -9,3 -22,-7 -6,-7Z" fill="#FF9900" stroke="#E55A00" stroke-width="1.5"/></g>`;
+  });
+  cg += `<text x="690" y="630" text-anchor="middle" font-size="16" fill="#5A6577">全身の細胞</text>`;
+  $("cells").innerHTML = cg;
+
+  // 道すじ（折れ線）
+  const up = (x, y) => [x, y];
+  const routes = {
+    o2: i => [up(222, -12), up(222, 120), up(212, 200), up(240, 296), up(330, 294), up(854, 294), up(854, 464), up(CELLS[i] + 6, 464), up(CELLS[i] + 6, 548)],
+    co2: i => [up(CELLS[i] - 26, 548), up(CELLS[i] - 26, 476), up(556, 476), up(136, 476), up(136, 306), up(190, 306), up(236, 214), up(238, 120), up(238, -12)],
+    food: i => [up(740, 230), up(740, 306), up(866, 306), up(866, 476), up(CELLS[i] + 30, 476), up(CELLS[i] + 30, 548)]
+  };
+  const build = pts => {
+    const seg = []; let L = 0;
+    for (let k = 1; k < pts.length; k++) { const d = Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]); seg.push(d); L += d; }
+    return { pts, seg, L };
+  };
+  const at = (r, s) => {
+    let k = 0;
+    while (k < r.seg.length && s > r.seg[k]) { s -= r.seg[k]; k++; }
+    if (k >= r.seg.length) return r.pts[r.pts.length - 1];
+    const a = r.pts[k], b = r.pts[k + 1], f = s / r.seg[k];
+    return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
+  };
+  const STYLE = {
+    o2: { fill: "#FFFFFF", stroke: "#2E6FB7", sw: 3 },
+    co2: { fill: "#8C96A5", stroke: "#5A6577", sw: 2 },
+    food: { fill: "#F2B705", stroke: "#B8860B", sw: 2 }
+  };
+
+  const tokG = $("tokens");
+  let toks = [];
+  const spawn = (kind, i) => {
+    const el = document.createElementNS(NS, "circle");
+    const st = STYLE[kind];
+    el.setAttribute("r", 9); el.setAttribute("fill", st.fill); el.setAttribute("stroke", st.stroke); el.setAttribute("stroke-width", st.sw);
+    tokG.appendChild(el);
+    toks.push({ kind, i, r: build(routes[kind](i)), s: 0, el });
+  };
+
+  const bursts = [0, 0, 0];
+  let t = 0, last = null, playing = !reduce, speed = 1;
+  const timers = { o2: 0, co2: 0.6, food: 0.3 };
+  const period = { o2: 1.3, co2: 1.3, food: 2.2 };
+  const idx = { o2: 0, co2: 0, food: 0 };
+  const SPD = 120;   // px/秒
+
+  function step(dt) {
+    t += dt;
+    for (const k of Object.keys(timers)) {
+      timers[k] -= dt;
+      if (timers[k] <= 0) { timers[k] += period[k]; spawn(k, idx[k] % 3); idx[k]++; }
+    }
+    toks = toks.filter(o => {
+      o.s += SPD * dt;
+      if (o.s >= o.r.L) {
+        if (o.kind === "o2") bursts[o.i] = 1;
+        o.el.remove(); return false;
+      }
+      const [x, y] = at(o.r, o.s);
+      o.el.setAttribute("cx", x.toFixed(1)); o.el.setAttribute("cy", y.toFixed(1));
+      // 肺胞・細胞に入る直前でうすくする
+      const rem = o.r.L - o.s;
+      o.el.setAttribute("opacity", rem < 24 ? (rem / 24).toFixed(2) : o.s < 16 ? (o.s / 16).toFixed(2) : 1);
+      return true;
+    });
+    bursts.forEach((b, i) => {
+      const g = $("burst" + i);
+      if (b > 0) {
+        bursts[i] = Math.max(0, b - dt * 1.4);
+        const sc = 0.6 + 0.8 * (1 - bursts[i]);
+        g.setAttribute("opacity", bursts[i].toFixed(2));
+        g.setAttribute("transform", `translate(${CELLS[i] + 14},548) scale(${sc.toFixed(2)})`);
+      } else g.setAttribute("opacity", 0);
+    });
+    // 肺胞の呼吸（ふくらむ・しぼむ）
+    $("alv").setAttribute("r", (82 + 7 * Math.sin(t * 1.3)).toFixed(1));
+  }
+
+  // 静止時も粒が並んで見えるように、最初に進めておく
+  for (let k = 0; k < 360; k++) step(1 / 30);
+
+  function loop(ts) {
+    if (playing) {
+      const dt = last === null ? 0 : Math.min(0.05, (ts - last) / 1000) * speed;
+      last = ts; step(dt);
+    } else last = null;
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // 場面の説明
+  const S = [
+    { tag: "全体", box: null,
+      text: "酸素は肺でとり入れられ、血液で全身の細胞へ。細胞でできた二酸化炭素は、血液で肺にもどり、体の外へ出される。<small>ボタンで ①〜⑤ の場面を順に見てみよう。</small>" },
+    { tag: "① 肺呼吸", box: [120, 90, 250, 240],
+      text: "吸った空気の酸素の一部が、肺胞から、まわりの毛細血管の血液にとりこまれる。<small>肺胞は小さなふくろがたくさんあるので、空気にふれる面積が大きい。</small>" },
+    { tag: "② 動脈血", box: [320, 240, 580, 270],
+      text: "酸素を多くふくむ血液（動脈血）が、全身の細胞へ酸素を運ぶ。小腸で吸収した養分もいっしょに運ばれる。" },
+    { tag: "③ 細胞の呼吸", box: [520, 444, 360, 160],
+      text: "細胞は、届いた養分と酸素から、生きるためのエネルギーをとり出す。このとき二酸化炭素（と水）ができる。" },
+    { tag: "④ 静脈血", box: [100, 446, 470, 90],
+      text: "二酸化炭素を多くふくむ血液（静脈血）が、肺へもどっていく。" },
+    { tag: "⑤ 肺呼吸", box: [100, 0, 290, 340],
+      text: "二酸化炭素は毛細血管から肺胞へわたされ、はく息といっしょに体の外へ出される。<small>だから、はく息は吸う息より二酸化炭素が多く、酸素が少ない。</small>" }
+  ];
+  const halo = $("halo");
+  function show(k) {
+    document.querySelectorAll(".step").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.s === k)));
+    $("exTag").textContent = S[k].tag;
+    $("exText").innerHTML = S[k].text;
+    const b = S[k].box;
+    if (b) { halo.setAttribute("x", b[0]); halo.setAttribute("y", b[1]); halo.setAttribute("width", b[2]); halo.setAttribute("height", b[3]); halo.setAttribute("opacity", 1); }
+    else halo.setAttribute("opacity", 0);
+  }
+  document.querySelectorAll(".step").forEach(b => b.addEventListener("click", () => show(+b.dataset.s)));
+  show(0);
+
+  const playBtn = $("play");
+  const setPlay = p => { playing = p; playBtn.textContent = p ? "⏸ 止める" : "▶ 動かす"; };
+  playBtn.addEventListener("click", () => setPlay(!playing));
+  $("spd").addEventListener("input", e => { speed = +e.target.value; });
+  setPlay(playing);
+})();
+</script>
+
+</body></html>

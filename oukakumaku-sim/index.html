@@ -1,0 +1,396 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>横隔膜と肺の動き</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+  :root{
+    --paper:#FAF8F3; --ink:#1A2B4C; --blue:#2E6FB7; --card:#E6EEF7; --marker:#FF9900;
+    --burnt:#E55A00; --sub:#5A6577; --line:#DAD5C9; --skin:#F1ECE2; --lung:#F4C7B8; --lungline:#C98572;
+    --rib:#A9B3C2; --white:#FFFFFF;
+    color-scheme:light;
+  }
+  html,body{background:var(--paper);color:var(--ink)}
+  body{font-family:"BIZ UDPGothic","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;font-size:17px;line-height:1.6;padding-inline:16px;padding-block:20px 40px}
+  .wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+  h1{font-size:30px;margin:0;color:var(--blue);text-wrap:balance}
+  .lead{margin:4px 0 0;color:var(--sub)}
+  h2{font-size:22px;margin:0 0 12px;color:var(--blue)}
+
+  .main{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:24px;align-items:start}
+  @media (max-width:880px){.main{grid-template-columns:1fr}}
+  .figure{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:8px}
+  .figure svg{display:block;width:100%;height:auto}
+  .side{display:flex;flex-direction:column;gap:16px}
+
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tab{flex:1 1 140px;font:inherit;font-size:20px;font-weight:700;padding:12px 10px;border-radius:10px;border:2px solid var(--blue);background:var(--white);color:var(--blue);cursor:pointer}
+  .tab[aria-pressed="true"]{background:var(--blue);color:var(--white)}
+  .tab:focus-visible,.btn:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--marker);outline-offset:2px}
+
+  .ctrl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .btn{font:inherit;font-weight:700;font-size:16px;padding:9px 16px;border-radius:9px;border:1px solid var(--line);background:var(--white);color:var(--ink);cursor:pointer}
+  .btn:hover{border-color:var(--ink)}
+  .slider{flex:1 1 220px;display:flex;align-items:center;gap:8px;font-size:15px;color:var(--sub)}
+  .slider input{flex:1;accent-color:var(--blue)}
+
+  .phase{display:flex;align-items:baseline;gap:10px}
+  .phase b{font-size:28px}
+  .phase span{color:var(--sub);font-size:15px}
+
+  .gauge{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+  .gauge span:last-child{font-weight:400;color:var(--sub);font-size:14px}
+  .gbar{flex:1;height:22px;background:var(--white);border:2px solid var(--lungline);border-radius:11px;overflow:hidden}
+  .gbar i{display:block;height:100%;width:18%;background:var(--lung)}
+  .chain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .chain li{display:flex;gap:10px;align-items:flex-start;background:var(--card);border-radius:10px;padding:10px 12px;font-size:19px;font-weight:700;transition:background .3s}
+  .chain li i{font-style:normal;flex:none;width:30px;height:30px;border-radius:50%;background:var(--blue);color:var(--white);display:grid;place-items:center;font-size:16px}
+  .chain li.cause{background:var(--white);border:2px solid var(--marker)}
+  .chain .arrow{align-self:center;color:var(--sub);font-size:14px;background:none;padding:0}
+
+  .key{background:var(--white);border:2px solid var(--blue);border-radius:12px;padding:12px 14px}
+  .key b{color:var(--blue)}
+
+  .body-side{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:center;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .body-side svg{width:100%;height:auto}
+  .body-side p{margin:0;font-size:18px}
+
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+  .panel{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px}
+  table{width:100%;border-collapse:collapse;font-size:17px}
+  th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+  thead th{background:var(--card);color:var(--ink)}
+  tbody th{background:#F4F2EC;width:30%}
+  .tw{overflow-x:auto}
+  ol.try{margin:0;padding-left:1.4em}
+  ol.try li{margin-bottom:6px}
+  .map{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:0}
+  .map dt{font-weight:700}
+  .map dd{margin:0}
+  details{border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:var(--white)}
+  details+details{margin-top:10px}
+  summary{cursor:pointer;font-weight:700;font-size:18px}
+  details p{margin:8px 0 0}
+  details p b{color:var(--burnt)}
+  .note{font-size:14px;color:var(--sub)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>横隔膜と肺の動き</h1>
+    <p class="lead">肺は、自分の力ではふくらめない。まわりのどこが動くと、空気が入るのだろう？</p>
+  </header>
+
+  <section class="main" aria-label="呼吸のしくみシミュレーター">
+    <div class="figure">
+      <svg id="fig" viewBox="0 0 560 560" role="img" aria-label="正面から見た胸の中。ろっ骨、肺、横隔膜が呼吸に合わせて動く">
+        <path d="M228,6 L228,58 C150,66 90,96 80,150 L80,556 L440,556 L440,150 C430,96 370,66 292,58 L292,6" fill="#F1ECE2" stroke="#1A2B4C" stroke-width="3"/>
+        <g id="ribsBack"></g>
+        <path id="lungL" fill="#F4C7B8" stroke="#C98572" stroke-width="3"/>
+        <path id="lungR" fill="#F4C7B8" stroke="#C98572" stroke-width="3"/>
+        <path id="ghostL" fill="none" stroke="#1A2B4C" stroke-width="2" stroke-dasharray="7 6" opacity=".55"/>
+        <path id="ghostR" fill="none" stroke="#1A2B4C" stroke-width="2" stroke-dasharray="7 6" opacity=".55"/>
+        <g fill="none" stroke-linecap="round">
+          <path d="M260,4 L260,176" stroke="#9AA7B8" stroke-width="18"/>
+          <path d="M260,176 Q236,184 214,214 M260,176 Q284,184 306,214" stroke="#9AA7B8" stroke-width="12"/>
+          <path d="M260,4 L260,176" stroke="#DDE3EB" stroke-width="8"/>
+        </g>
+        <g id="ribs"></g>
+        <path id="dia" fill="none" stroke-linecap="round"/>
+        <g id="diaArrow"></g>
+        <g id="ribArrows"></g>
+        <g id="air"></g>
+        <g font-size="15" fill="#5A6577"><line x1="20" y1="540" x2="58" y2="540" stroke="#1A2B4C" stroke-width="2" stroke-dasharray="7 6" opacity=".55"/><text x="64" y="545">はききったときの肺</text></g>
+        <g font-size="19" font-weight="700" fill="#1A2B4C">
+          <text x="276" y="30">気管</text>
+          <g id="lblRib"><line id="lnRib" stroke="#5A6577" stroke-width="1.5"/><text id="txRib" x="452" y="178">ろっ骨</text></g>
+          <g><line id="lnLung" stroke="#5A6577" stroke-width="1.5"/><text x="452" y="300">肺</text></g>
+          <g><line id="lnDia" stroke="#5A6577" stroke-width="1.5"/><text id="txDia" x="452" y="470">横隔膜</text></g>
+        </g>
+      </svg>
+    </div>
+
+    <div class="side">
+      <div class="tabs" role="group" aria-label="呼吸のしかた">
+        <button type="button" class="tab" id="tFuku" aria-pressed="true">腹式呼吸</button>
+        <button type="button" class="tab" id="tKyo" aria-pressed="false">胸式呼吸</button>
+      </div>
+
+      <div class="ctrl">
+        <button type="button" class="btn" id="play">⏸ 止める</button>
+        <label class="slider" for="b">はく
+          <input type="range" id="b" min="0" max="100" value="0" aria-label="息の量（左ではききって、右で吸いきる）">
+          吸う</label>
+      </div>
+
+      <div class="phase" aria-live="polite"><b id="phase">吸っている</b><span id="modeName">腹式呼吸：おもに横隔膜で</span></div>
+
+      <div class="gauge"><span>肺の大きさ</span><div class="gbar"><i id="gauge"></i></div><span>小 → 大</span></div>
+
+      <ol class="chain" id="chain">
+        <li class="cause"><i>1</i><span></span></li>
+        <li class="arrow" aria-hidden="true">↓</li>
+        <li><i>2</i><span></span></li>
+        <li class="arrow" aria-hidden="true">↓</li>
+        <li><i>3</i><span></span></li>
+      </ol>
+
+      <div class="body-side">
+        <svg viewBox="0 0 230 400" role="img" aria-label="横から見た体。胸とお腹のふくらみ方">
+          <path id="silh" fill="#F1ECE2" stroke="#1A2B4C" stroke-width="3"/>
+          <g font-size="20" font-weight="700" fill="#1A2B4C">
+            <text x="52" y="140">胸</text>
+            <text x="46" y="290">お腹</text>
+          </g>
+          <g id="bulge"></g>
+        </svg>
+        <p id="sideText">横から見ると、<b>お腹</b>が前にふくらむ。</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="key"><b>ポイント</b>　肺には筋肉がない。横隔膜やろっ骨が動いて<b>胸の中の空間が広がる</b>から、肺がふくらんで空気が入る。</div>
+
+  <section class="grid2">
+    <div class="panel">
+      <h2>腹式呼吸と胸式呼吸のちがい</h2>
+      <div class="tw">
+        <table>
+          <thead><tr><th></th><th>腹式呼吸</th><th>胸式呼吸</th></tr></thead>
+          <tbody>
+            <tr><th>おもに動くもの</th><td>横隔膜</td><td>ろっ骨と、ろっ骨の間の筋肉</td></tr>
+            <tr><th>吸うとき</th><td>横隔膜が縮んで下がる</td><td>ろっ骨が引き上げられ、胸が前・横に広がる</td></tr>
+            <tr><th>ふくらんで見える所</th><td>お腹</td><td>胸</td></tr>
+            <tr><th>どちらも同じ</th><td colspan="2">胸の中の空間が広がる → 肺がふくらむ → 空気が入る</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">ふだんの呼吸では、横隔膜とろっ骨の両方を使っている。あお向けにねているときは腹式呼吸になりやすい。</p>
+    </div>
+
+    <div class="panel">
+      <h2>自分の体でたしかめよう</h2>
+      <ol class="try">
+        <li>片手をお腹に、もう片方の手を胸に当てる。</li>
+        <li>お腹をふくらませるように、ゆっくり吸ってはく。どちらの手が動いた？</li>
+        <li>次に、胸を持ち上げるように吸ってはく。今度はどちらが動いた？</li>
+        <li>上の図で「腹式」「胸式」を切りかえて、自分の動きとくらべる。</li>
+      </ol>
+      <h2 style="margin-top:18px">ゴム膜モデルでいうと</h2>
+      <dl class="map">
+        <dt>ペットボトル</dt><dd>胸のかべ（ろっ骨）</dd>
+        <dt>ゴム風船</dt><dd>肺</dd>
+        <dt>ゴム膜</dt><dd>横隔膜</dd>
+        <dt>ストロー</dt><dd>気管</dd>
+      </dl>
+      <p class="note">ゴム膜を下に引くと風船がふくらむ ＝ 横隔膜が下がって息を吸うとき。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>たしかめ問題（タップで答え）</h2>
+    <details><summary>Q1　肺は、自分の筋肉でふくらんだり、しぼんだりしている？</summary>
+      <p><b>いいえ。</b>肺には筋肉がない。横隔膜やろっ骨が動いて胸の中の空間が広がったり、せまくなったりするので、肺がふくらんだり、しぼんだりする。</p></details>
+    <details><summary>Q2　息を吸うとき、横隔膜は上がる？下がる？</summary>
+      <p><b>下がる。</b>横隔膜が縮むと、ドームのような形が平らになって下がる。はくときはゆるんで上がる。</p></details>
+    <details><summary>Q3　腹式呼吸で、胸ではなくお腹がふくらんで見えるのはなぜ？</summary>
+      <p>横隔膜が下がって、<b>お腹の中のもの（内臓）を下や前に押す</b>から。</p></details>
+    <details><summary>Q4　ろっ骨が下がって胸の中がせまくなると、空気はどうなる？</summary>
+      <p>肺がしぼんで、空気が<b>外に出ていく</b>（息をはく）。</p></details>
+  </section>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const CX = 260;
+  const MODES = {
+    fuku: { d: 1.0, r: 0.15, label: "腹式呼吸：おもに横隔膜で",
+      in:  ["横隔膜が縮んで、下がる", "胸の中の空間が広がる", "肺がふくらみ、空気が入る"],
+      out: ["横隔膜がゆるんで、上がる", "胸の中の空間がせまくなる", "肺がしぼみ、空気が出ていく"],
+      side: "横から見ると、<b>お腹</b>が前にふくらむ。" },
+    kyo:  { d: 0.2, r: 1.0, label: "胸式呼吸：おもにろっ骨で",
+      in:  ["ろっ骨が引き上げられ、胸が前・横に広がる", "胸の中の空間が広がる", "肺がふくらみ、空気が入る"],
+      out: ["ろっ骨が下がって、もとにもどる", "胸の中の空間がせまくなる", "肺がしぼみ、空気が出ていく"],
+      side: "横から見ると、<b>胸</b>が前に持ち上がる。" }
+  };
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let mode = "fuku", auto = !reduce, b = reduce ? 0.5 : 0, prevB = b, t0 = performance.now(), lastDir = 1, stillFor = 0;
+
+  const clamp = (v, a, z) => Math.max(a, Math.min(z, v));
+  function smooth(pts) {            // Catmull-Rom → ベジェ（閉じた形）
+    const n = pts.length; let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+    for (let i = 0; i < n; i++) {
+      const p0 = pts[(i - 1 + n) % n], p1 = pts[i], p2 = pts[(i + 1) % n], p3 = pts[(i + 2) % n];
+      const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
+      const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
+      d += ` C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+    }
+    return d + "Z";
+  }
+  const arrow = (x, y, dx, dy, color, w = 5) => {
+    const L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, h = 12;
+    const ex = x + dx, ey = y + dy;
+    return `<path d="M${x},${y} L${ex},${ey}" stroke="${color}" stroke-width="${w}" stroke-linecap="round"/>` +
+      `<path d="M${ex + ux * 4},${ey + uy * 4} L${ex - ux * h - uy * h * .7},${ey - uy * h + ux * h * .7} L${ex - ux * h + uy * h * .7},${ey - uy * h - ux * h * .7}Z" fill="${color}"/>`;
+  };
+
+
+  // 呼吸の段階 bb（0＝はききった／1＝吸いきった）での形
+  function geo(m, bb) {
+    const r = m.r * bb, dd = m.d * bb;
+    const W = 146 + 34 * r;                        // 胸の半分の幅
+    const lift = 22 * r;                           // ろっ骨の持ち上がり
+    const hw = y => W * (0.5 + 0.5 * clamp((y - 100) / 170, 0, 1));
+    const hb = hw(440);
+    const side = 440 + 34 * dd - lift * 0.4;       // 横隔膜のふち
+    const dome = 118 - 96 * dd;                    // ドームの高さ（吸うと平らに）
+    const D = x => side - dome * (1 - Math.pow((x - CX) / hb, 2));
+    return { r, dd, lift, hw, D, hb, bb };
+  }
+  function lungPath(s, g) {
+    const { hw, D, lift, bb } = g;
+    const GAP = 20;                                // 横隔膜とのすき間
+    const shrink = 11 * (1 - bb);                  // はくと肺が内側に小さくなる
+    const inner = CX + s * 16;
+    const pts = [[CX + s * (50 + shrink * 0.3), 104 - lift * 0.8 + shrink * 0.8]];
+    const xo = CX + s * (hw(400) - 30 - shrink);
+    const yBottomOuter = D(xo) - GAP - 10;
+    for (const y of [132, 180, 230, 280, 330, 380]) {
+      const x = CX + s * (hw(y) - 24 - shrink);
+      if (y < yBottomOuter - 18) pts.push([x, y]);
+    }
+    pts.push([xo, yBottomOuter]);
+    for (let k = 1; k <= 4; k++) {
+      const x = xo + (inner + s * 16 - xo) * (k / 4);
+      pts.push([x, D(x) - GAP]);
+    }
+    const yi = D(inner) - GAP;
+    pts.push([inner + s * 8, yi - 28]);
+    pts.push([inner + s * 14, 250]);
+    pts.push([inner + s * 20, 200]);
+    pts.push([inner + s * 32, 140]);
+    return s < 0 ? smooth(pts) : smooth(pts.reverse());
+  }
+
+  function render(dir) {
+    const m = MODES[mode];
+    const G = geo(m, b), { r, dd, lift, hw, D, hb } = G;
+
+    // ろっ骨
+    const ribHi = m.r > 0.5 && dir > 0.0005, ribCol = ribHi ? "#E55A00" : "#A9B3C2";
+    let ribs = "";
+    for (let i = 0; i < 6; i++) {
+      const y0 = 150 + i * 46 - lift * (1 - i / 7);
+      const h = hw(y0 + 24);
+      for (const s of [-1, 1]) {
+        ribs += `<path d="M${CX + s * 14},${y0} Q${CX + s * h * 0.75},${y0 - 10} ${CX + s * (h - 4)},${y0 + 36}" fill="none" stroke="${ribCol}" stroke-width="${ribHi ? 8 : 7}" stroke-linecap="round" opacity=".9"/>`;
+      }
+    }
+    $("ribs").innerHTML = ribs;
+
+    // 肺（左右）… いまの形と、はききったときの形（点線）
+    const G0 = geo(m, 0);
+    $("lungL").setAttribute("d", lungPath(-1, G));
+    $("lungR").setAttribute("d", lungPath(1, G));
+    $("ghostL").setAttribute("d", lungPath(-1, G0));
+    $("ghostR").setAttribute("d", lungPath(1, G0));
+    const sat = 0.55 + 0.45 * b;
+    $("lungL").setAttribute("fill-opacity", sat.toFixed(2));
+    $("lungR").setAttribute("fill-opacity", sat.toFixed(2));
+    $("gauge").style.width = (18 + 82 * b).toFixed(1) + "%";
+
+    // 横隔膜
+    let dp = "";
+    for (let k = 0; k <= 30; k++) {
+      const x = CX - hb + 6 + (2 * hb - 12) * (k / 30);
+      dp += (k ? " L" : "M") + x.toFixed(1) + "," + D(x).toFixed(1);
+    }
+    const diaHi = m.d > 0.5 && dir > 0.0005;
+    const dia = $("dia");
+    dia.setAttribute("d", dp);
+    dia.setAttribute("stroke", diaHi ? "#E55A00" : "#C0504D");
+    dia.setAttribute("stroke-width", m.d > 0.5 ? 12 : 9);
+
+    // 動きの矢印
+    const moving = Math.abs(dir) > 0.0005;
+    const sgn = dir > 0 ? 1 : -1;
+    $("diaArrow").innerHTML = moving && m.d > 0.5 ? arrow(CX, D(CX) + (sgn > 0 ? 18 : 52), 0, sgn * 34, "#E55A00") : "";
+    let ra = "";
+    if (moving && m.r > 0.5) {
+      const y = 250 - lift * 0.5;
+      ra += arrow(CX - hw(y) - 6, y, -sgn * 30, -sgn * 14, "#E55A00");
+      ra += arrow(CX + hw(y) + 6, y, sgn * 30, -sgn * 14, "#E55A00");
+    }
+    $("ribArrows").innerHTML = ra;
+
+    // 空気の出入り
+    $("air").innerHTML = moving
+      ? (sgn > 0 ? arrow(214, 8, 0, 56, "#2E6FB7", 6) + `<text x="120" y="46" font-size="18" font-weight="700" fill="#2E6FB7">空気が入る</text>`
+                 : arrow(214, 64, 0, -56, "#2E6FB7", 6) + `<text x="120" y="46" font-size="18" font-weight="700" fill="#2E6FB7">空気が出る</text>`)
+      : "";
+
+    // ラベルの線
+    const ry = 176 - lift * 0.6;
+    $("lnRib").setAttribute("x1", CX + hw(ry) - 10); $("lnRib").setAttribute("y1", ry + 14);
+    $("lnRib").setAttribute("x2", 448); $("lnRib").setAttribute("y2", 172);
+    $("lnLung").setAttribute("x1", CX + hw(300) - 60); $("lnLung").setAttribute("y1", 300);
+    $("lnLung").setAttribute("x2", 448); $("lnLung").setAttribute("y2", 294);
+    const dx = CX + hb * 0.55;
+    $("lnDia").setAttribute("x1", dx); $("lnDia").setAttribute("y1", D(dx) + 4);
+    $("lnDia").setAttribute("x2", 448); $("lnDia").setAttribute("y2", 464);
+    $("txRib").setAttribute("fill", ribHi ? "#E55A00" : "#1A2B4C");
+    $("txDia").setAttribute("fill", diaHi ? "#E55A00" : "#1A2B4C");
+
+    // 横から見た体
+    const cb = 26 * r, bb = 42 * m.d * b;
+    $("silh").setAttribute("d",
+      `M40,10 L40,392 L128,392 C${134 + bb * .6},360 ${142 + bb},300 ${136 + bb * .8},230 ` +
+      `C${140 + cb * .5},200 ${150 + cb},150 ${140 + cb * .8},90 C${136 + cb * .4},60 118,30 96,10 Z`);
+    $("bulge").innerHTML = moving
+      ? (m.d > 0.5 ? arrow(150 + bb, 290, sgn * 26, 0, "#E55A00", 4) : arrow(158 + cb, 130, sgn * 22, -sgn * 10, "#E55A00", 4))
+      : "";
+
+    // 文字
+    const steps = dir >= 0 ? m.in : m.out;
+    const lis = $("chain").querySelectorAll("li:not(.arrow) span");
+    steps.forEach((s, i) => { if (lis[i].textContent !== s) lis[i].textContent = s; });
+    const ph = !moving ? (auto ? (dir >= 0 ? "吸っている" : "はいている") : "止まっている") : (dir > 0 ? "吸っている" : "はいている");
+    if ($("phase").textContent !== ph) $("phase").textContent = ph;
+    $("modeName").textContent = m.label;
+    $("sideText").innerHTML = m.side;
+  }
+
+  function frame(now) {
+    if (auto) {
+      b = (1 - Math.cos(2 * Math.PI * ((now - t0) / 5200))) / 2;
+      $("b").value = Math.round(b * 100);
+    }
+    let dir = b - prevB;
+    if (Math.abs(dir) > 0.0005) { lastDir = Math.sign(dir); stillFor = 0; }
+    else if (++stillFor < 20) dir = lastDir * 0.001;     // 一瞬止まっても矢印がちらつかない
+    render(dir);
+    prevB = b;
+    requestAnimationFrame(frame);
+  }
+
+  function setMode(k) {
+    mode = k;
+    $("tFuku").setAttribute("aria-pressed", k === "fuku");
+    $("tKyo").setAttribute("aria-pressed", k === "kyo");
+  }
+  $("tFuku").addEventListener("click", () => setMode("fuku"));
+  $("tKyo").addEventListener("click", () => setMode("kyo"));
+  function setAuto(on) {
+    auto = on;
+    if (on) t0 = performance.now() - Math.acos(1 - 2 * b) / (2 * Math.PI) * 5200;
+    $("play").textContent = on ? "⏸ 止める" : "▶ 自動で呼吸";
+  }
+  $("play").addEventListener("click", () => setAuto(!auto));
+  $("b").addEventListener("input", e => { setAuto(false); b = e.target.value / 100; });
+  setAuto(auto);
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body></html>

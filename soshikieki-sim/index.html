@@ -1,0 +1,344 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>組織液シミュレーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+/* 授業プロジェクター用：明るい理科図版。キャンバス中央、下に操作と説明 */
+:root{
+  --bg:#f6f8f7; --panel:#ffffff; --ink:#1d2a2a; --muted:#5d6b6a; --line:#cfd8d6;
+  --accent:#c7362f; --accent-ink:#ffffff; --step:#e9efee;
+  --font:"BIZ UDPGothic","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  color-scheme:light;
+}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--font)}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:14px 28px;display:grid;gap:12px}
+h1{font-size:clamp(20px,3vw,28px);margin:0;text-wrap:balance}
+h1 small{font-size:.55em;color:var(--muted);font-weight:400;margin-left:.6em}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+canvas{display:block;width:100%;height:auto;touch-action:manipulation}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.steps{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;font-size:16px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:10px 14px;cursor:pointer;min-height:44px}
+button:focus-visible{outline:3px solid #3a7bd5;outline-offset:2px}
+button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.spacer{flex:1}
+label.chk{display:flex;align-items:center;gap:6px;font-size:15px}
+label.chk input{width:20px;height:20px}
+.speed{display:flex;align-items:center;gap:6px;font-size:15px}
+.caption{background:var(--step);border-radius:10px;padding:12px 16px;font-size:clamp(16px,2.2vw,20px);line-height:1.6;min-height:3.2em}
+.caption b{color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.25)}
+[hidden]{display:none!important}
+.sw{width:22px;height:12px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.2)}
+</style>
+
+<div class="wrap">
+  <h1>組織液シミュレーター<small>毛細血管と細胞のあいだ</small></h1>
+  <div class="stage"><canvas id="cv" width="1000" height="560" aria-label="毛細血管から液体の血しょうがしみ出して組織液になるようすのアニメーション"></canvas></div>
+  <div class="bar">
+    <div class="steps" role="group" aria-label="ステップ">
+      <button id="s1" data-step="1" aria-pressed="true">① 血液が流れる</button>
+      <button id="s2" data-step="2" aria-pressed="false">② 血しょうがしみ出す</button>
+      <button id="s3" data-step="3" aria-pressed="false">③ 物質の受けわたし</button>
+    </div>
+    <div class="spacer"></div>
+    <button id="play" aria-pressed="false">⏸ 一時停止</button>
+    <label class="speed" for="spd">速さ <input id="spd" type="range" min="0.3" max="2" step="0.1" value="1"></label>
+    <label class="chk" for="lbl"><input id="lbl" type="checkbox" checked> 名まえ</label>
+    <label class="chk" for="exp"><input id="exp" type="checkbox" checked> 説明・凡例</label>
+  </div>
+  <div class="caption" id="cap"></div>
+  <div class="legend" id="legend">
+    <span><i class="dot" style="background:#d6312b"></i>赤血球</span>
+    <span><i class="dot" style="background:#f3f0fa;border-color:#8a7bb8"></i>白血球</span>
+    <span><i class="dot" style="background:#9b6fb0;width:8px;height:8px"></i>血小板</span>
+    <span><i class="sw" style="background:#f3d977"></i>血しょう（液体）・組織液</span>
+    <span><svg width="14" height="14" aria-hidden="true"><circle cx="7" cy="7" r="6" fill="#ff4d6d"/></svg>酸素 ○</span>
+    <span><svg width="14" height="14" aria-hidden="true"><rect x="1.5" y="1.5" width="11" height="11" fill="#3aa655"/></svg>養分 □</span>
+    <span><svg width="14" height="14" aria-hidden="true"><polygon points="7,0.5 13.5,13 0.5,13" fill="#6b7280"/></svg>二酸化炭素 △</span>
+  </div>
+</div>
+
+<script>
+(()=>{
+const W=1000,H=560;
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+function fit(){const r=window.devicePixelRatio||1;const w=cv.clientWidth||W;cv.width=Math.round(w*r);cv.height=Math.round(w*H/W*r);ctx.setTransform(cv.width/W,0,0,cv.height/H,0,0);}
+window.addEventListener('resize',fit);
+
+// ---------- 幾何 ----------
+const VY=H/2, VH=46, WALL=10;               // 血管中心・内側半分の高さ・壁の厚さ
+const topIn=VY-VH, botIn=VY+VH;
+const PORES=[150,270,390,510,630,750,870];   // 壁のすきま
+const PW=14;
+const LEAK_X=W*0.58;                         // これより左（動脈側）でしみ出し、右（静脈側）でもどる
+const ZT=[132, topIn-WALL], ZB=[botIn+WALL, H-132];  // 細胞と血管のあいだ
+const PL='243,217,119';                      // 血しょうの色（RGB）
+const cells=[];
+for(let i=0;i<6;i++){const x=40+i*160;cells.push({x:x,y:22,w:140,h:90,glow:0,top:true});cells.push({x:x+40,y:H-112,w:140,h:90,glow:0,top:false});}
+cells.forEach(c=>{c.nx=c.x+c.w*0.55;c.ny=c.y+c.h*0.5;});
+
+let step=1, running=!reduce, speed=1, labels=true, fluid=0, leak=0, t=0;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const lerp=(a,b,k)=>a+(b-a)*k;
+const clampY=(y,m)=>Math.max(topIn+m,Math.min(botIn-m,y));
+
+// ---------- 血球 ----------
+const rbc=[], wbc=[], plt=[], nut=[], drops=[], movers=[];
+for(let i=0;i<20;i++) rbc.push({x:rnd(0,W),y:rnd(topIn+16,botIn-16),ph:rnd(0,6.28),o2:1});
+for(let i=0;i<3;i++)  wbc.push({x:i*W/3+rnd(0,120),y:rnd(topIn+20,botIn-20),ph:rnd(0,6.28)});
+for(let i=0;i<14;i++) plt.push({x:rnd(0,W),y:rnd(topIn+6,botIn-6),rot:rnd(0,6.28),pts:shard()});
+for(let i=0;i<16;i++) nut.push({x:rnd(0,W),y:rnd(topIn+6,botIn-6)});
+function shard(){const n=5+Math.floor(Math.random()*2),a=[];for(let i=0;i<n;i++){const r=rnd(4.5,7.5);const th=i/n*6.28;a.push([Math.cos(th)*r,Math.sin(th)*r*0.7]);}return a;}
+
+function nearestPore(x,right){let best=PORES[0],d=1e9;for(const p of PORES){const dd=Math.abs(p-x)+(right&&p<x?60:0);if(dd<d){d=dd;best=p;}}return best;}
+function pickCell(top,x){const cs=cells.filter(c=>c.top===top);cs.sort((a,b)=>Math.abs(a.nx-x)-Math.abs(b.nx-x));return cs[Math.floor(Math.random()*Math.min(2,cs.length))];}
+function pathMover(kind,pts,v,onEnd){movers.push({kind,pts,i:0,x:pts[0][0],y:pts[0][1],v,onEnd});}
+function stepMover(m,dt){
+  const tgt=m.pts[m.i+1]; if(!tgt){m.done=true;m.onEnd&&m.onEnd(m);return;}
+  const dx=tgt[0]-m.x,dy=tgt[1]-m.y,d=Math.hypot(dx,dy),s=m.v*dt;
+  if(d<=s){m.x=tgt[0];m.y=tgt[1];m.i++;} else {m.x+=dx/d*s;m.y+=dy/d*s;}
+}
+
+// 液体のしずく（にじみ）：すきまから出て、組織液に広がって溶けこむ
+function addDrop(px,top,out){
+  const dir=top?-1:1;
+  if(out){ // 血管 → 組織液
+    const y0=top?topIn-WALL/2:botIn+WALL/2;
+    drops.push({x:px+rnd(-3,3),y:y0,vx:rnd(-14,14)+12,vy:dir*rnd(22,34),r:rnd(5,7),grow:rnd(9,14),life:0,max:rnd(2.4,3.4)});
+  }else{   // 組織液 → 血管
+    const y0=top?topIn-WALL-rnd(40,70):botIn+WALL+rnd(40,70);
+    drops.push({x:px+rnd(-30,30),y:y0,tx:px,ty:top?topIn+6:botIn-6,r:rnd(9,13),life:0,max:1.8,back:true});
+  }
+}
+
+let spawnO2=0,spawnCO2=0,spawnDrop=0,spawnBack=0,spawnNut=0;
+function update(dt){
+  t+=dt;
+  const on=step>=2;
+  leak=on?Math.min(1,leak+dt*0.8):Math.max(0,leak-dt*1.5);
+  fluid=on?Math.min(1,fluid+dt*0.25):Math.max(0,fluid-dt*0.8);
+  // 血球は液体（血しょう）にのって流れる。血管の外へは出ない
+  for(const r of rbc){
+    r.x+=dt*95; r.ph+=dt*2; r.y=clampY(r.y+Math.sin(r.ph)*0.25,15);
+    if(r.x>W+20){r.x=-20;r.o2=1;r.y=rnd(topIn+16,botIn-16);}
+    if(step<3) r.o2=1;
+  }
+  for(const w of wbc){ // 白血球は大きく、壁ぞいをゆっくり転がる
+    w.x+=dt*55; w.ph+=dt*1.5; w.y=clampY(w.y+Math.sin(w.ph)*0.2,19);
+    if(w.x>W+30){w.x=-30;w.y=Math.random()<0.5?topIn+20:botIn-20;}
+  }
+  for(const p of plt){p.x+=dt*105; p.rot+=dt*1.2; p.y=clampY(p.y+Math.sin(t*3+p.x*0.04)*0.25,6); if(p.x>W+10){p.x=-10;p.y=rnd(topIn+6,botIn-6);}}
+  for(const n of nut){n.x+=dt*110; n.y=clampY(n.y+Math.sin(t*2.5+n.x*0.05)*0.2,5); if(n.x>W+10){n.x=-10;n.y=rnd(topIn+6,botIn-6);}}
+
+  // しみ出し（動脈側）ともどり（静脈側）
+  if(on){
+    spawnDrop-=dt; spawnBack-=dt;
+    if(spawnDrop<=0){spawnDrop=0.08;const ps=PORES.filter(p=>p<LEAK_X);addDrop(ps[Math.floor(Math.random()*ps.length)],Math.random()<0.5,true);}
+    if(spawnBack<=0){spawnBack=0.22;const ps=PORES.filter(p=>p>=LEAK_X);addDrop(ps[Math.floor(Math.random()*ps.length)],Math.random()<0.5,false);}
+  }
+  for(const d of drops){
+    d.life+=dt;
+    if(d.back){const k=Math.min(1,d.life/d.max);d.x=lerp(d.x,d.tx,dt*2.2);d.y=lerp(d.y,d.ty,dt*2.2);d.r=lerp(d.r,4,dt*1.5);}
+    else{d.x+=d.vx*dt;d.y+=d.vy*dt;d.vy*=0.985;d.r+=d.grow*dt;}
+  }
+  for(let i=drops.length-1;i>=0;i--) if(drops[i].life>drops[i].max) drops.splice(i,1);
+
+  // 物質の受けわたし
+  if(step>=3){
+    spawnO2-=dt; spawnCO2-=dt; spawnNut-=dt;
+    if(spawnO2<=0){
+      spawnO2=0.35;
+      const r=rbc.filter(r=>r.x>60&&r.x<W*0.7&&r.o2>0.3)[0];
+      if(r){
+        r.o2-=0.25;
+        const top=Math.random()<0.5, px=nearestPore(r.x+30,true), c=pickCell(top,px+40);
+        const wy=top?topIn-WALL/2:botIn+WALL/2, fy=top?ZT[0]+40:ZB[1]-40;
+        pathMover('o2',[[r.x,r.y],[px,r.y],[px,wy],[px+10,fy],[c.nx,c.ny]],120,()=>{c.glow=1;});
+      }
+    }
+    if(spawnNut<=0){
+      spawnNut=0.5;
+      const n=nut.filter(n=>n.x>80&&n.x<LEAK_X)[0];
+      if(n){
+        const top=Math.random()<0.5, px=nearestPore(n.x+20,true), c=pickCell(top,px+40);
+        const wy=top?topIn-WALL/2:botIn+WALL/2, fy=top?ZT[0]+45:ZB[1]-45;
+        pathMover('nut',[[n.x,n.y],[px,n.y],[px,wy],[px+20,fy],[c.nx-20,c.ny]],90,()=>{c.glow=1;});
+        n.x=-10-rnd(0,200);
+      }
+    }
+    if(spawnCO2<=0){
+      spawnCO2=0.45;
+      const c=cells[Math.floor(Math.random()*cells.length)];
+      const px=PORES.find(q=>q>c.nx)||PORES[PORES.length-1];
+      const wy=c.top?topIn-WALL/2:botIn+WALL/2, fy=c.top?ZT[0]+50:ZB[1]-50, iy=c.top?topIn+12:botIn-12;
+      pathMover('co2',[[c.nx+15,c.ny],[px,fy],[px,wy],[px+8,iy],[W+20,iy+rnd(-10,10)]],110,null);
+    }
+  }
+  for(const m of movers) stepMover(m,dt);
+  for(let i=movers.length-1;i>=0;i--) if(movers[i].done) movers.splice(i,1);
+  if(step<3) movers.length=0;
+  if(!on) drops.length=0;
+  cells.forEach(c=>c.glow=Math.max(0,c.glow-dt*1.2));
+}
+
+// ---------- 描画 ----------
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function tag(text,x,y,opt={}){
+  if(!labels) return;
+  ctx.font=`700 ${opt.size||17}px "BIZ UDPGothic",sans-serif`;
+  const w=ctx.measureText(text).width+14;
+  if(opt.to){ctx.strokeStyle='#4d5a59';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x,y+(opt.to[1]>y?12:-12));ctx.lineTo(opt.to[0],opt.to[1]);ctx.stroke();}
+  ctx.fillStyle=opt.bg||'rgba(255,255,255,.94)';rr(x-w/2,y-13,w,26,6);ctx.fill();
+  ctx.strokeStyle=opt.line||'#9aa9a6';ctx.lineWidth=1;ctx.stroke();
+  ctx.fillStyle=opt.fg||'#1d2a2a';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x,y+1);
+}
+function mark(kind,x,y){
+  // 酸素＝○、養分＝□、二酸化炭素＝△（色と形の両方で区別）
+  const col=kind==='o2'?'#ff4d6d':kind==='nut'?'#3aa655':'#6b7280';
+  ctx.fillStyle=col;ctx.strokeStyle='rgba(255,255,255,.95)';ctx.lineWidth=1.5;ctx.beginPath();
+  if(kind==='o2') ctx.arc(x,y,5.5,0,6.28);
+  else if(kind==='nut') ctx.rect(x-5,y-5,10,10);
+  else {ctx.moveTo(x,y-7);ctx.lineTo(x+6.5,y+5);ctx.lineTo(x-6.5,y+5);ctx.closePath();}
+  ctx.fill();ctx.stroke();
+}
+function liquidBand(y0,y1,alpha,fromTop){
+  // 波打つ境界をもつ液体の帯（組織液）
+  const g=ctx.createLinearGradient(0,y0,0,y1);
+  const a1=alpha, a0=alpha*0.55;
+  if(fromTop){g.addColorStop(0,`rgba(${PL},${a0})`);g.addColorStop(1,`rgba(${PL},${a1})`);}
+  else{g.addColorStop(0,`rgba(${PL},${a1})`);g.addColorStop(1,`rgba(${PL},${a0})`);}
+  ctx.fillStyle=g;ctx.beginPath();
+  const edge=fromTop?y0:y1;
+  ctx.moveTo(0,fromTop?y1:y0);
+  for(let x=0;x<=W;x+=20) ctx.lineTo(x,edge+Math.sin(x*0.03+t*1.5)*4);
+  ctx.lineTo(W,fromTop?y1:y0);ctx.closePath();ctx.fill();
+}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#fbf8f3';ctx.fillRect(0,0,W,H);
+  // 組織液（細胞のまわりを満たす液体）
+  if(fluid>0){
+    liquidBand(10,ZT[1],0.6*fluid,true);
+    liquidBand(ZB[0],H-10,0.6*fluid,false);
+  }
+  // 細胞
+  for(const c of cells){
+    ctx.fillStyle=c.glow>0?`rgb(255,${Math.round(205-55*c.glow)},${Math.round(195-55*c.glow)})`:'#f3d9cf';
+    rr(c.x,c.y,c.w,c.h,28);ctx.fill();ctx.strokeStyle='#c99b8a';ctx.lineWidth=2;ctx.stroke();
+    ctx.fillStyle='#a8707a';ctx.beginPath();ctx.ellipse(c.nx,c.ny,16,13,0,0,6.28);ctx.fill();
+  }
+  // 血管の中：液体の血しょう
+  ctx.fillStyle=`rgb(${PL})`;ctx.fillRect(0,topIn,W,botIn-topIn);
+  // 流れのすじ（液体が右へ流れている）
+  ctx.strokeStyle='rgba(255,255,255,.55)';ctx.lineWidth=2;
+  for(let k=0;k<5;k++){
+    const yy=topIn+14+k*((botIn-topIn-28)/4);
+    const off=(t*110+k*90)%160;
+    for(let x=-160+off;x<W;x+=160){ctx.beginPath();for(let s=0;s<=60;s+=6){const px=x+s,py=yy+Math.sin((px+k*30)*0.08)*2.5;s?ctx.lineTo(px,py):ctx.moveTo(px,py);}ctx.stroke();}
+  }
+  // しみ出す液（すきまから外へ）
+  if(leak>0){
+    for(const px of PORES){
+      const out=px<LEAK_X;
+      for(const top of [true,false]){
+        const y0=top?topIn-WALL:botIn+WALL, dir=top?-1:1;
+        const len=(out?26:14)*leak*(0.85+0.15*Math.sin(t*4+px));
+        const g=ctx.createRadialGradient(px,y0,1,px,y0,len+8);
+        g.addColorStop(0,`rgba(${PL},${0.95*leak})`);g.addColorStop(1,`rgba(${PL},0)`);
+        ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(px,y0+dir*len*0.45,PW*0.9,len*0.8+4,0,0,6.28);ctx.fill();
+      }
+    }
+  }
+  for(const d of drops){
+    const k=d.life/d.max, a=d.back?0.95*(1-k*0.5):1.0*(1-k*0.8);
+    const g=ctx.createRadialGradient(d.x,d.y,0,d.x,d.y,d.r);
+    g.addColorStop(0,`rgba(${PL},${a})`);g.addColorStop(0.6,`rgba(${PL},${a*0.7})`);g.addColorStop(1,`rgba(${PL},0)`);
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,6.28);ctx.fill();
+  }
+  // 血管の壁（すきまあり）
+  ctx.fillStyle='#d98b84';
+  let x0=0;
+  for(const p of [...PORES,W+PW]){ctx.fillRect(x0,topIn-WALL,p-PW/2-x0,WALL);ctx.fillRect(x0,botIn,p-PW/2-x0,WALL);x0=p+PW/2;}
+  // 養分（血しょうにとけて運ばれる）
+  if(step>=3) for(const n of nut) mark('nut',n.x,n.y);
+  // 血小板
+  for(const p of plt){
+    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle='#9b6fb0';ctx.beginPath();
+    p.pts.forEach(([a,b],i)=>i?ctx.lineTo(a,b):ctx.moveTo(a,b));ctx.closePath();ctx.fill();ctx.restore();
+  }
+  // 赤血球
+  for(const r of rbc){
+    const k=Math.max(0,Math.min(1,r.o2));
+    ctx.fillStyle=`rgb(${Math.round(lerp(120,214,k))},${Math.round(lerp(28,49,k))},${Math.round(lerp(60,43,k))})`;
+    ctx.beginPath();ctx.ellipse(r.x,r.y,13,9,0,0,6.28);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.25)';ctx.beginPath();ctx.ellipse(r.x,r.y,6,3.5,0,0,6.28);ctx.fill();
+  }
+  // 白血球
+  for(const w of wbc){
+    ctx.fillStyle='#f3f0fa';ctx.strokeStyle='#8a7bb8';ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(w.x,w.y,17,0,6.28);ctx.fill();ctx.stroke();
+    ctx.fillStyle='#7d64b5';
+    for(const [a,b] of [[-6,-3],[2,-6],[6,3],[-2,5]]){ctx.beginPath();ctx.arc(w.x+a,w.y+b,4.2,0,6.28);ctx.fill();}
+  }
+  // 移動する物質
+  for(const m of movers) mark(m.kind,m.x,m.y);
+  // ラベル
+  const r0=rbc.reduce((a,b)=>Math.abs(b.x-W*0.30)<Math.abs(a.x-W*0.30)?b:a);
+  const w0=wbc.reduce((a,b)=>Math.abs(b.x-W*0.55)<Math.abs(a.x-W*0.55)?b:a);
+  const p0=plt.reduce((a,b)=>Math.abs(b.x-W*0.80)<Math.abs(a.x-W*0.80)?b:a);
+  if(fluid<0.3||!labels){}
+  tag('赤血球',r0.x,topIn-40,{size:15,to:[r0.x,r0.y-9]});
+  tag('白血球',w0.x,botIn+40,{size:15,to:[w0.x,w0.y+17]});
+  tag('血小板',p0.x,topIn-40,{size:15,to:[p0.x,p0.y-5]});
+  tag('血しょう（液体）',W*0.13,VY+1,{size:15,bg:'rgba(255,250,228,.95)',line:'#d3ad3a'});
+  tag('細胞',cells[2].x+34,cells[2].y+20,{size:15});
+  tag('細胞',cells[9].x+34,cells[9].y+cells[9].h-20,{size:15});
+  if(fluid>0.3){
+    tag('組織液',W*0.40,ZT[0]+14,{bg:'rgba(255,244,200,.97)',line:'#d3ad3a'});
+    tag('組織液',W*0.40,ZB[1]-14,{bg:'rgba(255,244,200,.97)',line:'#d3ad3a'});
+  }
+  if(leak>0.5&&labels){
+    ctx.font='700 14px "BIZ UDPGothic",sans-serif';ctx.fillStyle='#8a6a10';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('しみ出す ↑',PORES[1],ZT[1]-58);ctx.fillText('もどる ↓',PORES[5],ZT[1]-58);
+  }
+  if(labels){
+    ctx.font='700 14px "BIZ UDPGothic",sans-serif';ctx.fillStyle='#7a3b37';ctx.textBaseline='middle';
+    ctx.textAlign='left';ctx.fillText('← 動脈から',8,botIn+24);
+    ctx.textAlign='right';ctx.fillText('静脈へ →',W-8,botIn+24);
+  }
+}
+
+// ---------- 操作 ----------
+const CAP={
+ 1:'<b>毛細血管</b>の中を、液体の<b>血しょう</b>が流れている。<b>赤血球・白血球・血小板</b>は、血しょうにのって運ばれる。',
+ 2:'液体の血しょうの一部が、毛細血管の壁のすきまから<b>しみ出して</b>、細胞のまわりを満たす。これが<b>組織液</b>。しみ出した液の多くは、また血管にもどる。赤血球や血小板は外へ出ない。',
+ 3:'組織液を通して、血液は細胞に<b>酸素（○）</b>や<b>養分（□）</b>をわたし、細胞からは<b>二酸化炭素（△）</b>などを受け取る。酸素をわたした赤血球は、色が暗くなっていく。'
+};
+const cap=document.getElementById('cap');
+function setStep(s){step=s;document.querySelectorAll('[data-step]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.step===s)));cap.innerHTML=CAP[s];}
+document.querySelectorAll('[data-step]').forEach(b=>b.addEventListener('click',()=>setStep(+b.dataset.step)));
+const play=document.getElementById('play');
+function syncPlay(){play.textContent=running?'⏸ 一時停止':'▶ 再生';play.setAttribute('aria-pressed',String(!running));}
+play.addEventListener('click',()=>{running=!running;syncPlay();});
+document.getElementById('spd').addEventListener('input',e=>speed=+e.target.value);
+document.getElementById('lbl').addEventListener('change',e=>labels=e.target.checked);
+// 説明・凡例のオンオフ（○□△が何かを考えさせたいときはオフ）
+document.getElementById('exp').addEventListener('change',e=>{cap.hidden=!e.target.checked;document.getElementById('legend').hidden=!e.target.checked;});
+
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(0.05,(now-last)/1000);last=now;
+  if(running) update(dt*speed);
+  draw();requestAnimationFrame(loop);
+}
+fit();setStep(1);syncPlay();
+for(let i=0;i<40;i++) update(0.03);
+requestAnimationFrame(loop);
+})();
+</script>
+
+</body></html>
